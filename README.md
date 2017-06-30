@@ -103,7 +103,7 @@ select average(containerMetricCpuPercentage) from PcfFirehoseEvent facet contain
 select count(*) from  PcfFirehoseEvent where FirehoseEventType = 'HttpStartStop' facet httpStatusCode
 ```
 
-Events from all PCF deployments end up in **"PcfFirehoseEvent"**. If you collect events from multiple PCF environments you can use **pcfApiUrl** to distunguish between events from different PCF deploment (either in a **WHERE** clause or by **FACET**ing the events by **pcfApiUrl**).
+Events from all PCF deployments end up in **"PcfFirehoseEvent"**. If you collect events from multiple PCF environments you can use **pcfDomain** and **pcfInstanceIp** metrics to distunguish between events from different PCF deploments (either in a **WHERE** clause or by **FACET**ing the events by **pcfDomain**).
 
 **Note:**	Please contact New Relic to obtain the pre-built dashboards for the nozzle.
 
