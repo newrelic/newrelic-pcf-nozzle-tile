@@ -1,0 +1,23 @@
+---
+applications:
+- name: newrelic-firehose-nozzle
+  memory: 512M
+  instances: 2
+  health-check-type: none
+  host: cf-firehose-nozzle-${random-word}
+  # buildpack: https://github.com/cloudfoundry/go-buildpack.git
+  # command: go run main.go
+  env:
+    # GOPACKAGENAME: main.go
+    NOZZLE_USERNAME: opentsdb-firehose-nozzle
+    NOZZLE_PASSWORD: <password>
+    NOZZLE_UAA_URL: https://uaa.<your-domain-name>
+    NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.<your-domain-name>:<ssl-port>
+    NOZZLE_FIREHOSE_SUBSCRIPTION_ID: newrelic.firehose
+    NOZZLE_SKIP_SSL: true
+    # NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,LogMessage,ContainerMetric,HttpStartStop
+    NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,ContainerMetric
+    NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
+    NEWRELIC_INSIGHTS_RPM_ID: <newrelic-rpm-id>
+    NEWRELIC_INSIGHTS_INSERT_KEY: <insights-insert-key>
+
