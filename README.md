@@ -105,7 +105,7 @@ select count(*) from  PcfFirehoseEvent where FirehoseEventType = 'HttpStartStop'
 
 Events from all PCF deployments end up in **"PcfFirehoseEvent"**. If you collect events from multiple PCF environments you can use **pcfApiUrl** to distunguish between events from different PCF deploment (either in a **WHERE** clause or by **FACET**ing the events by **pcfApiUrl**).
 
-**Note:**	Please contact your New Relic to obtain the pre-built dashboards for the nozzle.
+**Note:**	Please contact New Relic to obtain the pre-built dashboards for the nozzle.
 
 
 ## **Compatibility**
