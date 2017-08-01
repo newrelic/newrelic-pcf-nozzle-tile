@@ -110,7 +110,7 @@ Events from all PCF deployments end up in **"PcfFirehoseEvent"**. If you collect
 
 ## **Compatibility**
 
-This project has been tested and is compatible with PCF **1.8**, **1.9**, and **1.10**.
+This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10**, and **1.11**.
 
 
 
