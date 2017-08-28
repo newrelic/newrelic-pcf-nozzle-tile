@@ -29,6 +29,9 @@ When pushed as an application, you need to have a [manifest][d] with the followi
 	    NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
 	    NEWRELIC_INSIGHTS_RPM_ID: <newrelic-rpm-account-id>
 	    NEWRELIC_INSIGHTS_INSERT_KEY: <insights-insert-key>
+        # http_proxy: <proxy server address:port>
+        # no_proxy:  <comma separated list of servers to bypass proxy>
+
 
 **Note:**	In order to automate the **"cf push"** deployment process as much as possible, the project contains a Cloud Foundry [manifest][d] file. Update the manifest as required for your environment. Make sure to assign proper values to all required environment variables. Any property values within angle brackets need to be changed to correct values for your environment.
 
@@ -108,9 +111,23 @@ Events from all PCF deployments end up in **"PcfFirehoseEvent"**. If you collect
 **Note:**	Please contact New Relic to obtain the pre-built dashboards for the nozzle.
 
 
+## **Using Proxy**
+
+If you need to use proxy server in your environment, please use the following 2 environment variables:
+    * **http_proxy**
+    * **no_proxy**
+
+If you use the tile, during the setup of the tile in Ops Mgr you can specify values for these properties. If you use the app version of the nozzle (running by cf push) then uncomment the last 2 environment variables at the end of manifest.yml in the **env** section.
+
+**Notes**   
+    * These environment variable must be in lower case.
+    * You need to set **http_proxy** to your proxy server address and port (i.e. http://my_proxyserver:my_proxy_port)
+    * You need to set **no_proxy** to any address that you need to bypass. In order for the nozzle to work with proxies, you must bypass the doppler server (i.e. doppler.my_pcf_domain.com). Make sure you do not include the protocol and the port to no_proxy, just add the server name.
+
+
 ## **Compatibility**
 
-This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10**, and **1.11**.
+This project has been tested and is compatible with PCF **1.8**, **1.9**, and **1.10**.
 
 
 
