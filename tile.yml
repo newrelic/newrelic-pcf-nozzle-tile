@@ -29,7 +29,7 @@ packages:
   label: New Relic Firehose Nozzle
   manifest:
     buildpack: binary_buildpack
-    path: ../newrelic-firehose-nozzle
+    path: ../newrelic-pcf-nozzle-tile
     command: ./nr-nozzle
     health-check-type: none
     instances: 2
@@ -120,6 +120,16 @@ forms:
     type: string
     label: Selected Events
     description: Selected Events (i.e. ValueMetric,CounterEvent,ContainerMetric)
+  - name: http_proxy
+    type: string
+    optional: true
+    label: proxy server address and port
+    description: specify the the proxy server address and port (i.e. http://my_proxy_server:proxy_port)
+  - name: no_proxy
+    type: string
+    optional: true
+    label: proxy bypass
+    description: specify any addresses to bypass proxy. only the server name. do not specify any protocol nor port
 
 
 

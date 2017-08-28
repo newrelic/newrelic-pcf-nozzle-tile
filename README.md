@@ -41,7 +41,7 @@ When pushed as an application, you need to have a [manifest][d] with the followi
 
 ## **Import as a tile in Ops Mgr**
 
-Import the tile from **"releases"** folder (i.e. **"releases/nr-firehose-nozzle-0.0.2.pivotal"**) to Ops Mgr. Once imported, install the tile and follow the steps below to configure the tile.
+Import the latest version the tile from **"releases"** folder (i.e. **"releases/nr-firehose-nozzle-0.0.3.pivotal"**) to Ops Mgr. Once imported, install the tile and follow the steps below to configure the tile.
 
 When installed as a tile in Ops Mgr, you need to setup the following properties in the tile settings:
 
