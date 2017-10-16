@@ -47,7 +47,7 @@ When installed as a tile in Ops Mgr, you need to setup the following properties 
 
 Under **New Relic Firehose Nozzle tile -> Settings -> Assign AZs and Networks:**
 
-    set Network to "ert"
+    select your desired notwork(s)
 
 Under **New Relic Firehose Nozzle tile -> Settings -> New Relic Firehose Nozzle** set the following fields:
 
@@ -73,15 +73,15 @@ Following properties can be obained either from Ops Mgr Elastic Runtime or from 
 <pre>
     * User Name: Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity
     * Password: Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password
-    * UAA Url: https://uaa.<your-pcf-domain>
-    * Traffic Controller Url: wss://doppler.<pcf-domain>:<ssl-port>
+    * UAA Url: https://uaa.<your-pcf-domain>  --  "cf curl /v2/info"
+    * Traffic Controller Url: wss://doppler.<pcf-domain>:<ssl-port>  --  "cf curl /v2/info"
     * Firehose Subscription Id: A unique Id (i.e. newrelic.firehose)
     * Skip SSL: If SSL is disabled this is value should be set to "true"
     * Selected Events: A comma-separated list of any of the following event types:
     	- ValueMetric
     	- CounterEvent
     	- ContainerMetric
-    	- HttpStopStart
+    	- HttpStartStop
     	- LogMessage
     * Insights Base Url: https://insights-collector.newrelic.com/<API-Version> (API version is currently v1)
     * Insights RPM Id: The first number that you find in your RPM Url (i.e. https://insights.newrelic.com/accounts/<rpm-id>/...)
