@@ -2,7 +2,7 @@
 
 This application is a nozzle which forwards metrics from the [PCF Loggregator][a] in [Pivotal Cloud Foundry][b] into [New Relic Insights][c] for visualization.
 
-The application could either be pushed as a regular PCF application with **"cf push"**, or you could use the tile version of it and install it in Ops Mgr.
+The nozzle could either be pushed as a regular PCF application with **"cf push"**, or you could use the tile version of it and install it in Ops Mgr.
 
 
 
@@ -41,7 +41,7 @@ When pushed as an application, you need to have a [manifest][d] with the followi
 
 ## **Import as a tile in Ops Mgr**
 
-Import the latest version the tile from **"releases"** folder (i.e. **"releases/nr-firehose-nozzle-0.0.3.pivotal"**) to Ops Mgr. Once imported, install the tile and follow the steps below to configure the tile.
+Import the latest version the tile from **"releases"** folder (i.e. **"releases/nr-firehose-nozzle-0.8.0.pivotal"**) to Ops Mgr. Once imported, install the tile and follow the steps below to configure the tile.
 
 When installed as a tile in Ops Mgr, you need to setup the following properties in the tile settings:
 
