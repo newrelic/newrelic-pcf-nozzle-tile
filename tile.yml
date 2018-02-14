@@ -135,14 +135,17 @@ forms:
 
   - name: nozzle_excluded_deployments
     type: string
+    optional: true
     label: Excluded Deployments
     description: Comma-sparated list of "Deployments" to exclude from the Firehose events
   - name: nozzle_excluded_origins
     type: string
+    optional: true
     label: Excluded Origins
     description: Comma-sparated list of "Origins" to exclude from the Firehose events
   - name: nozzle_excluded_jobs
     type: string
+    optional: true
     label: Excluded Jobs
     description: Comma-sparated list of "Jobs" to exclude from the Firehose events
 
