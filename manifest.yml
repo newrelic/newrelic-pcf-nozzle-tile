@@ -2,7 +2,7 @@
 applications:
 - name: newrelic-firehose-nozzle
   memory: 512M
-  instances: 2
+  instances: 3
   health-check-type: none
   host: cf-firehose-nozzle-${random-word}
   # buildpack: https://github.com/cloudfoundry/go-buildpack.git
@@ -20,4 +20,15 @@ applications:
     NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
     NEWRELIC_INSIGHTS_RPM_ID: <newrelic-rpm-id>
     NEWRELIC_INSIGHTS_INSERT_KEY: <insights-insert-key>
+
+    # NOZZLE_EXCLUDED_DEPLOYMENTS: 
+    # NOZZLE_EXCLUDED_ORIGINS: 
+    # NOZZLE_EXCLUDED_JOBS: 
+
+    # NOZZLE_ADMIN_USER: 
+    # NOZZLE_ADMIN_PASSWORD: 
+    # NOZZLE_APP_DETAIL_INTERVAL: 1
+
+    # http_proxy: <proxy server address:port>
+    # no_proxy:  <comma separated list of servers to bypass proxy>
 

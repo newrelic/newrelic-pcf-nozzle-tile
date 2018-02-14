@@ -25,6 +25,8 @@ import (
 	// "github.com/cf-platform-eng/api"
 	"github.com/cf-platform-eng/config"
 	"github.com/cf-platform-eng/uaa"
+
+    "github.com/cloudfoundry-community/go-cfclient"
 )
 
 const (
@@ -39,15 +41,16 @@ type NewRelicConfig struct {
 	INSIGHTS_BASE_URL				string
 	INSIGHTS_RPM_ID					string
 	INSIGHTS_INSERT_KEY				string
+}
 
-	// APIURL							string
-	// UAAURL							string
-	// SkipSSL							bool
-	// Username						string
-	// Password						string
-	// TrafficControllerURL			string
-	// FirehoseSubscriptionID			string
-	// SelectedEvents []events.Envelope_EventType
+type PcfExtConfig struct {
+	EXCLUDED_DEPLOYMENTS string
+	EXCLUDED_ORIGINS     string
+	EXCLUDED_JOBS        string
+
+	ADMIN_USER           string
+	ADMIN_PASSWORD       string
+	APP_DETAIL_INTERVAL  string
 }
 
 type NREventType map[string]interface{}
@@ -61,45 +64,103 @@ type PcfCounters struct {
 	errors 					uint64
 }
 
-var NREventsMap = make([]NREventType, 0)
+type AppInfoType struct {
+	timestamp int64
+	name string
+	guid string
+	createdTime string
+	lastUpdated string
+	instances int
+	stackGuid string
+	state string
+	diego bool
+	sshEnabled bool
+	spaceName string
+	spaceGuid string
+	orgName string
+	orgGuid string
+}
+
 var ee uint64
 var pcfCounters PcfCounters
 var mem runtime.MemStats
 var pcfInstanceIp string
 var pcfDomain string
+var insightsClient http.Client
+
+var NREventsMap      = make([]NREventType, 0)
+var appInfo          = map[string]*AppInfoType{} // caching app extended info (app/name/org names, etc.)
+var nozzleInstanceId = os.Getenv("CF_INSTANCE_INDEX")
+var logger           = log.New(os.Stdout, ">>> ", 0)
+
+
 func main() {
-	fmt.Println("hello world!")
+	logger.Println("hello world!")
 
-	logger := log.New(os.Stdout, ">>> ", 0)
-
+	// ------------------------------------------------------------------------
 	pcfConfig, err := config.Parse()
 	if err != nil {
 		panic(err)
 	}
-	logger.Printf("pcfConfig: %v\n", pcfConfig)
-
-
+	// logger.Printf("pcfConfig: %v\n", pcfConfig)
+	// ------------------------------------------------------------------------
 	nrConfig := NewRelicConfig{}
 	if err := envconfig.Process("newrelic", &nrConfig); err != nil {
 		panic(err)
 	}
-	logger.Printf("nrConfig: %v\n", nrConfig)
+	// logger.Printf("nrConfig: %v\n", nrConfig)
+	// ------------------------------------------------------------------------
+	pcfExtendedConfig := PcfExtConfig{}
+	if err := envconfig.Process("NOZZLE", &pcfExtendedConfig); err != nil {
+		panic(err)
+	}
+	// logger.Printf("pcfExtendedConfig: %v\n", pcfExtendedConfig)
+	// logger.Printf("EXCLUDED_ORIGINS: %s\n", pcfExtendedConfig.EXCLUDED_ORIGINS)
+	// logger.Printf("EXCLUDED_JOBS: %s\n", pcfExtendedConfig.EXCLUDED_JOBS)
+	logger.Printf("ADMIN_USER: %s\n", pcfExtendedConfig.ADMIN_USER)
+	// logger.Printf("ADMIN_PASSWORD: %s\n", pcfExtendedConfig.ADMIN_PASSWORD)
+	logger.Printf("APP_DETAIL_INTERVAL: %s\n", pcfExtendedConfig.APP_DETAIL_INTERVAL)
+	deploymentsFilter := splitString(pcfExtendedConfig.EXCLUDED_DEPLOYMENTS, ",")
+	originsFilter := splitString(pcfExtendedConfig.EXCLUDED_ORIGINS, ",")
+	jobsFilter := splitString(pcfExtendedConfig.EXCLUDED_JOBS, ",")
+	logger.Println("origins filter: ", originsFilter)
+	logger.Println("jobs filter: ", jobsFilter)
+
+	// ------------------------------------------------------------------------
+
+	insightsClient = http.Client{}
 
 	// ###########################################################################
 
-	url := fmt.Sprintf("%s/accounts/%s/events", nrConfig.INSIGHTS_BASE_URL, nrConfig.INSIGHTS_RPM_ID)
+	insightsUrl := fmt.Sprintf("%s/accounts/%s/events", nrConfig.INSIGHTS_BASE_URL, nrConfig.INSIGHTS_RPM_ID)
 	insertKey := nrConfig.INSIGHTS_INSERT_KEY
-	logger.Printf("insights url: %v\n", url)
-	logger.Printf("insertkey: %v\n", insertKey)
+	// logger.Printf("insights url: %v\n", insightsUrl)
+	// logger.Printf("insertkey: %v\n", insertKey)
 	logger.Printf("pcfConfig.SkipSSL: %v\n", pcfConfig.SkipSSL)
 	//logger.Printf("pcfConfig.APIURL: %v\n", pcfConfig.APIURL)
 	logger.Printf("pcfConfig.UAAURL: %v\n", pcfConfig.UAAURL)
 	logger.Printf("pcfConfig.Username: %v\n", pcfConfig.Username)
-	logger.Printf("pcfConfig.Password: %v\n", pcfConfig.Password)
+	// logger.Printf("pcfConfig.Password: %v\n", pcfConfig.Password)
 	pcfInstanceIp = os.Getenv("CF_INSTANCE_IP")
 	logger.Printf("CF_INSTANCE_IP: %v\n", pcfInstanceIp)
 	pcfDomain = strings.SplitN(parseUrl(pcfConfig.UAAURL), ".", 2)[1]
 	logger.Printf("PCF Domain: %v\n", pcfDomain)
+	logger.Printf("pcfConfig.SelectedEvents: %v\n", pcfConfig.SelectedEvents)
+
+
+	includedEventTypes := map[events.Envelope_EventType]bool{
+		events.Envelope_HttpStartStop:   false,
+		events.Envelope_LogMessage:      false,
+		events.Envelope_ValueMetric:     false,
+		events.Envelope_CounterEvent:    false,
+		events.Envelope_Error:           false,
+		events.Envelope_ContainerMetric: false,
+	}
+
+	for _, selectedEventType := range pcfConfig.SelectedEvents {
+		includedEventTypes[selectedEventType] = true
+	}
+
 
 	// authenticate client
 	var token, trafficControllerURL string
@@ -120,8 +181,24 @@ func main() {
 	} else {
 		logger.Fatal(errors.New("Either of NOZZLE_API_URL or NOZZLE_UAA_URL are required"))
 	}
+	// logger.Printf("token: %v\n", token)
 
-	logger.Printf("token: %v\n", token)
+	// prepare to collect application details for ContainerEvent (app, space, org names, etc.)
+	c := &cfclient.Config{
+		ApiAddress:   "https://api." + pcfDomain,
+		Username:     pcfExtendedConfig.ADMIN_USER,
+		Password:     pcfExtendedConfig.ADMIN_PASSWORD,
+		SkipSslValidation: pcfConfig.SkipSSL,
+	}
+	client, _ := cfclient.NewClient(c)
+	getAppList(client) // initial call to get list of current apps and their detail info
+	// extended org/space/app data
+	appDetailsInterval, err := strconv.Atoi(pcfExtendedConfig.APP_DETAIL_INTERVAL)
+	if err!=nil {
+		panic(err)
+	}
+	getAppInfo(client, appDetailsInterval) // use a go routine to update app info periodically
+
 
 	// consume PCF logs
 	consumer := consumer.New(pcfConfig.TrafficControllerURL, &tls.Config{
@@ -130,10 +207,8 @@ func main() {
 
 	evs, errors := consumer.Firehose(pcfConfig.FirehoseSubscriptionID, token)
 
-	fmt.Printf("events and errors are %+v and %+v\n", evs, errors)
-
 	i := 0
-	fmt.Printf("about to print events\n")
+	logger.Printf("starting to capture firehose events...\n")
 	for {
 		i++
 		//nrEvent := make(map[string]interface{})
@@ -141,45 +216,114 @@ func main() {
 
 		select {
 		case ev := <-evs:
-			// fmt.Printf("event %d: %v\n", i, ev)
-			if err := transformEvent(ev, nrEvent); err != nil {
-				panic(err)
+			// logger.Printf("event %d: %v\n", i, ev)
+			if (includedEventTypes[ev.GetEventType()] && notFiltered(deploymentsFilter, ev.GetDeployment()) && notFiltered(originsFilter, ev.GetOrigin()) && notFiltered(jobsFilter, ev.GetJob())) {
+				if err := transformEvent(ev, nrEvent); err != nil {
+					panic(err)
+				}
+				//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
+				pushToInsights(nrEvent, insightsUrl, insertKey)
+			} else {
+				//logger.Printf("filtered: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
 			}
 
-			pushToInsights(nrEvent, url, insertKey)
-
 		case ev := <-errors:
-			fmt.Printf("%d: ev is %+s\n", i, ev.Error())
+			logger.Printf("%d: ev is %+s\n", i, ev.Error())
 			nrEvent["error"] = ev.Error()
 		}
 	}
 }
 
-func pushToInsights(nrEvent map[string]interface{}, url string, insertKey string) {
+func notFiltered(arr []string, str string) bool {
+	for _, s := range arr {
+		if s == str {
+			return false
+		}
+	}
+	return true
+}
+
+func getAppInfo(client *cfclient.Client, appDetailsInterval int) {
+	logger.Printf("getAppInfo");
+	ticker := time.NewTicker(time.Duration(int64(appDetailsInterval)) * time.Minute)
+	quit := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				getAppList(client)
+
+			case <-quit:
+				logger.Print("quit \r\n")
+				ticker.Stop()
+			}
+		}
+	}()
+}
+
+func getAppList(client *cfclient.Client) {
+
+	apps, _ := client.ListApps()
+
+	eventCount := len(apps)
+	logger.Println("App Count: ", eventCount)
+
+	tempAppInfo := map[string]*AppInfoType{}
+	for _, app := range apps {
+		addAppDetails(tempAppInfo, app)
+		// logger.Printf(">>>> index: %3d: name: %-45s\n", idx+1, tempAppInfo[app.Guid].name)
+	}
+	appInfo = tempAppInfo
+	tempAppInfo = nil
+
+}
+
+func addAppDetails(appInfo map[string]*AppInfoType, app cfclient.App) {
+
+	appInfo[app.Guid] = &AppInfoType {
+		time.Now().UnixNano() / 1000000,
+		app.Name,
+		app.Guid,
+		app.CreatedAt,
+		app.UpdatedAt,
+		app.Instances,
+		app.StackGuid,
+		app.State,
+		app.Diego,
+		app.EnableSSH,
+		app.SpaceData.Entity.Name,
+		app.SpaceData.Entity.Guid,
+		app.SpaceData.Entity.OrgData.Entity.Name,
+		app.SpaceData.Entity.OrgData.Entity.Guid,
+	}
+}
+
+func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insertKey string) {
 
 //ee = ee + 1
 //checkMem(ee)
 	NREventsMap = append(NREventsMap, nrEvent)
 //checkMem(ee)
-	// fmt.Println(nrEvent)
+	// logger.Println(nrEvent)
 
 	if(len(NREventsMap) >= insightsMaxEvents) {
 		jsonStr, err := json.Marshal(NREventsMap)
 		if err != nil {
-			fmt.Println("error:", err)
+			logger.Println("error:", err)
 		}
-		// fmt.Println("jsonstr:", string(jsonStr)) // TEMP
-		fmt.Printf("Value Metrics: %d, Counter Events: %d, Container Events: %d, Http StartStop Events: %d, Log Messages: %d, Errors: %d\n",
-			pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents, 
+		// logger.Println("jsonstr:", string(jsonStr)) // TEMP
+		logger.Printf("Nozzle Instance: %3s -- Value Metrics: %d, Counter Events: %d, Container Events: %d, Http StartStop Events: %d, Log Messages: %d, Errors: %d\n",
+			nozzleInstanceId, pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents, 
 			pcfCounters.httpStartStopEvents, pcfCounters.logMessageEvents, pcfCounters.errors)
 
 
-	    req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	    req, err := http.NewRequest("POST", insightsUrl, bytes.NewBuffer(jsonStr))
 	    req.Header.Set("X-Insert-Key", insertKey)
 	    req.Header.Set("Content-Type", "application/json")
 
-	    client := &http.Client{}
-	    resp, err := client.Do(req)
+	    // client := &http.Client{}
+	    resp, err := insightsClient.Do(req)
 	    if err != nil {
 	        panic(err)
 	    }
@@ -205,6 +349,7 @@ func transformEvent(cfEvent *events.Envelope, nrEvent map[string]interface{}) er
 		nrEvent["pcfDomain"] = pcfDomain
 	}
 	nrEvent["deployment"] = cfEvent.GetDeployment()
+	nrEvent["nozzleInstanceId"] = nozzleInstanceId
 	nrEvent["job"] = cfEvent.GetJob()
 	nrEvent["index"] = cfEvent.GetIndex()
 	nrEvent["ip"] = cfEvent.GetIp()
@@ -289,7 +434,23 @@ func transformContainerMetric(cfEvent *events.Envelope, nrEvent map[string]inter
 	cm := cfEvent.ContainerMetric
 	prefix := "containerMetric"
 	if cm.ApplicationId != nil {
-		nrEvent[prefix+"ApplicationId"] = cm.GetApplicationId()
+		appGuid := cm.GetApplicationId()
+		nrEvent[prefix+"ApplicationId"] = appGuid //cm.GetApplicationId()
+
+		nrEvent["appInfoUpdated"] = appInfo[appGuid].timestamp
+		nrEvent["appName"] = appInfo[appGuid].name
+		nrEvent["appGuid"] = appInfo[appGuid].guid
+		nrEvent["appCreated"] = appInfo[appGuid].createdTime
+		nrEvent["appLastUpdated"] = appInfo[appGuid].lastUpdated
+		nrEvent["appInstances"] = strconv.FormatInt(int64(appInfo[appGuid].instances), 10)
+		nrEvent["appStackGuid"] = appInfo[appGuid].stackGuid
+		nrEvent["appState"] = appInfo[appGuid].state
+		nrEvent["diegoContainer"] = strconv.FormatBool(appInfo[appGuid].diego)
+		nrEvent["appSshEnabled"] = strconv.FormatBool(appInfo[appGuid].sshEnabled)
+		nrEvent["appSpaceName"] = appInfo[appGuid].spaceName
+		nrEvent["appSpaceGuid"] = appInfo[appGuid].spaceGuid
+		nrEvent["appOrgName"] = appInfo[appGuid].orgName
+		nrEvent["appOrgGuid"] = appInfo[appGuid].orgGuid
 	}
 	if cm.InstanceIndex != nil {
 		nrEvent[prefix+"InstanceIndex"] = cm.GetInstanceIndex()
@@ -407,5 +568,18 @@ func parseUrl(uaaUrl string) string {
   }
 
   return u.Host
+}
+
+func splitString(value string, separator string) []string {
+
+	filters := []string{}
+	if value == "" {
+		filters = nil // no filter set
+	} else {
+		for _, envValueSplit := range strings.Split(value, separator) {
+			filters = append(filters, strings.TrimSpace(envValueSplit))
+		}
+	}
+	return filters
 }
 

@@ -2,7 +2,7 @@
 
 This application is a nozzle which forwards metrics from the [PCF Loggregator][a] in [Pivotal Cloud Foundry][b] into [New Relic Insights][c] for visualization.
 
-The nozzle could either be pushed as a regular PCF application with **"cf push"**, or you could use the tile version of it and install it in Ops Mgr.
+The application could either be pushed as a regular PCF application with **"cf push"**, or you could use the tile version of it and install it in Ops Mgr.
 
 
 
@@ -41,13 +41,13 @@ When pushed as an application, you need to have a [manifest][d] with the followi
 
 ## **Import as a tile in Ops Mgr**
 
-Import the latest version the tile from **"releases"** folder (i.e. **"releases/nr-firehose-nozzle-0.8.0.pivotal"**) to Ops Mgr. Once imported, install the tile and follow the steps below to configure the tile.
+Import the tile from **"releases"** folder (i.e. **"releases/nr-firehose-nozzle-0.0.8.pivotal"**) to Ops Mgr. Once imported, install the tile and follow the steps below to configure the tile.
 
-When installed as a tile in Ops Mgr, you need to setup the following properties in the tile settings:
+When installed as a tile in Ops Mgr, **"click on the firehose nozzle tile"** to access the setup, and enter the following properties in the tile settings:
 
 Under **New Relic Firehose Nozzle tile -> Settings -> Assign AZs and Networks:**
 
-    select your desired notwork(s)
+    select your desired networks.
 
 Under **New Relic Firehose Nozzle tile -> Settings -> New Relic Firehose Nozzle** set the following fields:
 
@@ -61,6 +61,9 @@ Under **New Relic Firehose Nozzle tile -> Settings -> New Relic Firehose Nozzle*
     Traffic Controller Url: Traffic Controller Url of your PCF deployment
     Firehose Subscription Id: Unique Subscription Identifier (i.e. newrelic.firehose)
     Selected Events: Comma-separated List of event types
+    if proxy is used in your environment:
+    http_proxy: <proxy server address:port>
+    no_proxy: <comma separated list of servers to bypass proxy>
 
 
 Once all this information is entered, go back to **"Installation Dashboard"** and click the big blue button on top right to **"Apply Changes"**.
@@ -71,13 +74,13 @@ Once all this information is entered, go back to **"Installation Dashboard"** an
 
 Following properties can be obained either from Ops Mgr Elastic Runtime or from Insights:
 <pre>
-    * User Name: Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity
-    * Password: Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password
+    * User Name: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity"
+    * Password: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password"
     * UAA Url: https://uaa.<your-pcf-domain>  --  "cf curl /v2/info"
     * Traffic Controller Url: wss://doppler.<pcf-domain>:<ssl-port>  --  "cf curl /v2/info"
     * Firehose Subscription Id: A unique Id (i.e. newrelic.firehose)
     * Skip SSL: If SSL is disabled this is value should be set to "true"
-    * Selected Events: A comma-separated list of any of the following event types:
+    * Selected Events: A comma-separated list of any of the following firehose event types:
     	- ValueMetric
     	- CounterEvent
     	- ContainerMetric
@@ -85,7 +88,7 @@ Following properties can be obained either from Ops Mgr Elastic Runtime or from 
     	- LogMessage
     * Insights Base Url: https://insights-collector.newrelic.com/<API-Version> (API version is currently v1)
     * Insights RPM Id: The first number that you find in your RPM Url (i.e. https://insights.newrelic.com/accounts/<rpm-id>/...)
-    * Insights Insert Key: An "Insert Key" from https://insights.newrelic.com/accounts/<rpm-id>/manage/api_keys. You may need to create an "Isert Key" if one does not exist already, or is being used for other purposes.
+    * Insights Insert Key: An "Insert Key" from https://insights.newrelic.com/accounts/<rpm-id>/manage/api_keys. In the UI you can go to "New Relic Insights -> Manage Data -> Api Keys" to create an "Insert Key" if one does not exist already, or if you'd like to create a fresh insert key specifically for this purpose.
 </pre>
 
 
@@ -109,6 +112,11 @@ select count(*) from  PcfFirehoseEvent where FirehoseEventType = 'HttpStartStop'
 Events from all PCF deployments end up in **"PcfFirehoseEvent"**. If you collect events from multiple PCF environments you can use **pcfDomain** and **pcfInstanceIp** metrics to distunguish between events from different PCF deploments (either in a **WHERE** clause or by **FACET**ing the events by **pcfDomain**).
 
 **Note:**	Please contact New Relic to obtain the pre-built dashboards for the nozzle.
+
+
+## **Insights Dashboards**
+
+Please contact your New Relic representative to import pre-built nozzle dashboards to your New Relic account.
 
 
 ## **Using Proxy**
