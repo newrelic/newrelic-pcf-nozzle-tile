@@ -151,7 +151,7 @@ If you use the tile, during the setup of the tile in Ops Mgr you can specify val
 
 ## **Compatibility**
 
-This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10**, **1.11**, and **1.12**.
+This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10**, **1.11**, **1.12**, and **2.0**.
 
 
 

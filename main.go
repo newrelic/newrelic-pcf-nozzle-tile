@@ -125,7 +125,9 @@ func main() {
 	jobsFilter := splitString(pcfExtendedConfig.EXCLUDED_JOBS, ",")
 	logger.Println("origins filter: ", originsFilter)
 	logger.Println("jobs filter: ", jobsFilter)
-
+//---------------------------------
+logger.Printf("%d -- %d -- %d \n", len(deploymentsFilter), len(originsFilter), len(jobsFilter))
+//---------------------------------
 	// ------------------------------------------------------------------------
 
 	insightsClient = http.Client{}
@@ -186,8 +188,10 @@ func main() {
 	// prepare to collect application details for ContainerEvent (app, space, org names, etc.)
 	c := &cfclient.Config{
 		ApiAddress:   "https://api." + pcfDomain,
-		Username:     pcfExtendedConfig.ADMIN_USER,
-		Password:     pcfExtendedConfig.ADMIN_PASSWORD,
+		// Username:     pcfExtendedConfig.ADMIN_USER,
+		// Password:     pcfExtendedConfig.ADMIN_PASSWORD,
+		Username:     pcfConfig.Username,
+		Password:     pcfConfig.Password,
 		SkipSslValidation: pcfConfig.SkipSSL,
 	}
 	client, _ := cfclient.NewClient(c)
