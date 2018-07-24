@@ -1,6 +1,7 @@
 ---
 # The high-level description of your tile.
 # Replace these properties with real values.
+# last updated: 2018-06-19
 #
 name: nr-firehose-nozzle
 icon_file: resources/images/nr-square-black-256x256.png
@@ -75,8 +76,14 @@ packages:
 forms:
 - name: newrelic-firehose-nozzle-properties
   label: New Relic Firehose Nozzle
-  description: used to feed PCF log events and metrics to New Relic insights 
+  description: Used to feed PCF log events and metrics to New Relic insights 
   properties:
+  - name: nozzle_version
+    type: string
+    label: Nozzle Version
+    default: v1.0.7
+    description: Nozzle Tile Version
+    configurable: false
   - name: newrelic_insights_base_url
     type: string
     default: https://insights-collector.newrelic.com/v1
@@ -101,7 +108,7 @@ forms:
     description: Instances of the Nozzle running in PCF
     constraints:
       min: 1
-      max: 6
+      max: 20
 
   #   type: string
   #   label: API URL
@@ -133,22 +140,6 @@ forms:
     label: Selected Events
     description: Selected Events (i.e. ValueMetric,CounterEvent,ContainerMetric)
 
-  - name: nozzle_excluded_deployments
-    type: string
-    optional: true
-    label: Excluded Deployments
-    description: Comma-sparated list of "Deployments" to exclude from the Firehose events
-  - name: nozzle_excluded_origins
-    type: string
-    optional: true
-    label: Excluded Origins
-    description: Comma-sparated list of "Origins" to exclude from the Firehose events
-  - name: nozzle_excluded_jobs
-    type: string
-    optional: true
-    label: Excluded Jobs
-    description: Comma-sparated list of "Jobs" to exclude from the Firehose events
-
   - name: nozzle_admin_user
     type: string
     default: admin
@@ -178,6 +169,854 @@ forms:
     label: proxy bypass
     description: specify any addresses to bypass proxy. only the server name. do not specify any protocol nor port
 
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### global exclusion filters
+
+- name: newrelic-firehose-nozzle-global-exclusion-filter-properties
+  label: New Relic Firehose Nozzle Global Exclusion Filters
+  description: Setup Filters for Global Excluded Events 
+
+  properties:
+  - name: nozzle_global_deployment_exclusion_filters
+    type: string
+    optional: true
+    label: Global Deployments Exclusion Filters
+    description: Comma-sparated list of Deployments to exclude - all means all deployments - if all is specified here, you need to explicitly specify deployments by name at events type filter inclusion level
+
+  - name: nozzle_global_origin_exclusion_filters
+    type: collection
+    optional: true
+    label: Global Origin Exclusion Filters
+    description: Global Origin names to exclude - all means all origins - if all is specified here, you need to explicitly specify origins by name at events type filter inclusion level
+    configurable: true
+    property_blueprints:
+    - name: value
+      type: dropdown_select
+      label: Global Origin Name
+      options:
+      # - name: none
+      #   label: none
+      #   default: true
+      - name: all
+        label: all
+      - name: auctioneer
+        label: auctioneer
+      - name: bbs
+        label: bbs
+      - name: cc
+        label: cc
+      - name: cc_uploader
+        label: cc_uploader
+      - name: DopplerServer
+        label: DopplerServer
+      - name: etcd
+        label: etcd
+      - name: file_server
+        label: file_server
+      - name: garden_linux
+        label: garden_linux
+      - name: gorouter
+        label: gorouter
+      - name: LoggregatorTrafficController
+        label: LoggregatorTrafficController
+      - name: MetronAgent
+        label: MetronAgent
+      - name: nsync_bulker
+        label: nsync_bulker
+      - name: nsync_listener
+        label: nsync_listener
+      - name: rep
+        label: rep
+      - name: route_emitter
+        label: route_emitter
+      - name: routing_api
+        label: routing_api
+      - name: ssh_proxy
+        label: ssh_proxy
+      - name: stager
+        label: stager
+      - name: syslog_drain_binder
+        label: syslog_drain_binder
+      - name: tcp-router
+        label: tcp-router
+      - name: tcp_emitter
+        label: tcp_emitter
+      - name: tps_listener
+        label: tps_listener
+      - name: tps_watcher
+        label: tps_watcher
+      - name: uaa
+        label: uaa
+
+  - name: nozzle_global_job_exclusion_filters
+    type: collection
+    optional: true
+    label: Global Job Exclusion Filters
+    description: Global Job names to exclude - all means all jobs - if all is specified here, you need to explicitly specify jobs by name at events type filter inclusion level
+    configurable: true
+    property_blueprints:
+    - name: value
+      type: dropdown_select
+      label: Global Job Name
+      options:
+      # - name: none
+      #   label: none
+      #   default: true
+      - name: all
+        label: all
+      - name: alertmanager
+        label: alertmanager
+      - name: backup-prepare
+        label: backup-prepare
+      - name: backup-prepare
+        label: backup-prepare
+      - name: broker
+        label: broker
+      - name: broker-registrar
+        label: broker-registrar
+      - name: cf-mysql-broker
+        label: cf-mysql-broker
+      - name: cf-redis-broker
+        label: cf-redis-broker
+      - name: clock_global
+        label: clock_global
+      - name: cloud_controller
+        label: cloud_controller
+      - name: cloud_controller_worker
+        label: cloud_controller_worker
+      - name: cloudcache-broker
+        label: cloudcache-broker
+      - name: consul_server
+        label: consul_server
+      - name: create-uaa-client
+        label: create-uaa-client
+      - name: credhub
+        label: credhub
+      - name: dedicated-mysql-broker
+        label: dedicated-mysql-broker
+      - name: dedicated-node
+        label: dedicated-node
+      - name: delete-all
+        label: delete-all
+      - name: delete-all-service-instances
+        label: delete-all-service-instances
+      - name: delete-all-service-instances-and-deregister-broker
+        label: delete-all-service-instances-and-deregister-broker
+      - name: delete-metrics-1-3-space
+        label: delete-metrics-1-3-space
+      - name: delete-metrics-1-4-space
+        label: delete-metrics-1-4-space
+      - name: deploy-all
+        label: deploy-all
+      - name: deploy-scheduler
+        label: deploy-scheduler
+      - name: deploy-service-broker
+        label: deploy-service-broker
+      - name: deregister-and-purge-instances
+        label: deregister-and-purge-instances
+      - name: deregister-on-demand-service-broker
+        label: deregister-on-demand-service-broker
+      - name: destroy-service-broker
+        label: destroy-service-broker
+      - name: diego_brain
+        label: diego_brain
+      - name: diego_cell
+        label: diego_cell
+      - name: diego_database
+        label: diego_database
+      - name: doppler
+        label: doppler
+      - name: elasticsearch_data
+        label: elasticsearch_data
+      - name: elasticsearch_master
+        label: elasticsearch_master
+      - name: grafana
+        label: grafana
+      - name: ha_proxy
+        label: ha_proxy
+      - name: healthwatch-forwarder
+        label: healthwatch-forwarder
+      - name: hm-forwarder
+        label: hm-forwarder
+      - name: install-hwc-buildpack
+        label: install-hwc-buildpack
+      - name: integration-tests
+        label: integration-tests
+      - name: jmx-firehose-nozzle
+        label: jmx-firehose-nozzle
+      - name: locator
+        label: locator
+      - name: locator-server
+        label: locator-server
+      - name: loggregator_trafficcontroller
+        label: loggregator_trafficcontroller
+      - name: maximus
+        label: maximus
+      - name: metron_forwarder
+        label: metron_forwarder
+      - name: migrate-data-to-1-4
+        label: migrate-data-to-1-4
+      - name: monitoring
+        label: monitoring
+      - name: multitenant-smoke-tests
+        label: multitenant-smoke-tests
+      - name: mysql
+        label: mysql
+      - name: mysql_monitor
+        label: mysql_monitor
+      - name: mysql_proxy
+        label: mysql_proxy
+      - name: nats
+        label: nats
+      - name: nfs_server
+        label: nfs_server
+      - name: nginx
+        label: nginx
+      - name: on-demand-broker
+        label: on-demand-broker
+      - name: on-demand-broker-smoke-tests
+        label: on-demand-broker-smoke-tests
+      - name: prime-cluster-for-pcc
+        label: prime-cluster-for-pcc
+      - name: prometheus
+        label: prometheus
+      - name: proxy
+        label: proxy
+      - name: publicize-scheduler
+        label: publicize-scheduler
+      - name: push-apps
+        label: push-apps
+      - name: rabbitmq-broker
+        label: rabbitmq-broker
+      - name: rabbitmq-haproxy
+        label: rabbitmq-haproxy
+      - name: rabbitmq-server
+        label: rabbitmq-server
+      - name: redis
+        label: redis
+      - name: redis-instance
+        label: redis-instance
+      - name: redis-on-demand-broker
+        label: redis-on-demand-broker
+      - name: register-broker
+        label: register-broker
+      - name: register-on-demand-service-broker
+        label: register-on-demand-service-broker
+      - name: register-service-broker
+        label: register-service-broker
+      - name: register_on_demand_service_broker
+        label: register_on_demand_service_broker
+      - name: router
+        label: router
+      - name: run-smoke-tests
+        label: run-smoke-tests
+      - name: run-tests
+        label: run-tests
+      - name: server
+        label: server
+      - name: smoke-tests
+        label: smoke-tests
+      - name: syslog_adapter
+        label: syslog_adapter
+      - name: syslog_scheduler
+        label: syslog_scheduler
+      - name: tcp_router
+        label: tcp_router
+      - name: test-scheduler
+        label: test-scheduler
+      - name: test-scheduler-diagnostics
+        label: test-scheduler-diagnostics
+      - name: uaa
+        label: uaa
+      - name: upgrade-all-service-instances
+        label: upgrade-all-service-instances
+      - name: windows_diego_cell
+        label: windows_diego_cell
+
+
+
+
+
+
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### value metric inclusion filters
+
+- name: newrelic-firehose-nozzle-valuemetrics-inclusion-filter-properties
+  label: New Relic Firehose Nozzle ValueMetric Inclusion Filters
+  description: Setup Filters for ValueMetric Events 
+
+  properties:
+  - name: nozzle_valuemetric_deployment_inclusion_filters
+    type: string
+    optional: true
+    label: ValueMetric Deployment Inclusion Filters
+    description: Comma-sparated list of Deployments to include
+
+  - name: nozzle_valuemetric_origin_inclusion_filters
+    type: collection
+    optional: true
+    label: ValueMetric Origin Inclusion Filters
+    description: Origin names to include
+    configurable: true
+    property_blueprints:
+    - name: value
+      type: dropdown_select
+      label: Value Metric Origin Name
+      options:
+      # - name: none
+      #   label: none
+      #   default: true
+      - name: all
+        label: all
+      - name: auctioneer
+        label: auctioneer
+      - name: bbs
+        label: bbs
+      - name: cc
+        label: cc
+      - name: cc_uploader
+        label: cc_uploader
+      - name: DopplerServer
+        label: DopplerServer
+      - name: etcd
+        label: etcd
+      - name: file_server
+        label: file_server
+      - name: garden_linux
+        label: garden_linux
+      - name: gorouter
+        label: gorouter
+      - name: LoggregatorTrafficController
+        label: LoggregatorTrafficController
+      - name: MetronAgent
+        label: MetronAgent
+      - name: nsync_bulker
+        label: nsync_bulker
+      - name: nsync_listener
+        label: nsync_listener
+      - name: rep
+        label: rep
+      - name: route_emitter
+        label: route_emitter
+      - name: routing_api
+        label: routing_api
+      - name: ssh_proxy
+        label: ssh_proxy
+      - name: stager
+        label: stager
+      - name: syslog_drain_binder
+        label: syslog_drain_binder
+      - name: tcp-router
+        label: tcp-router
+      - name: tcp_emitter
+        label: tcp_emitter
+      - name: tps_listener
+        label: tps_listener
+      - name: tps_watcher
+        label: tps_watcher
+      - name: uaa
+        label: uaa
+
+  - name: nozzle_valuemetric_job_inclusion_filters
+    type: collection
+    optional: true
+    label: ValueMetric Job Inclusion Filters
+    description: Job names to include
+    configurable: true
+    property_blueprints:
+    - name: value
+      type: dropdown_select
+      label: Value Metric Job Name
+      options:
+      # - name: none
+      #   label: none
+      #   default: true
+      - name: all
+        label: all
+      - name: alertmanager
+        label: alertmanager
+      - name: backup-prepare
+        label: backup-prepare
+      - name: backup-prepare
+        label: backup-prepare
+      - name: broker
+        label: broker
+      - name: broker-registrar
+        label: broker-registrar
+      - name: cf-mysql-broker
+        label: cf-mysql-broker
+      - name: cf-redis-broker
+        label: cf-redis-broker
+      - name: clock_global
+        label: clock_global
+      - name: cloud_controller
+        label: cloud_controller
+      - name: cloud_controller_worker
+        label: cloud_controller_worker
+      - name: cloudcache-broker
+        label: cloudcache-broker
+      - name: consul_server
+        label: consul_server
+      - name: create-uaa-client
+        label: create-uaa-client
+      - name: credhub
+        label: credhub
+      - name: dedicated-mysql-broker
+        label: dedicated-mysql-broker
+      - name: dedicated-node
+        label: dedicated-node
+      - name: delete-all
+        label: delete-all
+      - name: delete-all-service-instances
+        label: delete-all-service-instances
+      - name: delete-all-service-instances-and-deregister-broker
+        label: delete-all-service-instances-and-deregister-broker
+      - name: delete-metrics-1-3-space
+        label: delete-metrics-1-3-space
+      - name: delete-metrics-1-4-space
+        label: delete-metrics-1-4-space
+      - name: deploy-all
+        label: deploy-all
+      - name: deploy-scheduler
+        label: deploy-scheduler
+      - name: deploy-service-broker
+        label: deploy-service-broker
+      - name: deregister-and-purge-instances
+        label: deregister-and-purge-instances
+      - name: deregister-on-demand-service-broker
+        label: deregister-on-demand-service-broker
+      - name: destroy-service-broker
+        label: destroy-service-broker
+      - name: diego_brain
+        label: diego_brain
+      - name: diego_cell
+        label: diego_cell
+      - name: diego_database
+        label: diego_database
+      - name: doppler
+        label: doppler
+      - name: elasticsearch_data
+        label: elasticsearch_data
+      - name: elasticsearch_master
+        label: elasticsearch_master
+      - name: grafana
+        label: grafana
+      - name: ha_proxy
+        label: ha_proxy
+      - name: healthwatch-forwarder
+        label: healthwatch-forwarder
+      - name: hm-forwarder
+        label: hm-forwarder
+      - name: install-hwc-buildpack
+        label: install-hwc-buildpack
+      - name: integration-tests
+        label: integration-tests
+      - name: jmx-firehose-nozzle
+        label: jmx-firehose-nozzle
+      - name: locator
+        label: locator
+      - name: locator-server
+        label: locator-server
+      - name: loggregator_trafficcontroller
+        label: loggregator_trafficcontroller
+      - name: maximus
+        label: maximus
+      - name: metron_forwarder
+        label: metron_forwarder
+      - name: migrate-data-to-1-4
+        label: migrate-data-to-1-4
+      - name: monitoring
+        label: monitoring
+      - name: multitenant-smoke-tests
+        label: multitenant-smoke-tests
+      - name: mysql
+        label: mysql
+      - name: mysql_monitor
+        label: mysql_monitor
+      - name: mysql_proxy
+        label: mysql_proxy
+      - name: nats
+        label: nats
+      - name: nfs_server
+        label: nfs_server
+      - name: nginx
+        label: nginx
+      - name: on-demand-broker
+        label: on-demand-broker
+      - name: on-demand-broker-smoke-tests
+        label: on-demand-broker-smoke-tests
+      - name: prime-cluster-for-pcc
+        label: prime-cluster-for-pcc
+      - name: prometheus
+        label: prometheus
+      - name: proxy
+        label: proxy
+      - name: publicize-scheduler
+        label: publicize-scheduler
+      - name: push-apps
+        label: push-apps
+      - name: rabbitmq-broker
+        label: rabbitmq-broker
+      - name: rabbitmq-haproxy
+        label: rabbitmq-haproxy
+      - name: rabbitmq-server
+        label: rabbitmq-server
+      - name: redis
+        label: redis
+      - name: redis-instance
+        label: redis-instance
+      - name: redis-on-demand-broker
+        label: redis-on-demand-broker
+      - name: register-broker
+        label: register-broker
+      - name: register-on-demand-service-broker
+        label: register-on-demand-service-broker
+      - name: register-service-broker
+        label: register-service-broker
+      - name: register_on_demand_service_broker
+        label: register_on_demand_service_broker
+      - name: router
+        label: router
+      - name: run-smoke-tests
+        label: run-smoke-tests
+      - name: run-tests
+        label: run-tests
+      - name: server
+        label: server
+      - name: smoke-tests
+        label: smoke-tests
+      - name: syslog_adapter
+        label: syslog_adapter
+      - name: syslog_scheduler
+        label: syslog_scheduler
+      - name: tcp_router
+        label: tcp_router
+      - name: test-scheduler
+        label: test-scheduler
+      - name: test-scheduler-diagnostics
+        label: test-scheduler-diagnostics
+      - name: uaa
+        label: uaa
+      - name: upgrade-all-service-instances
+        label: upgrade-all-service-instances
+      - name: windows_diego_cell
+        label: windows_diego_cell
+
+  - name: nozzle_valuemetric_metric_inclusion_filters
+    type: collection
+    optional: true
+    label: ValueMetric Metric Name Inclusion Filters
+    description: ValueMetric Metric Names to include
+    configurable: true
+    property_blueprints:
+    - name: value
+      type: dropdown_select
+      label: ValueMetric Name
+      options:
+      # - name: none
+      #   label: none
+      #   default: true
+      - name: all
+        label: all
+      - name: ActiveLocks
+        label: ActiveLocks
+      - name: ActivePresences
+        label: ActivePresences
+      - name: audit_service.client_authentication_count
+        label: audit_service.client_authentication_count
+      - name: audit_service.client_authentication_failure_count
+        label: audit_service.client_authentication_failure_count
+      - name: audit_service.principal_authentication_failure_count
+        label: audit_service.principal_authentication_failure_count
+      - name: audit_service.principal_not_found_count
+        label: audit_service.principal_not_found_count
+      - name: audit_service.user_authentication_count
+        label: audit_service.user_authentication_count
+      - name: audit_service.user_authentication_failure_count
+        label: audit_service.user_authentication_failure_count
+      - name: audit_service.user_not_found_count
+        label: audit_service.user_not_found_count
+      - name: audit_service.user_password_changes
+        label: audit_service.user_password_changes
+      - name: audit_service.user_password_failures
+        label: audit_service.user_password_failures
+      - name: average_envelope
+        label: average_envelope
+      - name: CapacityRemainingContainers
+        label: CapacityRemainingContainers
+      - name: CapacityRemainingDisk
+        label: CapacityRemainingDisk
+      - name: CapacityRemainingMemory
+        label: CapacityRemainingMemory
+      - name: CapacityTotalContainers
+        label: CapacityTotalContainers
+      - name: CapacityTotalDisk
+        label: CapacityTotalDisk
+      - name: CapacityTotalMemory
+        label: CapacityTotalMemory
+      - name: ContainerCount
+        label: ContainerCount
+      - name: ContainerCreationDuration
+        label: ContainerCreationDuration
+      - name: containerMetadataTime
+        label: containerMetadataTime
+      - name: ConvergenceLRPDuration
+        label: ConvergenceLRPDuration
+      - name: ConvergenceTaskDuration
+        label: ConvergenceTaskDuration
+      - name: CrashedActualLRPs
+        label: CrashedActualLRPs
+      - name: CrashingDesiredLRPs
+        label: CrashingDesiredLRPs
+      - name: DepotDirs
+        label: DepotDirs
+      - name: Domain.cf-apps
+        label: Domain.cf-apps
+      - name: Domain.cf-tasks
+        label: Domain.cf-tasks
+      - name: doppler_proxy.app_streams
+        label: doppler_proxy.app_streams
+      - name: doppler_proxy.container_metrics_latency
+        label: doppler_proxy.container_metrics_latency
+      - name: doppler_proxy.firehoses
+        label: doppler_proxy.firehoses
+      - name: doppler_proxy.recent_logs_latency
+        label: doppler_proxy.recent_logs_latency
+      - name: drains
+        label: drains
+      - name: failed_job_count.cc-cloud_controller-0
+        label: failed_job_count.cc-cloud_controller-0
+      - name: failed_job_count.total
+        label: failed_job_count.total
+      - name: file_descriptors
+        label: file_descriptors
+      - name: freeLeases
+        label: freeLeases
+      - name: grpcManager.subscriptions
+        label: grpcManager.subscriptions
+      - name: HealthRequestTime
+        label: HealthRequestTime
+      - name: http_status.2XX
+        label: http_status.2XX
+      - name: HTTPRouteCount
+        label: HTTPRouteCount
+      - name: ImageCleanTime
+        label: ImageCleanTime
+      - name: ImageCreationTime
+        label: ImageCreationTime
+      - name: ImageDeletionTime
+        label: ImageDeletionTime
+      - name: ImageStatsTime
+        label: ImageStatsTime
+      - name: InternalPoliciesRequestTime
+        label: InternalPoliciesRequestTime
+      - name: iptablesEnforceTime
+        label: iptablesEnforceTime
+      - name: IPTablesRuleCount
+        label: IPTablesRuleCount
+      - name: job_queue_length.total
+        label: job_queue_length.total
+      - name: key_refresh_events
+        label: key_refresh_events
+      - name: latency
+        label: latency
+      - name: latency.CloudController
+        label: latency.CloudController
+      - name: latency.MySQLProxy
+        label: latency.MySQLProxy
+      - name: latency.route-emitter
+        label: latency.route-emitter
+      - name: LeasesIndexRequestTime
+        label: LeasesIndexRequestTime
+      - name: LeasesRenewRequestTime
+        label: LeasesRenewRequestTime
+      - name: LinuxFileDescriptor
+        label: LinuxFileDescriptor
+      - name: log_count.all
+        label: log_count.all
+      - name: log_count.debug
+        label: log_count.debug
+      - name: log_count.debug1
+        label: log_count.debug1
+      - name: log_count.debug2
+        label: log_count.debug2
+      - name: log_count.error
+        label: log_count.error
+      - name: log_count.fatal
+        label: log_count.fatal
+      - name: log_count.info
+        label: log_count.info
+      - name: log_count.off
+        label: log_count.off
+      - name: log_count.warn
+        label: log_count.warn
+      - name: LRPsClaimed
+        label: LRPsClaimed
+      - name: LRPsDesired
+        label: LRPsDesired
+      - name: LRPsExtra
+        label: LRPsExtra
+      - name: LRPsMissing
+        label: LRPsMissing
+      - name: LRPsRunning
+        label: LRPsRunning
+      - name: LRPsUnclaimed
+        label: LRPsUnclaimed
+      - name: memoryStats.lastGCPauseTimeNS
+        label: memoryStats.lastGCPauseTimeNS
+      - name: memoryStats.numBytesAllocated
+        label: memoryStats.numBytesAllocated
+      - name: memoryStats.numBytesAllocatedHeap
+        label: memoryStats.numBytesAllocatedHeap
+      - name: memoryStats.numBytesAllocatedStack
+        label: memoryStats.numBytesAllocatedStack
+      - name: memoryStats.numFrees
+        label: memoryStats.numFrees
+      - name: memoryStats.numMallocs
+        label: memoryStats.numMallocs
+      - name: messageRouter.numberOfContainerMetricSinks
+        label: messageRouter.numberOfContainerMetricSinks
+      - name: messageRouter.numberOfDumpSinks
+        label: messageRouter.numberOfDumpSinks
+      - name: messageRouter.numberOfFirehoseSinks
+        label: messageRouter.numberOfFirehoseSinks
+      - name: messageRouter.numberOfSyslogSinks
+        label: messageRouter.numberOfSyslogSinks
+      - name: messageRouter.numberOfWebsocketSinks
+        label: messageRouter.numberOfWebsocketSinks
+      - name: MetricsReporting
+        label: MetricsReporting
+      - name: ms_since_last_registry_update
+        label: ms_since_last_registry_update
+      - name: NetInterfaceCount
+        label: NetInterfaceCount
+      - name: numberLeases
+        label: numberLeases
+      - name: numCPUS
+        label: numCPUS
+      - name: numGoRoutines
+        label: numGoRoutines
+      - name: OverlayRxBytes
+        label: OverlayRxBytes
+      - name: OverlayRxDropped
+        label: OverlayRxDropped
+      - name: OverlayTxBytes
+        label: OverlayTxBytes
+      - name: OverlayTxDropped
+        label: OverlayTxDropped
+      - name: policyServerPollTime
+        label: policyServerPollTime
+      - name: RepBulkSyncDuration
+        label: RepBulkSyncDuration
+      - name: RequestLatency
+        label: RequestLatency
+      - name: requests.completed
+        label: requests.completed
+      - name: requests.outstanding
+        label: requests.outstanding
+      - name: route_lookup_time
+        label: route_lookup_time
+      - name: RouteEmitterSyncDuration
+        label: RouteEmitterSyncDuration
+      - name: RoutesTotal
+        label: RoutesTotal
+      - name: SharedLockingTime
+        label: SharedLockingTime
+      - name: staleLeases
+        label: staleLeases
+      - name: StartingContainerCount
+        label: StartingContainerCount
+      - name: StoreAllSuccessTime
+        label: StoreAllSuccessTime
+      - name: StoreByGuidsSuccessTime
+        label: StoreByGuidsSuccessTime
+      - name: StoreUsage
+        label: StoreUsage
+      - name: tasks_running.count
+        label: tasks_running.count
+      - name: tasks_running.memory_in_mb
+        label: tasks_running.memory_in_mb
+      - name: TasksCompleted
+        label: TasksCompleted
+      - name: TasksPending
+        label: TasksPending
+      - name: TasksResolving
+        label: TasksResolving
+      - name: TasksRunning
+        label: TasksRunning
+      - name: TCPRouteCount
+        label: TCPRouteCount
+      - name: thread_info.event_machine.connection_count
+        label: thread_info.event_machine.connection_count
+      - name: thread_info.event_machine.resultqueue.num_waiting
+        label: thread_info.event_machine.resultqueue.num_waiting
+      - name: thread_info.event_machine.resultqueue.size
+        label: thread_info.event_machine.resultqueue.size
+      - name: thread_info.event_machine.threadqueue.num_waiting
+        label: thread_info.event_machine.threadqueue.num_waiting
+      - name: thread_info.event_machine.threadqueue.size
+        label: thread_info.event_machine.threadqueue.size
+      - name: thread_info.thread_count
+        label: thread_info.thread_count
+      - name: total_http_routes
+        label: total_http_routes
+      - name: total_http_subscriptions
+        label: total_http_subscriptions
+      - name: total_routes
+        label: total_routes
+      - name: total_tcp_routes
+        label: total_tcp_routes
+      - name: total_tcp_subscriptions
+        label: total_tcp_subscriptions
+      - name: total_token_errors
+        label: total_token_errors
+      - name: total_users
+        label: total_users
+      - name: totalLeases
+        label: totalLeases
+      - name: totalPolicies
+        label: totalPolicies
+      - name: totalPollTime
+        label: totalPollTime
+      - name: UnhealthyCell
+        label: UnhealthyCell
+      - name: Uptime
+        label: Uptime
+      - name: uptime
+        label: uptime
+      - name: UptimeRequestTime
+        label: UptimeRequestTime
+      - name: vitals.cpu
+        label: vitals.cpu
+      - name: vitals.cpu_load_avg
+        label: vitals.cpu_load_avg
+      - name: vitals.mem_bytes
+        label: vitals.mem_bytes
+      - name: vitals.mem_free_bytes
+        label: vitals.mem_free_bytes
+      - name: vitals.mem_used_bytes
+        label: vitals.mem_used_bytes
+      - name: vitals.num_cores
+        label: vitals.num_cores
+      - name: vitals.uptime
+        label: vitals.uptime
+
+
+
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
+### ####################################################################################
 
 
 # Add any dependencies your tile has on other installed products.

@@ -4,6 +4,7 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	//"regexp"
 	"fmt"
 	//"net"
 	"net/url"
@@ -18,6 +19,10 @@ import (
 
 	"runtime"
 
+	// "math/rand"
+
+	// "reflect"
+
 	"github.com/cloudfoundry/noaa/consumer"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/kelseyhightower/envconfig"
@@ -30,27 +35,40 @@ import (
 )
 
 const (
-	nrLogDataset     = "Log Messages"
-	nrErrorDataset   = "Error Messages"
-	nrMetricsDataset = "Metric Messages"
+	nrLogDataset      = "Log Messages"
+	nrErrorDataset    = "Error Messages"
+	nrMetricsDataset  = "Metric Messages"
 
 	insightsMaxEvents = 500 // size of insights json insert packet
+	nozzleVersion     = "1.04"
+	pcfEventType      = "PcfFirehoseEvent"
 )
 
 type NewRelicConfig struct {
-	INSIGHTS_BASE_URL				string
-	INSIGHTS_RPM_ID					string
-	INSIGHTS_INSERT_KEY				string
+	INSIGHTS_BASE_URL              string
+	INSIGHTS_RPM_ID                string
+	INSIGHTS_INSERT_KEY            string
 }
 
 type PcfExtConfig struct {
-	EXCLUDED_DEPLOYMENTS string
-	EXCLUDED_ORIGINS     string
-	EXCLUDED_JOBS        string
+	GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS        string
+	GLOBAL_ORIGIN_EXCLUSION_FILTERS            string
+	GLOBAL_JOB_EXCLUSION_FILTERS               string
 
-	ADMIN_USER           string
-	ADMIN_PASSWORD       string
-	APP_DETAIL_INTERVAL  string
+	VALUEMETRIC_DEPLOYMENT_INCLUSION_FILTERS   string
+	VALUEMETRIC_ORIGIN_INCLUSION_FILTERS       string
+	VALUEMETRIC_JOB_INCLUSION_FILTERS          string
+	VALUEMETRIC_METRIC_INCLUSION_FILTERS       string
+
+
+	ADMIN_USER                     string
+	ADMIN_PASSWORD                 string
+	APP_DETAIL_INTERVAL            string
+}
+
+type ValueMetricFilterStruct struct {
+    // GUID      string `json:"guid"`
+	Value string `json:"value"`
 }
 
 type NREventType map[string]interface{}
@@ -84,17 +102,49 @@ type AppInfoType struct {
 var ee uint64
 var pcfCounters PcfCounters
 var mem runtime.MemStats
-var pcfInstanceIp string
+var nozzleInstanceIp string
 var pcfDomain string
 var insightsClient http.Client
 
 var NREventsMap      = make([]NREventType, 0)
 var appInfo          = map[string]*AppInfoType{} // caching app extended info (app/name/org names, etc.)
-var nozzleInstanceId = os.Getenv("CF_INSTANCE_INDEX")
+var nozzleInstanceId   = os.Getenv("CF_INSTANCE_INDEX")
 var logger           = log.New(os.Stdout, ">>> ", 0)
 
+var debug            = false
+
+type EventFilters struct {
+	// global filters = exclusion
+	globalDeploymentFilters       []string
+	globalOriginFilters           []string
+	globalJobFilters              []string
+	globalAllFiltersSelected      bool
+	globalDeploymentsAllFilterIsSelected bool
+	globalOriginsAllFilterIsSelected     bool
+	globalJobsAllFilterIsSelected        bool
+	globalNoneSelected            bool
+	totalGlobalFiltersCount       int
+
+	// value metric filters = inclusion
+	valueMetricDeploymentFilters  []string
+	valueMetricOriginFilters       []string
+	valueMetricJobFilters         []string
+	valueMetricMetricFilters      []string
+	valueMetricAllFiltersSelected bool
+	valueMetricDeploymentsAllFilterIsSelected bool
+	valueMetricOriginsAllFilterIsSelected     bool
+	valueMetricJobsAllFilterIsSelected        bool
+	valueMetricMetricAllFilterIsSelected      bool
+	valueMetricNoneSelected       bool
+	totalValueMetricFiltersCount  int
+	totalValueMetricMetricsCount  int
+}
+var filters EventFilters
 
 func main() {
+	if (os.Getenv("DEBUG") == "1" || os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "TRUE") {
+		debug = true
+	}
 	logger.Println("hello world!")
 
 	// ------------------------------------------------------------------------
@@ -102,32 +152,30 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// logger.Printf("pcfConfig: %v\n", pcfConfig)
+	if debug {
+		logger.Printf("pcfConfig: %v\n", pcfConfig)
+	}
 	// ------------------------------------------------------------------------
 	nrConfig := NewRelicConfig{}
 	if err := envconfig.Process("newrelic", &nrConfig); err != nil {
 		panic(err)
 	}
-	// logger.Printf("nrConfig: %v\n", nrConfig)
+	if debug {
+		logger.Printf("nrConfig: %v\n", nrConfig)
+	}
 	// ------------------------------------------------------------------------
 	pcfExtendedConfig := PcfExtConfig{}
 	if err := envconfig.Process("NOZZLE", &pcfExtendedConfig); err != nil {
 		panic(err)
 	}
-	// logger.Printf("pcfExtendedConfig: %v\n", pcfExtendedConfig)
-	// logger.Printf("EXCLUDED_ORIGINS: %s\n", pcfExtendedConfig.EXCLUDED_ORIGINS)
-	// logger.Printf("EXCLUDED_JOBS: %s\n", pcfExtendedConfig.EXCLUDED_JOBS)
+	if debug {
+		logger.Printf("pcfExtendedConfig: %v\n", pcfExtendedConfig)
+	}
 	logger.Printf("ADMIN_USER: %s\n", pcfExtendedConfig.ADMIN_USER)
-	// logger.Printf("ADMIN_PASSWORD: %s\n", pcfExtendedConfig.ADMIN_PASSWORD)
+	if debug {
+		logger.Printf("ADMIN_PASSWORD: %s\n", pcfExtendedConfig.ADMIN_PASSWORD)
+	}
 	logger.Printf("APP_DETAIL_INTERVAL: %s\n", pcfExtendedConfig.APP_DETAIL_INTERVAL)
-	deploymentsFilter := splitString(pcfExtendedConfig.EXCLUDED_DEPLOYMENTS, ",")
-	originsFilter := splitString(pcfExtendedConfig.EXCLUDED_ORIGINS, ",")
-	jobsFilter := splitString(pcfExtendedConfig.EXCLUDED_JOBS, ",")
-	logger.Println("origins filter: ", originsFilter)
-	logger.Println("jobs filter: ", jobsFilter)
-//---------------------------------
-logger.Printf("%d -- %d -- %d \n", len(deploymentsFilter), len(originsFilter), len(jobsFilter))
-//---------------------------------
 	// ------------------------------------------------------------------------
 
 	insightsClient = http.Client{}
@@ -135,20 +183,30 @@ logger.Printf("%d -- %d -- %d \n", len(deploymentsFilter), len(originsFilter), l
 	// ###########################################################################
 
 	insightsUrl := fmt.Sprintf("%s/accounts/%s/events", nrConfig.INSIGHTS_BASE_URL, nrConfig.INSIGHTS_RPM_ID)
-	insertKey := nrConfig.INSIGHTS_INSERT_KEY
-	// logger.Printf("insights url: %v\n", insightsUrl)
-	// logger.Printf("insertkey: %v\n", insertKey)
+	insightsInsertKey := nrConfig.INSIGHTS_INSERT_KEY
+	if debug {
+		logger.Printf("insights url: %v\n", insightsUrl)
+		logger.Printf("insights InsertKey: %v\n", insightsInsertKey)
+	}
 	logger.Printf("pcfConfig.SkipSSL: %v\n", pcfConfig.SkipSSL)
-	//logger.Printf("pcfConfig.APIURL: %v\n", pcfConfig.APIURL)
+	if debug {
+		logger.Printf("pcfConfig.APIURL: %v\n", pcfConfig.APIURL)
+	}
 	logger.Printf("pcfConfig.UAAURL: %v\n", pcfConfig.UAAURL)
 	logger.Printf("pcfConfig.Username: %v\n", pcfConfig.Username)
-	// logger.Printf("pcfConfig.Password: %v\n", pcfConfig.Password)
-	pcfInstanceIp = os.Getenv("CF_INSTANCE_IP")
-	logger.Printf("CF_INSTANCE_IP: %v\n", pcfInstanceIp)
+	if debug {
+		logger.Printf("pcfConfig.Password: %v\n", pcfConfig.Password)
+	}
+	nozzleInstanceIp = os.Getenv("CF_INSTANCE_IP")
+	logger.Printf("Nozzle's CF_INSTANCE_IP: %v\n", nozzleInstanceIp)
 	pcfDomain = strings.SplitN(parseUrl(pcfConfig.UAAURL), ".", 2)[1]
 	logger.Printf("PCF Domain: %v\n", pcfDomain)
 	logger.Printf("pcfConfig.SelectedEvents: %v\n", pcfConfig.SelectedEvents)
 
+	setFilters(pcfExtendedConfig) // , filters) // sets all inclusion & exclusion filters in filter struct
+
+// os.Exit(0) // TEMP ################################################################
+// TEMP ###########################################################################
 
 	includedEventTypes := map[events.Envelope_EventType]bool{
 		events.Envelope_HttpStartStop:   false,
@@ -188,10 +246,8 @@ logger.Printf("%d -- %d -- %d \n", len(deploymentsFilter), len(originsFilter), l
 	// prepare to collect application details for ContainerEvent (app, space, org names, etc.)
 	c := &cfclient.Config{
 		ApiAddress:   "https://api." + pcfDomain,
-		// Username:     pcfExtendedConfig.ADMIN_USER,
-		// Password:     pcfExtendedConfig.ADMIN_PASSWORD,
-		Username:     pcfConfig.Username,
-		Password:     pcfConfig.Password,
+		Username:     pcfExtendedConfig.ADMIN_USER,
+		Password:     pcfExtendedConfig.ADMIN_PASSWORD,
 		SkipSslValidation: pcfConfig.SkipSSL,
 	}
 	client, _ := cfclient.NewClient(c)
@@ -215,36 +271,156 @@ logger.Printf("%d -- %d -- %d \n", len(deploymentsFilter), len(originsFilter), l
 	logger.Printf("starting to capture firehose events...\n")
 	for {
 		i++
-		//nrEvent := make(map[string]interface{})
-		nrEvent := make(NREventType)
+		//nrEvent := make(NREventType) // -- create below in the if stmt only if it's needed
 
 		select {
 		case ev := <-evs:
 			// logger.Printf("event %d: %v\n", i, ev)
-			if (includedEventTypes[ev.GetEventType()] && notFiltered(deploymentsFilter, ev.GetDeployment()) && notFiltered(originsFilter, ev.GetOrigin()) && notFiltered(jobsFilter, ev.GetJob())) {
-				if err := transformEvent(ev, nrEvent); err != nil {
-					panic(err)
+			firehoseEventType := ev.GetEventType()
+			if (includedEventTypes[firehoseEventType]) {
+				nrEvent := make(NREventType)
+				if err := transformEvent(ev, nrEvent, pcfExtendedConfig, firehoseEventType.String()); err != nil {
+					// event skipped -- do not insert
+					//panic(err)
+				} else { // insert event to insgihts
+					//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
+					nrEvent["firehoseSubscriptionId"] = pcfConfig.FirehoseSubscriptionID
+					nrEvent["nozzleVersion"] = nozzleVersion
+					pushToInsights(nrEvent, insightsUrl, insightsInsertKey)
+					//logger.Printf("filtered: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
 				}
-				//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
-				pushToInsights(nrEvent, insightsUrl, insertKey)
-			} else {
-				//logger.Printf("filtered: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
 			}
 
 		case ev := <-errors:
 			logger.Printf("%d: ev is %+s\n", i, ev.Error())
-			nrEvent["error"] = ev.Error()
+			//nrEvent["error"] = ev.Error()
 		}
 	}
 }
 
-func notFiltered(arr []string, str string) bool {
-	for _, s := range arr {
-		if s == str {
-			return false
+func getFilterValues(jsonFilters string) []string {
+
+	valueMetricFilters := make([]ValueMetricFilterStruct,0)
+	json.Unmarshal([]byte(jsonFilters), &valueMetricFilters)
+	valuesSlice := ""
+	for k, v := range valueMetricFilters {
+		if k==0 {
+			valuesSlice = v.Value
+		} else {
+			valuesSlice += "," + v.Value
 		}
 	}
-	return true
+	return splitString(valuesSlice, ",")
+}
+
+func filtered(arr []string, str string) bool {
+	for _, s := range arr {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
+func setFilters(pcfExtendedConfig PcfExtConfig) { //, filters EventFilters) {
+
+	var allGlobalFilters []string
+	var allValueMetricFilters []string
+
+
+	filters.globalDeploymentFilters = splitString(pcfExtendedConfig.GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS, ",")
+	filters.globalOriginFilters = getFilterValues(pcfExtendedConfig.GLOBAL_ORIGIN_EXCLUSION_FILTERS)
+	filters.globalJobFilters    = getFilterValues(pcfExtendedConfig.GLOBAL_JOB_EXCLUSION_FILTERS)
+
+	logger.Println("Global deployments filter: ", filters.globalDeploymentFilters);
+	logger.Println("Global origins filter: ", filters.globalOriginFilters)
+	logger.Println("Global jobs filter: ", filters.globalJobFilters)
+	filters.totalGlobalFiltersCount = len(filters.globalDeploymentFilters) + len(filters.globalOriginFilters) + len(filters.globalJobFilters)
+	logger.Printf("Global Filters count:: deployments: %d -- origins: %d -- jobs: %d\n", len(filters.globalDeploymentFilters), len(filters.globalOriginFilters), len(filters.globalJobFilters))
+
+
+	filters.globalAllFiltersSelected = false
+	filters.globalNoneSelected = false
+	allGlobalFilters = append(allGlobalFilters, filters.globalDeploymentFilters...)
+	allGlobalFilters = append(allGlobalFilters, filters.globalOriginFilters...)
+	allGlobalFilters = append(allGlobalFilters, filters.globalJobFilters...)
+	if filtered(allGlobalFilters, "all") {
+		filters.globalAllFiltersSelected = true
+	}
+	// if filtered(allGlobalFilters, "none") {
+	// 	filters.globalNoneSelected = true
+	// }
+	if filtered(filters.globalDeploymentFilters, "all") {
+		filters.globalDeploymentsAllFilterIsSelected = true
+	}
+	if filtered(filters.globalOriginFilters, "all") {
+		filters.globalOriginsAllFilterIsSelected = true
+	}
+	if filtered(filters.globalJobFilters, "all") {
+		filters.globalJobsAllFilterIsSelected = true
+	}
+
+
+	filters.valueMetricDeploymentFilters = splitString(pcfExtendedConfig.VALUEMETRIC_DEPLOYMENT_INCLUSION_FILTERS, ",")
+	filters.valueMetricOriginFilters = getFilterValues(pcfExtendedConfig.VALUEMETRIC_ORIGIN_INCLUSION_FILTERS)
+	filters.valueMetricJobFilters    = getFilterValues(pcfExtendedConfig.VALUEMETRIC_JOB_INCLUSION_FILTERS)
+	filters.valueMetricMetricFilters = getFilterValues(pcfExtendedConfig.VALUEMETRIC_METRIC_INCLUSION_FILTERS)
+
+	logger.Println("valueMetric deployments filter: ", filters.valueMetricDeploymentFilters);
+	logger.Println("valueMetric origins filter: ", filters.valueMetricOriginFilters);
+	logger.Println("valueMetric jobs filter: ", filters.valueMetricJobFilters);
+	filters.totalValueMetricFiltersCount = len(filters.valueMetricDeploymentFilters) + len(filters.valueMetricOriginFilters) + len(filters.valueMetricJobFilters)
+	logger.Println("valueMetric metric filter: ", filters.valueMetricMetricFilters);
+	filters.totalValueMetricMetricsCount = len(filters.valueMetricMetricFilters)
+	logger.Printf("Value Metric Filters count:: deployments: %d -- origins: %d -- jobs: %d -- metrics: %d\n", len(filters.valueMetricDeploymentFilters), len(filters.valueMetricOriginFilters), len(filters.valueMetricJobFilters), len(filters.valueMetricMetricFilters))
+
+
+	filters.valueMetricAllFiltersSelected = false
+	filters.valueMetricNoneSelected = false
+	allValueMetricFilters = append(allValueMetricFilters, filters.valueMetricDeploymentFilters...)
+	allValueMetricFilters = append(allValueMetricFilters, filters.valueMetricOriginFilters...)
+	allValueMetricFilters = append(allValueMetricFilters, filters.valueMetricJobFilters...)
+	if filtered(allValueMetricFilters, "all") {
+		filters.valueMetricAllFiltersSelected = true
+	}
+	// if filtered(allValueMetricFilters, "none") {
+	// 	filters.valueMetricNoneSelected = true
+	// }
+	if filtered(filters.valueMetricDeploymentFilters, "all") {
+		filters.valueMetricDeploymentsAllFilterIsSelected = true
+	}
+	if filtered(filters.valueMetricOriginFilters, "all") {
+		filters.valueMetricOriginsAllFilterIsSelected = true
+	}
+	if filtered(filters.valueMetricJobFilters, "all") {
+		filters.valueMetricJobsAllFilterIsSelected = true
+	}
+	if filtered(filters.valueMetricMetricFilters, "all") {
+		filters.valueMetricMetricAllFilterIsSelected = true
+	}
+
+	logger.Printf("filters.globalDeploymentFilters: exclude %v\n", filters.globalDeploymentFilters)       
+	logger.Printf("filters.globalOriginFilters: exclude %v\n", filters.globalOriginFilters)
+	logger.Printf("filters.globalJobFilters: exclude %v\n", filters.globalJobFilters)
+	logger.Printf("filters.globalAllFiltersSelected: %v\n", filters.globalAllFiltersSelected)
+	logger.Printf("filters.globalDeploymentsAllFilterIsSelected: %v\n", filters.globalDeploymentsAllFilterIsSelected)
+	logger.Printf("filters.globalOriginsAllFilterIsSelected: %v\n", filters.globalOriginsAllFilterIsSelected)
+	logger.Printf("filters.globalJobsAllFilterIsSelected: %v\n", filters.globalJobsAllFilterIsSelected)
+	logger.Printf("filters.globalNoneSelected: %v\n", filters.globalNoneSelected)
+	logger.Printf("filters.totalGlobalFiltersCount: %v\n", filters.totalGlobalFiltersCount)
+
+	logger.Printf("filters.valueMetricDeploymentFilters: include %v\n", filters.valueMetricDeploymentFilters)
+	logger.Printf("filters.valueMetricOriginFilters: include %v\n", filters.valueMetricOriginFilters)
+	logger.Printf("filters.valueMetricJobFilters: include %v\n", filters.valueMetricJobFilters)
+	logger.Printf("filters.valueMetricMetricFilters: include %v\n", filters.valueMetricMetricFilters)
+	logger.Printf("filters.valueMetricAllFiltersSelected: %v\n", filters.valueMetricAllFiltersSelected)
+	logger.Printf("filters.valueMetricDeploymentsAllFilterIsSelected: %v\n", filters.valueMetricDeploymentsAllFilterIsSelected)
+	logger.Printf("filters.valueMetricOriginsAllFilterIsSelected: %v\n", filters.valueMetricOriginsAllFilterIsSelected)
+	logger.Printf("filters.valueMetricJobsAllFilterIsSelected: %v\n", filters.valueMetricJobsAllFilterIsSelected)
+	logger.Printf("filters.valueMetricMetricAllFilterIsSelected: %v\n", filters.valueMetricMetricAllFilterIsSelected)
+	logger.Printf("filters.valueMetricNoneSelected: %v\n", filters.valueMetricNoneSelected)
+	logger.Printf("filters.totalValueMetricFiltersCount: %v\n", filters.totalValueMetricFiltersCount)
+	logger.Printf("filters.totalValueMetricMetricsCount: %v\n", filters.totalValueMetricMetricsCount)
 }
 
 func getAppInfo(client *cfclient.Client, appDetailsInterval int) {
@@ -280,7 +456,6 @@ func getAppList(client *cfclient.Client) {
 	}
 	appInfo = tempAppInfo
 	tempAppInfo = nil
-
 }
 
 func addAppDetails(appInfo map[string]*AppInfoType, app cfclient.App) {
@@ -303,12 +478,12 @@ func addAppDetails(appInfo map[string]*AppInfoType, app cfclient.App) {
 	}
 }
 
-func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insertKey string) {
+func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insightsInsertKey string) {
 
-//ee = ee + 1
-//checkMem(ee)
+ //ee = ee + 1
+ //checkMem(ee)
 	NREventsMap = append(NREventsMap, nrEvent)
-//checkMem(ee)
+ //checkMem(ee)
 	// logger.Println(nrEvent)
 
 	if(len(NREventsMap) >= insightsMaxEvents) {
@@ -323,81 +498,182 @@ func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insertKe
 
 
 	    req, err := http.NewRequest("POST", insightsUrl, bytes.NewBuffer(jsonStr))
-	    req.Header.Set("X-Insert-Key", insertKey)
+	    req.Header.Set("X-Insert-Key", insightsInsertKey)
 	    req.Header.Set("Content-Type", "application/json")
 
 	    // client := &http.Client{}
 	    resp, err := insightsClient.Do(req)
 	    if err != nil {
+	    	logger.Printf(">>>> insights json: %v\n", NREventsMap)
 	        panic(err)
 	    }
 	    defer resp.Body.Close()
 
-//checkMem(ee)
+ //checkMem(ee)
 		NREventsMap = nil
 	    NREventsMap = make([]NREventType, 0)
-//checkMem(ee)
+ //checkMem(ee)
 	}
-
 }
 
-func transformEvent(cfEvent *events.Envelope, nrEvent map[string]interface{}) error {
+func fillGenericMetrics(nrEvent map[string]interface{}, eventOrigin string, firehoseEventType string, 
+				eventDeployment string, eventJob string, eventIndex string, 
+				eventIp string, eventTimestamp int64, tags map[string]string) {
 	// add generic fields
-	nrEvent["origin"] = cfEvent.GetOrigin()
-	nrEvent["eventType"] = "PcfFirehoseEvent"
-	nrEvent["FirehoseEventType"] = cfEvent.GetEventType().String()
-	if pcfInstanceIp > "" {
-		nrEvent["pcfInstanceIp"] = pcfInstanceIp
-	}
+	nrEvent["origin"] = eventOrigin
+	nrEvent["eventType"] = pcfEventType
+	nrEvent["FirehoseEventType"] = firehoseEventType
 	if pcfDomain > "" {
 		nrEvent["pcfDomain"] = pcfDomain
 	}
-	nrEvent["deployment"] = cfEvent.GetDeployment()
+	if nozzleInstanceIp > "" {
+		nrEvent["nozzleInstanceIp"] = nozzleInstanceIp
+	}
 	nrEvent["nozzleInstanceId"] = nozzleInstanceId
-	nrEvent["job"] = cfEvent.GetJob()
-	nrEvent["index"] = cfEvent.GetIndex()
-	nrEvent["ip"] = cfEvent.GetIp()
-	nrEvent["timestamp"] = cfEvent.GetTimestamp() / 1000000 // nanoseconds -> milliseconds
-	for name, val := range cfEvent.Tags {
+	nrEvent["deployment"] = eventDeployment
+	nrEvent["job"] = eventJob
+	nrEvent["index"] = eventIndex
+	nrEvent["ip"] = eventIp
+	nrEvent["timestamp"] = eventTimestamp / 1000000 // nanoseconds -> milliseconds
+	for name, val := range tags {
 		nrEvent["tag_"+name] = val
 	}
+}
 
-	// get in to event type specific stuff
-	switch *cfEvent.EventType {
-		case events.Envelope_HttpStartStop:
-			pcfCounters.httpStartStopEvents++
-			nrEvent["DatasetName"] = nrLogDataset
-			transformHttpStartStopEvent(cfEvent, nrEvent)
+func transformEvent(cfEvent *events.Envelope, nrEvent map[string]interface{}, pcfExtendedConfig PcfExtConfig, firehoseEventType string) error {
 
-		case events.Envelope_LogMessage:
-			pcfCounters.logMessageEvents++
-			nrEvent["DatasetName"] = nrLogDataset
-			transformLogMessage(cfEvent, nrEvent)
+	eventDeployment := cfEvent.GetDeployment()
+	eventOrigin := cfEvent.GetOrigin()
+	eventJob := cfEvent.GetJob()
 
-		case events.Envelope_ContainerMetric:
-			pcfCounters.containerEvents++
-			nrEvent["DatasetName"] = nrMetricsDataset
-			transformContainerMetric(cfEvent, nrEvent)
-			//nrEvent["containerMetric"] = cfEvent.GetContainerMetric().String()
-
-		case events.Envelope_CounterEvent:
-			pcfCounters.counterEvents++
-			nrEvent["DatasetName"] = nrMetricsDataset
-			transformCounterEvent(cfEvent, nrEvent)
-			// nrEvent["counterEvent"] = cfEvent.GetCounterEvent().String()
-
-		case events.Envelope_ValueMetric:
-			pcfCounters.valueMetricEvents++
-			nrEvent["DatasetName"] = nrMetricsDataset
-			transformValueMetric(cfEvent, nrEvent)
-			//nrEvent["valueMetric"] = cfEvent.GetValueMetric().String()
-
-		case events.Envelope_Error:
-			pcfCounters.errors++
-			nrEvent["DatasetName"] = nrErrorDataset
-			//nrEvent["errorField"] = cfEvent.GetError().String()
+	// global event exclusion filters
+	globalEventsFilter := false
+	processEvent := true
+	if (filters.totalGlobalFiltersCount > 0 && (filters.globalAllFiltersSelected || filtered(filters.globalDeploymentFilters, eventDeployment) || filtered(filters.globalOriginFilters, eventOrigin) || filtered(filters.globalJobFilters, eventJob))) {
+		globalEventsFilter = true
+		processEvent = false
 	}
-	return nil
+
+// TODO
+// {
+//	break wown filters for deployments, origins, and jobs -- 
+//	and use each with corresponding filter in ValueMetric events
+
+// 	globalDeploymentsExclusionFilterIsSet := false
+// 	globalOriginsExclusionFilterIsSet     := false
+// 	globalDJobsExclusionFilterIsSet       := false
+// /*
+// 	filters.globalDeploymentsAllFilterIsSelected
+// 	filters.globalOriginsAllFilterIsSelected
+// 	filters.globalJobsAllFilterIsSelected
+
+// */
+// 	if (filters.globalDeploymentsAllFilterIsSelected || filtered(filters.globalDeploymentFilters, eventDeployment)) {
+// 		globalDeploymentsExclusionFilterIsSet = true
+// 	}
+
+// 	if (filters.globalOriginsAllFilterIsSelected || filtered(filters.globalOriginFilters, eventOrigin)) {
+// 		globalOriginsExclusionFilterIsSet = true
+// 	}
+
+// 	if (filters.globalJobsAllFilterIsSelected || filtered(filters.globalJobFilters, eventJob)) {
+// 		globalDJobsExclusionFilterIsSet = true
+// 	}
+
+// 	// if any of global filters is set
+// 	if (firehoseEventType == "ValueMetric" && (globalDeploymentsExclusionFilterIsSet || globalOriginsExclusionFilterIsSet || globalDJobsExclusionFilterIsSet)) {
+// 		// then check to see if there is a need to 
+// 	}
+// }
+
+
+
+	// valuemetric event inclusion filters
+	if globalEventsFilter == false { // no match found for exclusion filter at globel level
+		processEvent = true
+	} else { // globalEventsFilter == true -- match found for exclusion filters at globel level
+		if (firehoseEventType == "ValueMetric") {
+			if ((filters.totalValueMetricFiltersCount + filters.totalValueMetricMetricsCount) == 0) { // no inclusion filter selected
+				processEvent = false
+			} else {
+				vmName := cfEvent.ValueMetric.GetName()
+				if (filters.valueMetricAllFiltersSelected || filtered(filters.valueMetricDeploymentFilters, eventDeployment) || filtered(filters.valueMetricOriginFilters, eventOrigin) || filtered(filters.valueMetricJobFilters, eventJob) || filtered(filters.valueMetricMetricFilters, vmName)) {
+					processEvent = true
+				}
+			}
+		}
+	}
+
+	if (processEvent) {
+
+		fillGenericMetrics(nrEvent, eventOrigin, firehoseEventType, eventDeployment, eventJob,
+				cfEvent.GetIndex(), cfEvent.GetIp(), cfEvent.GetTimestamp(), cfEvent.Tags)
+
+		// // add generic fields
+		// nrEvent["origin"] = eventOrigin
+		// nrEvent["eventType"] = pcfEventType
+		// nrEvent["FirehoseEventType"] = firehoseEventType
+		// if pcfDomain > "" {
+		// 	nrEvent["pcfDomain"] = pcfDomain
+		// }
+		// if nozzleInstanceIp > "" {
+		// 	nrEvent["nozzleInstanceIp"] = nozzleInstanceIp
+		// }
+		// nrEvent["nozzleInstanceId"] = nozzleInstanceId
+		// nrEvent["deployment"] = eventDeployment
+		// nrEvent["job"] = eventJob
+		// nrEvent["index"] = cfEvent.GetIndex()
+		// nrEvent["ip"] = cfEvent.GetIp()
+		// nrEvent["timestamp"] = cfEvent.GetTimestamp() / 1000000 // nanoseconds -> milliseconds
+
+		// for name, val := range cfEvent.Tags {
+		// 	nrEvent["tag_"+name] = val
+		// }
+
+		// get in to event type specific stuff
+		switch *cfEvent.EventType {
+			case events.Envelope_HttpStartStop:
+				pcfCounters.httpStartStopEvents++
+				nrEvent["DatasetName"] = nrLogDataset
+				transformHttpStartStopEvent(cfEvent, nrEvent)
+
+			case events.Envelope_LogMessage:
+				pcfCounters.logMessageEvents++
+				nrEvent["DatasetName"] = nrLogDataset
+				transformLogMessage(cfEvent, nrEvent)
+
+			case events.Envelope_ContainerMetric:
+				pcfCounters.containerEvents++
+				nrEvent["DatasetName"] = nrMetricsDataset
+				transformContainerMetric(cfEvent, nrEvent)
+				//nrEvent["containerMetric"] = cfEvent.GetContainerMetric().String()
+
+			case events.Envelope_CounterEvent:
+				pcfCounters.counterEvents++
+				nrEvent["DatasetName"] = nrMetricsDataset
+				transformCounterEvent(cfEvent, nrEvent)
+				// nrEvent["counterEvent"] = cfEvent.GetCounterEvent().String()
+
+			case events.Envelope_ValueMetric:
+
+				pcfCounters.valueMetricEvents++
+				nrEvent["DatasetName"] = nrMetricsDataset
+				transformValueMetric(cfEvent, nrEvent)
+				//nrEvent["valueMetric"] = cfEvent.GetValueMetric().String()
+
+			case events.Envelope_Error:
+				pcfCounters.errors++
+				nrEvent["DatasetName"] = nrErrorDataset
+				transformErrorEvent(cfEvent, nrEvent)
+				//nrEvent["errorField"] = cfEvent.GetError().String()
+				if debug {
+					logger.Println(">>> ERROR EVENT: " + cfEvent.GetError().String())
+				}
+		}
+		return nil
+	} else {
+		return errors.New("eventskipped")
+	}
 }
 
 // process ValueMetric events to new relic event format
@@ -432,15 +708,9 @@ func transformCounterEvent(cfEvent *events.Envelope, nrEvent map[string]interfac
 	}
 }
 
-// process ContainerMetric events to new relic event format
-func transformContainerMetric(cfEvent *events.Envelope, nrEvent map[string]interface{}) {
-	// event: origin:"rep" eventType:ContainerMetric timestamp:1497038370673051301 deployment:"cf" job:"diego_cell" index:"302e37ef-f847-4b96-bdff-5c6e4f0d1259" ip:"192.168.16.23" containerMetric:<applicationId:"a0bc8fd4-8980-4e0e-81b3-7f9709ff407e" instanceIndex:0 cpuPercentage:0.07382914424191898 memoryBytes:359899136 diskBytes:142286848 memoryBytesQuota:536870912 diskBytesQuota:1073741824 > 
-	cm := cfEvent.ContainerMetric
-	prefix := "containerMetric"
-	if cm.ApplicationId != nil {
-		appGuid := cm.GetApplicationId()
-		nrEvent[prefix+"ApplicationId"] = appGuid //cm.GetApplicationId()
-
+func addAppDetailInfo(nrEvent map[string]interface{}, appGuid string) {
+	// add app detail info to insights event
+	if _, found := appInfo[appGuid]; found {
 		nrEvent["appInfoUpdated"] = appInfo[appGuid].timestamp
 		nrEvent["appName"] = appInfo[appGuid].name
 		nrEvent["appGuid"] = appInfo[appGuid].guid
@@ -455,6 +725,18 @@ func transformContainerMetric(cfEvent *events.Envelope, nrEvent map[string]inter
 		nrEvent["appSpaceGuid"] = appInfo[appGuid].spaceGuid
 		nrEvent["appOrgName"] = appInfo[appGuid].orgName
 		nrEvent["appOrgGuid"] = appInfo[appGuid].orgGuid
+	}
+}
+
+// process ContainerMetric events to new relic event format
+func transformContainerMetric(cfEvent *events.Envelope, nrEvent map[string]interface{}) {
+	// event: origin:"rep" eventType:ContainerMetric timestamp:1497038370673051301 deployment:"cf" job:"diego_cell" index:"302e37ef-f847-4b96-bdff-5c6e4f0d1259" ip:"192.168.16.23" containerMetric:<applicationId:"a0bc8fd4-8980-4e0e-81b3-7f9709ff407e" instanceIndex:0 cpuPercentage:0.07382914424191898 memoryBytes:359899136 diskBytes:142286848 memoryBytesQuota:536870912 diskBytesQuota:1073741824 > 
+	cm := cfEvent.ContainerMetric
+	prefix := "containerMetric"
+	if cm.ApplicationId != nil {
+		appGuid := cm.GetApplicationId()
+		nrEvent[prefix+"ApplicationId"] = appGuid //cm.GetApplicationId()
+		addAppDetailInfo(nrEvent, appGuid) // add app detail info to Insights ContainerMetric event
 	}
 	if cm.InstanceIndex != nil {
 		nrEvent[prefix+"InstanceIndex"] = cm.GetInstanceIndex()
@@ -480,9 +762,16 @@ func transformContainerMetric(cfEvent *events.Envelope, nrEvent map[string]inter
 func transformLogMessage(cfEvent *events.Envelope, nrEvent map[string]interface{}) {
 	// event: origin:"rep" eventType:LogMessage timestamp:1497038366041617814 deployment:"cf" job:"diego_cell" index:"0f4dc7bd-c941-42bf-a835-7c29445ddf8b" ip:"192.168.16.24" logMessage:<message:"[{\"DatasetName\":\"Metric Messages\",\"FirehoseEventType\":\"CounterEvent\",\"ceDelta\":166908,\"ceName\":\"dropsondeListener.receivedByteCount\",\"ceTotal\":25664179951,\"deployment\":\"cf\",\"eventType\":\"FirehoseEventTest\",\"index\":\"ca858dc5-2a09-465a-831d-c31fa5fb8802\",\"ip\":\"192.168.16.26\",\"job\":\"doppler\",\"origin\":\"DopplerServer\",\"timestamp\":1497038161107}]" message_type:OUT timestamp:1497038366041615818 app_id:"f22aac70-c5a9-47a9-b74c-355dd99abbe2" source_type:"APP/PROC/WEB" source_instance:"0" > 
 	message := cfEvent.LogMessage
+	if debug {
+		logger.Printf(">>>>> raw log message: %v\n", cfEvent)
+	}
 	prefix := "log"
 	if message.Message != nil {
 		msgContent := message.GetMessage()
+ // re := regexp.MustCompile("=>")
+ // payload := string([]byte(`payload: {"instance"=>"a305bf1e-f869-4307-5bdc-7f7b", "index"=>0, "reason"=>"CRASHED", "exit_description"=>"Instance never healthy after 1m0s: Failed to make TCP connection to port 8080: connection refused", "crash_count"=>2, "crash_timestamp"=>1522812923161363839, "version"=>"68a457a6-2f43-4ed7-af5f-038f2e1da1fc"}`))
+ // fmt.Println(re.ReplaceAllString(payload, ": "))
+ // logger.Printf(">>>>> log message payload: %v\n", string(msgContent))
 		nrEvent[prefix+"Message"] = string(msgContent)
 		parsedContent := make(map[string]interface{})
 		if err := json.Unmarshal(msgContent, &parsedContent); err == nil {
@@ -490,6 +779,7 @@ func transformLogMessage(cfEvent *events.Envelope, nrEvent map[string]interface{
 				nrEvent[prefix+"Message"+k] = v
 			}
 		}
+		addAppDetailInfo(nrEvent, message.GetAppId()) // add app detail info to Insights LogMessage event
 	}
 	if message.MessageType != nil {
 		nrEvent[prefix+"MessageType"] = message.GetMessageType().String()
@@ -506,7 +796,6 @@ func transformLogMessage(cfEvent *events.Envelope, nrEvent map[string]interface{
 	if message.SourceInstance != nil {
 		nrEvent[prefix+"SourceInstance"] = message.GetSourceInstance()
 	}
-	// nrEvent.Add(message)
 }
 
 // process http start/stop events to new relic event format
@@ -556,6 +845,22 @@ func transformHttpStartStopEvent(cfEvent *events.Envelope, nrEvent map[string]in
 	for i, forwardedIp := range httpEvent.Forwarded {
 		index := strconv.Itoa(i)
 		nrEvent[prefix+"Forwarded"+index] = forwardedIp
+	}
+}
+
+// process Error events to new relic event format
+func transformErrorEvent(cfEvent *events.Envelope, nrEvent map[string]interface{}) {
+
+	errEvent := cfEvent.Error
+	prefix := "error"
+	if errEvent.Source != nil {
+		nrEvent[prefix+"Source"] = errEvent.GetSource()
+	}
+	if errEvent.Code != nil {
+		nrEvent[prefix+"Code"] = errEvent.GetCode()
+	}
+	if errEvent.Message != nil {
+		nrEvent[prefix+"Message"] = errEvent.GetMessage()
 	}
 }
 

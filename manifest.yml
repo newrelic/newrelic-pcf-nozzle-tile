@@ -5,30 +5,34 @@ applications:
   instances: 3
   health-check-type: none
   host: cf-firehose-nozzle-${random-word}
-  # buildpack: https://github.com/cloudfoundry/go-buildpack.git
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git
   # command: go run main.go
   env:
-    # GOPACKAGENAME: main.go
-    NOZZLE_USERNAME: opentsdb-firehose-nozzle
-    NOZZLE_PASSWORD: <password>
-    NOZZLE_UAA_URL: https://uaa.<your-domain-name>
-    NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.<your-domain-name>:<ssl-port>
+    NOZZLE_USERNAME: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity"
+    NOZZLE_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password"
+    NOZZLE_UAA_URL: "cfom cf curl /v2/info"
+    NOZZLE_TRAFFIC_CONTROLLER_URL: "cfom cf curl /v2/info"
     NOZZLE_FIREHOSE_SUBSCRIPTION_ID: newrelic.firehose
     NOZZLE_SKIP_SSL: true
-    # NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,LogMessage,ContainerMetric,HttpStartStop
-    NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,ContainerMetric
+    NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,LogMessage,ContainerMetric,HttpStartStop,Error
+
+    NOZZLE_ADMIN_USER: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Admin Credentials -> Link to Credential -> identity"
+    NOZZLE_ADMIN_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Admin Credentials -> Link to Credential -> password"
+    NOZZLE_APP_DETAIL_INTERVAL: 1
     NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
-    NEWRELIC_INSIGHTS_RPM_ID: <newrelic-rpm-id>
-    NEWRELIC_INSIGHTS_INSERT_KEY: <insights-insert-key>
+    NEWRELIC_INSIGHTS_RPM_ID: 739516
+    NEWRELIC_INSIGHTS_INSERT_KEY: 4NZ_7MWqfcNx5IwxHZAlEOnuzfIdeq_K
 
-    # NOZZLE_EXCLUDED_DEPLOYMENTS: 
-    # NOZZLE_EXCLUDED_ORIGINS: 
-    # NOZZLE_EXCLUDED_JOBS: 
+    NOZZLE_GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS: ex. 'dep1, dep2'
+    NOZZLE_GLOBAL_ORIGIN_EXCLUSION_FILTERS: ex. '[{"value":"origin_1"}, {"value":"origin_2"}]'
+    NOZZLE_GLOBAL_JOB_EXCLUSION_FILTERS: ex. '[{"value":"job_1"}, {"value":"job_2"}]'
 
-    # NOZZLE_ADMIN_USER: 
-    # NOZZLE_ADMIN_PASSWORD: 
-    # NOZZLE_APP_DETAIL_INTERVAL: 1
+    NOZZLE_VALUEMETRIC_DEPLOYMENT_INCLUSION_FILTERS: ex. 'dep3, dep4'
+    NOZZLE_VALUEMETRIC_ORIGIN_INCLUSION_FILTERS: ex. '[{"value":"origin_1"}, {"value":"origin_2"}]'
+    NOZZLE_VALUEMETRIC_JOB_INCLUSION_FILTERS: ex. '[{"value":"job_1"}, {"value":"job_2"}]'
+    NOZZLE_VALUEMETRIC_METRIC_INCLUSION_FILTERS: ex. '[{"value":"TasksRunning"}, {"value":"average_envelope"}, {"value":"audit_service.principal_not_found_count"}]'
 
+    # # if proxy used in your environment
     # http_proxy: <proxy server address:port>
     # no_proxy:  <comma separated list of servers to bypass proxy>
 
