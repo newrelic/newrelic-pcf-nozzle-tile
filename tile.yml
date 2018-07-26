@@ -205,10 +205,18 @@ forms:
         label: auctioneer
       - name: bbs
         label: bbs
+      - name: bosh-system-metrics-forwarder
+        label: bosh-system-metrics-forwarder
       - name: cc
         label: cc
       - name: cc_uploader
         label: cc_uploader
+      - name: cf-syslog-drain.adapter
+        label: cf-syslog-drain.adapter
+      - name: cf-syslog-drain.scheduler
+        label: cf-syslog-drain.scheduler
+      - name: cloud_controller
+        label: cloud_controller
       - name: DopplerServer
         label: DopplerServer
       - name: etcd
@@ -219,20 +227,64 @@ forms:
         label: garden_linux
       - name: gorouter
         label: gorouter
+      - name: grootfs
+        label: grootfs
+      - name: healthwatch
+        label: healthwatch
+      - name: iptables-logger
+        label: iptables-logger
+      - name: locket
+        label: locket
+      - name: loggregator.metron
+        label: loggregator.metron
+      - name: loggregator.rlp
+        label: loggregator.rlp
+      - name: loggregator.trafficcontroller
+        label: loggregator.trafficcontroller
       - name: LoggregatorTrafficController
         label: LoggregatorTrafficController
       - name: MetronAgent
         label: MetronAgent
+      - name: mysql
+        label: mysql
+      - name: netmon
+        label: netmon
       - name: nsync_bulker
         label: nsync_bulker
       - name: nsync_listener
         label: nsync_listener
+      - name: p-mysql
+        label: p-mysql
+      - name: p-rabbitmq
+        label: p-rabbitmq
+      - name: p-redis
+        label: p-redis
+      - name: p.cloudcache
+        label: p.cloudcache
+      - name: p.mysql
+        label: p.mysql
+      - name: p.rabbitmq
+        label: p.rabbitmq
+      - name: p.redis
+        label: p.redis
+      - name: policy-server
+        label: policy-server
+      - name: policy-server-internal
+        label: policy-server-internal
       - name: rep
         label: rep
       - name: route_emitter
         label: route_emitter
       - name: routing_api
         label: routing_api
+      - name: scalablesyslog.adapter
+        label: scalablesyslog.adapter
+      - name: scalablesyslog.scheduler
+        label: scalablesyslog.scheduler
+      - name: silk-controller
+        label: silk-controller
+      - name: silk-daemon
+        label: silk-daemon
       - name: ssh_proxy
         label: ssh_proxy
       - name: stager
@@ -249,6 +301,8 @@ forms:
         label: tps_watcher
       - name: uaa
         label: uaa
+      - name: vxlan-policy-agent
+        label: vxlan-policy-agent
 
   - name: nozzle_global_job_exclusion_filters
     type: collection
@@ -270,8 +324,8 @@ forms:
         label: alertmanager
       - name: backup-prepare
         label: backup-prepare
-      - name: backup-prepare
-        label: backup-prepare
+      - name: bosh-health-check
+        label: bosh-health-check
       - name: broker
         label: broker
       - name: broker-registrar
@@ -476,10 +530,18 @@ forms:
         label: auctioneer
       - name: bbs
         label: bbs
+      - name: bosh-system-metrics-forwarder
+        label: bosh-system-metrics-forwarder
       - name: cc
         label: cc
       - name: cc_uploader
         label: cc_uploader
+      - name: cf-syslog-drain.adapter
+        label: cf-syslog-drain.adapter
+      - name: cf-syslog-drain.scheduler
+        label: cf-syslog-drain.scheduler
+      - name: cloud_controller
+        label: cloud_controller
       - name: DopplerServer
         label: DopplerServer
       - name: etcd
@@ -490,20 +552,64 @@ forms:
         label: garden_linux
       - name: gorouter
         label: gorouter
+      - name: grootfs
+        label: grootfs
+      - name: healthwatch
+        label: healthwatch
+      - name: iptables-logger
+        label: iptables-logger
+      - name: locket
+        label: locket
+      - name: loggregator.metron
+        label: loggregator.metron
+      - name: loggregator.rlp
+        label: loggregator.rlp
+      - name: loggregator.trafficcontroller
+        label: loggregator.trafficcontroller
       - name: LoggregatorTrafficController
         label: LoggregatorTrafficController
       - name: MetronAgent
         label: MetronAgent
+      - name: mysql
+        label: mysql
+      - name: netmon
+        label: netmon
       - name: nsync_bulker
         label: nsync_bulker
       - name: nsync_listener
         label: nsync_listener
+      - name: p-mysql
+        label: p-mysql
+      - name: p-rabbitmq
+        label: p-rabbitmq
+      - name: p-redis
+        label: p-redis
+      - name: p.cloudcache
+        label: p.cloudcache
+      - name: p.mysql
+        label: p.mysql
+      - name: p.rabbitmq
+        label: p.rabbitmq
+      - name: p.redis
+        label: p.redis
+      - name: policy-server
+        label: policy-server
+      - name: policy-server-internal
+        label: policy-server-internal
       - name: rep
         label: rep
       - name: route_emitter
         label: route_emitter
       - name: routing_api
         label: routing_api
+      - name: scalablesyslog.adapter
+        label: scalablesyslog.adapter
+      - name: scalablesyslog.scheduler
+        label: scalablesyslog.scheduler
+      - name: silk-controller
+        label: silk-controller
+      - name: silk-daemon
+        label: silk-daemon
       - name: ssh_proxy
         label: ssh_proxy
       - name: stager
@@ -520,6 +626,8 @@ forms:
         label: tps_watcher
       - name: uaa
         label: uaa
+      - name: vxlan-policy-agent
+        label: vxlan-policy-agent
 
   - name: nozzle_valuemetric_job_inclusion_filters
     type: collection
@@ -541,8 +649,8 @@ forms:
         label: alertmanager
       - name: backup-prepare
         label: backup-prepare
-      - name: backup-prepare
-        label: backup-prepare
+      - name: bosh-health-check
+        label: bosh-health-check
       - name: broker
         label: broker
       - name: broker-registrar
@@ -722,6 +830,522 @@ forms:
       #   default: true
       - name: all
         label: all
+      - name: adapters
+        label: adapters
+      - name: AuctioneerFetchStatesDuration
+        label: AuctioneerFetchStatesDuration
+      - name: BBSMasterElected
+        label: BBSMasterElected
+      - name: bosh.deployment
+        label: bosh.deployment
+      - name: buffered_messages
+        label: buffered_messages
+      - name: CapacityAllocatedDisk
+        label: CapacityAllocatedDisk
+      - name: CapacityAllocatedMemory
+        label: CapacityAllocatedMemory
+      - name: CommittedQuotaInBytes
+        label: CommittedQuotaInBytes
+      - name: container_metric_sinks
+        label: container_metric_sinks
+      - name: ContainerUsageDisk
+        label: ContainerUsageDisk
+      - name: ContainerUsageMemory
+        label: ContainerUsageMemory
+      - name: CredCreationSucceededDuration
+        label: CredCreationSucceededDuration
+      - name: database.global.completed.count
+        label: database.global.completed.count
+      - name: database.global.completed.time
+        label: database.global.completed.time
+      - name: database.global.unhealthy.count
+        label: database.global.unhealthy.count
+      - name: database.global.unhealthy.time
+        label: database.global.unhealthy.time
+      - name: DBOpenConnections
+        label: DBOpenConnections
+      - name: DBQueriesFailed
+        label: DBQueriesFailed
+      - name: DBQueriesInFlight
+        label: DBQueriesInFlight
+      - name: DBQueriesSucceeded
+        label: DBQueriesSucceeded
+      - name: DBQueriesTotal
+        label: DBQueriesTotal
+      - name: DBQueryDurationMax
+        label: DBQueryDurationMax
+      - name: Diego.AppsDomainSynced
+        label: Diego.AppsDomainSynced
+      - name: Diego.AvailableFreeChunks
+        label: Diego.AvailableFreeChunks
+      - name: Diego.LRPsAdded.1H
+        label: Diego.LRPsAdded.1H
+      - name: Diego.TotalAvailableContainerCapacity.5M
+        label: Diego.TotalAvailableContainerCapacity.5M
+      - name: Diego.TotalAvailableDiskCapacity.5M
+        label: Diego.TotalAvailableDiskCapacity.5M
+      - name: Diego.TotalAvailableMemoryCapacity.5M
+        label: Diego.TotalAvailableMemoryCapacity.5M
+      - name: Diego.TotalPercentageAvailableContainerCapacity.5M
+        label: Diego.TotalPercentageAvailableContainerCapacity.5M
+      - name: Diego.TotalPercentageAvailableDiskCapacity.5M
+        label: Diego.TotalPercentageAvailableDiskCapacity.5M
+      - name: Diego.TotalPercentageAvailableMemoryCapacity.5M
+        label: Diego.TotalPercentageAvailableMemoryCapacity.5M
+      - name: Doppler.MessagesAverage.1M
+        label: Doppler.MessagesAverage.1M
+      - name: DownloadedLayersSizeInBytes
+        label: DownloadedLayersSizeInBytes
+      - name: drain_bindings
+        label: drain_bindings
+      - name: dump_sinks
+        label: dump_sinks
+      - name: events.published
+        label: events.published
+      - name: ExclusiveLockingTime
+        label: ExclusiveLockingTime
+      - name: failed_job_count.cc-cloud_controller-1
+        label: failed_job_count.cc-cloud_controller-1
+      - name: failed_job_count.cc-cloud_controller-2
+        label: failed_job_count.cc-cloud_controller-2
+      - name: failed_job_count.cc-generic
+        label: failed_job_count.cc-generic
+      - name: failed_job_count.orphaned_blobs_cleanup
+        label: failed_job_count.orphaned_blobs_cleanup
+      - name: failed_job_count.pending_droplets
+        label: failed_job_count.pending_droplets
+      - name: Firehose.LossRate.1H
+        label: Firehose.LossRate.1H
+      - name: Firehose.LossRate.1M
+        label: Firehose.LossRate.1M
+      - name: Galera.ClusterStatusSum
+        label: Galera.ClusterStatusSum
+      - name: Galera.TotalPercentageHealthyNodes
+        label: Galera.TotalPercentageHealthyNodes
+      - name: GardenContainerCreationDuration
+        label: GardenContainerCreationDuration
+      - name: GardenContainerCreationSucceededDuration
+        label: GardenContainerCreationSucceededDuration
+      - name: GardenContainerDestructionFailedDuration
+        label: GardenContainerDestructionFailedDuration
+      - name: GardenContainerDestructionSucceededDuration
+        label: GardenContainerDestructionSucceededDuration
+      - name: health.bosh.deployment.probe.count
+        label: health.bosh.deployment.probe.count
+      - name: health.check.bosh.director.probe.available
+        label: health.check.bosh.director.probe.available
+      - name: health.check.bosh.director.probe.count
+        label: health.check.bosh.director.probe.count
+      - name: health.check.bosh.director.success
+        label: health.check.bosh.director.success
+      - name: health.check.bosh.director.timeout
+        label: health.check.bosh.director.timeout
+      - name: health.check.CanaryApp.available
+        label: health.check.CanaryApp.available
+      - name: health.check.CanaryApp.probe.available
+        label: health.check.CanaryApp.probe.available
+      - name: health.check.CanaryApp.probe.count
+        label: health.check.CanaryApp.probe.count
+      - name: health.check.CanaryApp.responseTime
+        label: health.check.CanaryApp.responseTime
+      - name: health.check.cliCommand.delete
+        label: health.check.cliCommand.delete
+      - name: health.check.cliCommand.delete.timeout
+        label: health.check.cliCommand.delete.timeout
+      - name: health.check.cliCommand.duration
+        label: health.check.cliCommand.duration
+      - name: health.check.cliCommand.login
+        label: health.check.cliCommand.login
+      - name: health.check.cliCommand.logs
+        label: health.check.cliCommand.logs
+      - name: health.check.cliCommand.probe.available
+        label: health.check.cliCommand.probe.available
+      - name: health.check.cliCommand.probe.count
+        label: health.check.cliCommand.probe.count
+      - name: health.check.cliCommand.push
+        label: health.check.cliCommand.push
+      - name: health.check.cliCommand.push.timeout
+        label: health.check.cliCommand.push.timeout
+      - name: health.check.cliCommand.pushTime
+        label: health.check.cliCommand.pushTime
+      - name: health.check.cliCommand.start
+        label: health.check.cliCommand.start
+      - name: health.check.cliCommand.start.timeout
+        label: health.check.cliCommand.start.timeout
+      - name: health.check.cliCommand.stop
+        label: health.check.cliCommand.stop
+      - name: health.check.cliCommand.success
+        label: health.check.cliCommand.success
+      - name: health.check.OpsMan.available
+        label: health.check.OpsMan.available
+      - name: health.check.OpsMan.probe.available
+        label: health.check.OpsMan.probe.available
+      - name: health.check.OpsMan.probe.count
+        label: health.check.OpsMan.probe.count
+      - name: health.check.UIavailability.probe.count
+        label: health.check.UIavailability.probe.count
+      - name: healthwatch.ingestor.disconnects
+        label: healthwatch.ingestor.disconnects
+      - name: healthwatch.loader.dropped
+        label: healthwatch.loader.dropped
+      - name: healthwatch.metrics.published
+        label: healthwatch.metrics.published
+      - name: healthwatch.ui.available
+        label: healthwatch.ui.available
+      - name: http_status.3XX
+        label: http_status.3XX
+      - name: http_status.4XX
+        label: http_status.4XX
+      - name: http_status.5XX
+        label: http_status.5XX
+      - name: info.clients.blocked_clients
+        label: info.clients.blocked_clients
+      - name: info.clients.client_biggest_input_buf
+        label: info.clients.client_biggest_input_buf
+      - name: info.clients.client_longest_output_list
+        label: info.clients.client_longest_output_list
+      - name: info.clients.connected_clients
+        label: info.clients.connected_clients
+      - name: info.cluster.cluster_enabled
+        label: info.cluster.cluster_enabled
+      - name: info.cpu.used_cpu_sys
+        label: info.cpu.used_cpu_sys
+      - name: info.cpu.used_cpu_sys_children
+        label: info.cpu.used_cpu_sys_children
+      - name: info.cpu.used_cpu_user
+        label: info.cpu.used_cpu_user
+      - name: info.cpu.used_cpu_user_children
+        label: info.cpu.used_cpu_user_children
+      - name: info.memory.maxmemory
+        label: info.memory.maxmemory
+      - name: info.memory.mem_fragmentation_ratio
+        label: info.memory.mem_fragmentation_ratio
+      - name: info.memory.used_memory
+        label: info.memory.used_memory
+      - name: info.memory.used_memory_lua
+        label: info.memory.used_memory_lua
+      - name: info.memory.used_memory_peak
+        label: info.memory.used_memory_peak
+      - name: info.memory.used_memory_rss
+        label: info.memory.used_memory_rss
+      - name: info.persistence.aof_current_rewrite_time_sec
+        label: info.persistence.aof_current_rewrite_time_sec
+      - name: info.persistence.aof_last_bgrewrite_status
+        label: info.persistence.aof_last_bgrewrite_status
+      - name: info.persistence.aof_last_rewrite_time_sec
+        label: info.persistence.aof_last_rewrite_time_sec
+      - name: info.persistence.aof_last_write_status
+        label: info.persistence.aof_last_write_status
+      - name: info.persistence.aof_rewrite_in_progress
+        label: info.persistence.aof_rewrite_in_progress
+      - name: info.persistence.aof_rewrite_scheduled
+        label: info.persistence.aof_rewrite_scheduled
+      - name: info.persistence.loading
+        label: info.persistence.loading
+      - name: info.persistence.rdb_bgsave_in_progress
+        label: info.persistence.rdb_bgsave_in_progress
+      - name: info.persistence.rdb_changes_since_last_save
+        label: info.persistence.rdb_changes_since_last_save
+      - name: info.persistence.rdb_current_bgsave_time_sec
+        label: info.persistence.rdb_current_bgsave_time_sec
+      - name: info.persistence.rdb_last_bgsave_status
+        label: info.persistence.rdb_last_bgsave_status
+      - name: info.persistence.rdb_last_bgsave_time_sec
+        label: info.persistence.rdb_last_bgsave_time_sec
+      - name: info.persistence.rdb_last_save_time
+        label: info.persistence.rdb_last_save_time
+      - name: info.replication.connected_slaves
+        label: info.replication.connected_slaves
+      - name: info.replication.master_repl_offset
+        label: info.replication.master_repl_offset
+      - name: info.replication.repl_backlog_active
+        label: info.replication.repl_backlog_active
+      - name: info.replication.repl_backlog_first_byte_offset
+        label: info.replication.repl_backlog_first_byte_offset
+      - name: info.replication.repl_backlog_histlen
+        label: info.replication.repl_backlog_histlen
+      - name: info.replication.repl_backlog_size
+        label: info.replication.repl_backlog_size
+      - name: info.server.arch_bits
+        label: info.server.arch_bits
+      - name: info.server.hz
+        label: info.server.hz
+      - name: info.server.lru_clock
+        label: info.server.lru_clock
+      - name: info.server.uptime_in_days
+        label: info.server.uptime_in_days
+      - name: info.server.uptime_in_seconds
+        label: info.server.uptime_in_seconds
+      - name: info.stats.evicted_keys
+        label: info.stats.evicted_keys
+      - name: info.stats.expired_keys
+        label: info.stats.expired_keys
+      - name: info.stats.instantaneous_input_kbps
+        label: info.stats.instantaneous_input_kbps
+      - name: info.stats.instantaneous_ops_per_sec
+        label: info.stats.instantaneous_ops_per_sec
+      - name: info.stats.instantaneous_output_kbps
+        label: info.stats.instantaneous_output_kbps
+      - name: info.stats.keyspace_hits
+        label: info.stats.keyspace_hits
+      - name: info.stats.keyspace_misses
+        label: info.stats.keyspace_misses
+      - name: info.stats.latest_fork_usec
+        label: info.stats.latest_fork_usec
+      - name: info.stats.migrate_cached_sockets
+        label: info.stats.migrate_cached_sockets
+      - name: info.stats.pubsub_channels
+        label: info.stats.pubsub_channels
+      - name: info.stats.pubsub_patterns
+        label: info.stats.pubsub_patterns
+      - name: info.stats.rejected_connections
+        label: info.stats.rejected_connections
+      - name: info.stats.sync_full
+        label: info.stats.sync_full
+      - name: info.stats.sync_partial_err
+        label: info.stats.sync_partial_err
+      - name: info.stats.sync_partial_ok
+        label: info.stats.sync_partial_ok
+      - name: info.stats.total_commands_processed
+        label: info.stats.total_commands_processed
+      - name: info.stats.total_connections_received
+        label: info.stats.total_connections_received
+      - name: info.stats.total_net_input_bytes
+        label: info.stats.total_net_input_bytes
+      - name: info.stats.total_net_output_bytes
+        label: info.stats.total_net_output_bytes
+      - name: ingestor.disconnects
+        label: ingestor.disconnects
+      - name: ingestor.dropped
+        label: ingestor.dropped
+      - name: job_queue_length.app_usage_events
+        label: job_queue_length.app_usage_events
+      - name: job_queue_length.audit_events
+        label: job_queue_length.audit_events
+      - name: job_queue_length.cc-cloud_controller-0
+        label: job_queue_length.cc-cloud_controller-0
+      - name: job_queue_length.cc-cloud_controller-1
+        label: job_queue_length.cc-cloud_controller-1
+      - name: job_queue_length.cc-cloud_controller-2
+        label: job_queue_length.cc-cloud_controller-2
+      - name: job_queue_length.cc-generic
+        label: job_queue_length.cc-generic
+      - name: job_queue_length.completed_tasks
+        label: job_queue_length.completed_tasks
+      - name: job_queue_length.expired_blob_cleanup
+        label: job_queue_length.expired_blob_cleanup
+      - name: job_queue_length.expired_orphaned_blob_cleanup
+        label: job_queue_length.expired_orphaned_blob_cleanup
+      - name: job_queue_length.expired_resource_cleanup
+        label: job_queue_length.expired_resource_cleanup
+      - name: job_queue_length.failed_jobs
+        label: job_queue_length.failed_jobs
+      - name: job_queue_length.orphaned_blobs_cleanup
+        label: job_queue_length.orphaned_blobs_cleanup
+      - name: job_queue_length.pending_builds
+        label: job_queue_length.pending_builds
+      - name: job_queue_length.pending_droplets
+        label: job_queue_length.pending_droplets
+      - name: job_queue_length.pollable_job_cleanup
+        label: job_queue_length.pollable_job_cleanup
+      - name: job_queue_length.service_usage_events
+        label: job_queue_length.service_usage_events
+      - name: latency.blobstore
+        label: latency.blobstore
+      - name: latency.redis-broker
+        label: latency.redis-broker
+      - name: latency.uaa
+        label: latency.uaa
+      - name: LockHeld
+        label: LockHeld
+      - name: logSenderTotalMessagesRead
+        label: logSenderTotalMessagesRead
+      - name: metrics.published
+        label: metrics.published
+      - name: MigrationDuration
+        label: MigrationDuration
+      - name: OpenFileDescriptors
+        label: OpenFileDescriptors
+      - name: redis.counterEventQueue.size
+        label: redis.counterEventQueue.size
+      - name: redis.valueMetricQueue.size
+        label: redis.valueMetricQueue.size
+      - name: RequestLatencyMax
+        label: RequestLatencyMax
+      - name: requests.api.completed.count
+        label: requests.api.completed.count
+      - name: requests.api.completed.time
+        label: requests.api.completed.time
+      - name: requests.clients.completed.count
+        label: requests.clients.completed.count
+      - name: requests.clients.completed.time
+        label: requests.clients.completed.time
+      - name: requests.global.completed.count
+        label: requests.global.completed.count
+      - name: requests.global.completed.time
+        label: requests.global.completed.time
+      - name: requests.global.status_1xx.count
+        label: requests.global.status_1xx.count
+      - name: requests.global.status_2xx.count
+        label: requests.global.status_2xx.count
+      - name: requests.global.status_3xx.count
+        label: requests.global.status_3xx.count
+      - name: requests.global.status_4xx.count
+        label: requests.global.status_4xx.count
+      - name: requests.global.status_5xx.count
+        label: requests.global.status_5xx.count
+      - name: requests.global.unhealthy.count
+        label: requests.global.unhealthy.count
+      - name: requests.global.unhealthy.time
+        label: requests.global.unhealthy.time
+      - name: requests.groups.completed.count
+        label: requests.groups.completed.count
+      - name: requests.groups.completed.time
+        label: requests.groups.completed.time
+      - name: requests.oauth-oidc.completed.count
+        label: requests.oauth-oidc.completed.count
+      - name: requests.oauth-oidc.completed.time
+        label: requests.oauth-oidc.completed.time
+      - name: requests.static-content.completed.count
+        label: requests.static-content.completed.count
+      - name: requests.static-content.completed.time
+        label: requests.static-content.completed.time
+      - name: requests.uaa.global.metrics.completed.count
+        label: requests.uaa.global.metrics.completed.count
+      - name: requests.uaa.global.metrics.completed.time
+        label: requests.uaa.global.metrics.completed.time
+      - name: requests.ui.completed.count
+        label: requests.ui.completed.count
+      - name: requests.ui.completed.time
+        label: requests.ui.completed.time
+      - name: requests.unknown.completed.count
+        label: requests.unknown.completed.count
+      - name: requests.unknown.completed.time
+        label: requests.unknown.completed.time
+      - name: requests.users.completed.count
+        label: requests.users.completed.count
+      - name: requests.users.completed.time
+        label: requests.users.completed.time
+      - name: RequestsFailed
+        label: RequestsFailed
+      - name: RequestsInFlight
+        label: RequestsInFlight
+      - name: RequestsStarted
+        label: RequestsStarted
+      - name: RequestsSucceeded
+        label: RequestsSucceeded
+      - name: route_registration_latency
+        label: route_registration_latency
+      - name: RouteRegistration.MessagesDelta
+        label: RouteRegistration.MessagesDelta
+      - name: server.idle.time
+        label: server.idle.time
+      - name: server.inflight.count
+        label: server.inflight.count
+      - name: server.up.time
+        label: server.up.time
+      - name: staging.failed
+        label: staging.failed
+      - name: staging.failed_duration
+        label: staging.failed_duration
+      - name: staging.requested
+        label: staging.requested
+      - name: staging.succeeded
+        label: staging.succeeded
+      - name: staging.succeeded_duration
+        label: staging.succeeded_duration
+      - name: StalledGardenDuration
+        label: StalledGardenDuration
+      - name: StoreAllErrorTime
+        label: StoreAllErrorTime
+      - name: StoreByGuidsErrorTime
+        label: StoreByGuidsErrorTime
+      - name: StrandedEvacuatingActualLRPs
+        label: StrandedEvacuatingActualLRPs
+      - name: StreamInDuration
+        label: StreamInDuration
+      - name: subscriptions
+        label: subscriptions
+      - name: SyslogDrain.Adapter.BindingsAverage.5M
+        label: SyslogDrain.Adapter.BindingsAverage.5M
+      - name: SyslogDrain.Adapter.LossRate.1M
+        label: SyslogDrain.Adapter.LossRate.1M
+      - name: SyslogDrain.RLP.LossRate.1M
+        label: SyslogDrain.RLP.LossRate.1M
+      - name: system.cpu.sys
+        label: system.cpu.sys
+      - name: system.cpu.user
+        label: system.cpu.user
+      - name: system.cpu.wait
+        label: system.cpu.wait
+      - name: system.disk.ephemeral.inode_percent
+        label: system.disk.ephemeral.inode_percent
+      - name: system.disk.ephemeral.percent
+        label: system.disk.ephemeral.percent
+      - name: system.disk.persistent.inode_percent
+        label: system.disk.persistent.inode_percent
+      - name: system.disk.persistent.percent
+        label: system.disk.persistent.percent
+      - name: system.disk.system.inode_percent
+        label: system.disk.system.inode_percent
+      - name: system.disk.system.percent
+        label: system.disk.system.percent
+      - name: system.healthy
+        label: system.healthy
+      - name: system.load.1m
+        label: system.load.1m
+      - name: system.mem.kb
+        label: system.mem.kb
+      - name: system.mem.percent
+        label: system.mem.percent
+      - name: system.swap.kb
+        label: system.swap.kb
+      - name: system.swap.percent
+        label: system.swap.percent
+      - name: TasksFailed
+        label: TasksFailed
+      - name: TasksStarted
+        label: TasksStarted
+      - name: TasksSucceeded
+        label: TasksSucceeded
+      - name: total_dropped_messages
+        label: total_dropped_messages
+      - name: uaa.throughput.rate
+        label: uaa.throughput.rate
+      - name: UnusedLayersSize
+        label: UnusedLayersSize
+      - name: Uptime
+        label: Uptime
+      - name: vitals.jvm.cpu.load
+        label: vitals.jvm.cpu.load
+      - name: vitals.jvm.heap.committed
+        label: vitals.jvm.heap.committed
+      - name: vitals.jvm.heap.init
+        label: vitals.jvm.heap.init
+      - name: vitals.jvm.heap.max
+        label: vitals.jvm.heap.max
+      - name: vitals.jvm.heap.used
+        label: vitals.jvm.heap.used
+      - name: vitals.jvm.non-heap.committed
+        label: vitals.jvm.non-heap.committed
+      - name: vitals.jvm.non-heap.init
+        label: vitals.jvm.non-heap.init
+      - name: vitals.jvm.non-heap.max
+        label: vitals.jvm.non-heap.max
+      - name: vitals.jvm.non-heap.used
+        label: vitals.jvm.non-heap.used
+      - name: vitals.jvm.thread.count
+        label: vitals.jvm.thread.count
+      - name: vitals.vm.cpu.count
+        label: vitals.vm.cpu.count
+      - name: vitals.vm.cpu.load
+        label: vitals.vm.cpu.load
+      - name: vitals.vm.memory.committed
+        label: vitals.vm.memory.committed
+      - name: vitals.vm.memory.free
+        label: vitals.vm.memory.free
+      - name: vitals.vm.memory.total
+        label: vitals.vm.memory.total
       - name: ActiveLocks
         label: ActiveLocks
       - name: ActivePresences
