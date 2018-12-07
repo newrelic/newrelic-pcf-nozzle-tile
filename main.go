@@ -9,6 +9,7 @@ import (
 	//"net"
 	"net/url"
 	"net/http"
+	"io/ioutil"
 	"strings"
 	"strconv"
 	"time"
@@ -39,8 +40,9 @@ const (
 	nrErrorDataset    = "Error Messages"
 	nrMetricsDataset  = "Metric Messages"
 
-	insightsMaxEvents = 500 // size of insights json insert packet
-	nozzleVersion     = "1.04"
+	// insightsMaxEvents = 500 // size of insights json insert packet
+	maxConnectionAttempts = 3
+	// nozzleVersion     = "1.1.13"
 	pcfEventType      = "PcfFirehoseEvent"
 )
 
@@ -111,6 +113,9 @@ var appInfo          = map[string]*AppInfoType{} // caching app extended info (a
 var nozzleInstanceId   = os.Getenv("CF_INSTANCE_INDEX")
 var logger           = log.New(os.Stdout, ">>> ", 0)
 
+var nozzleVersion string
+var insightsMaxEvents int
+
 var debug            = false
 
 type EventFilters struct {
@@ -152,6 +157,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+//10-16-18 - logger.Println("port", pcfConfig.Port)
 	if debug {
 		logger.Printf("pcfConfig: %v\n", pcfConfig)
 	}
@@ -178,12 +184,20 @@ func main() {
 	logger.Printf("APP_DETAIL_INTERVAL: %s\n", pcfExtendedConfig.APP_DETAIL_INTERVAL)
 	// ------------------------------------------------------------------------
 
-	insightsClient = http.Client{}
+	insightsClient = http.Client{
+		Timeout: time.Second * 10,
+	}
 
 	// ###########################################################################
 
 	insightsUrl := fmt.Sprintf("%s/accounts/%s/events", nrConfig.INSIGHTS_BASE_URL, nrConfig.INSIGHTS_RPM_ID)
 	insightsInsertKey := nrConfig.INSIGHTS_INSERT_KEY
+	nozzleVersion = os.Getenv("NEWRELIC_NOZZLE_VERSION")
+	insightsMaxEvents, err = strconv.Atoi(os.Getenv("NEWRELIC_INSIGHTS_MAX_EVENTS"))
+	if err!=nil {
+		panic(err)
+	}
+
 	if debug {
 		logger.Printf("insights url: %v\n", insightsUrl)
 		logger.Printf("insights InsertKey: %v\n", insightsInsertKey)
@@ -480,11 +494,7 @@ func addAppDetails(appInfo map[string]*AppInfoType, app cfclient.App) {
 
 func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insightsInsertKey string) {
 
- //ee = ee + 1
- //checkMem(ee)
 	NREventsMap = append(NREventsMap, nrEvent)
- //checkMem(ee)
-	// logger.Println(nrEvent)
 
 	if(len(NREventsMap) >= insightsMaxEvents) {
 		jsonStr, err := json.Marshal(NREventsMap)
@@ -497,22 +507,32 @@ func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insights
 			pcfCounters.httpStartStopEvents, pcfCounters.logMessageEvents, pcfCounters.errors)
 
 
-	    req, err := http.NewRequest("POST", insightsUrl, bytes.NewBuffer(jsonStr))
-	    req.Header.Set("X-Insert-Key", insightsInsertKey)
-	    req.Header.Set("Content-Type", "application/json")
+	    for attempt := 1; attempt <= maxConnectionAttempts; attempt++ {
+		    req, err := http.NewRequest("POST", insightsUrl, bytes.NewBuffer(jsonStr))
+		    req.Header.Set("X-Insert-Key", insightsInsertKey)
+		    req.Header.Set("Content-Type", "application/json")
 
-	    // client := &http.Client{}
-	    resp, err := insightsClient.Do(req)
-	    if err != nil {
-	    	logger.Printf(">>>> insights json: %v\n", NREventsMap)
-	        panic(err)
+		    resp, err := insightsClient.Do(req)
+		    if err != nil {
+		    	if attempt == maxConnectionAttempts {
+			    	log.Printf("\n>>>> insights json packet: %v\n", string(jsonStr))
+			    	log.Printf(">>>> packet size: %d\n", len(string(jsonStr)))
+			    	log.Output(0, "Failed to push events to New Relic!")
+			        panic(err)
+			    }
+		    } else {
+		    	defer resp.Body.Close()
+				if resp.StatusCode != 200 {
+		    		log.Printf("httpstatus: %d", resp.StatusCode)
+					b, _ := ioutil.ReadAll(resp.Body)
+					log.Fatal(string(b))
+				} else {
+					break
+				}
+		    }
 	    }
-	    defer resp.Body.Close()
-
- //checkMem(ee)
 		NREventsMap = nil
 	    NREventsMap = make([]NREventType, 0)
- //checkMem(ee)
 	}
 }
 

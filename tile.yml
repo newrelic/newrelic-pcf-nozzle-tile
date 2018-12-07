@@ -78,11 +78,11 @@ forms:
   label: New Relic Firehose Nozzle
   description: Used to feed PCF log events and metrics to New Relic insights 
   properties:
-  - name: nozzle_version
+  - name: newrelic_nozzle_version
     type: string
-    label: Nozzle Version
-    default: v1.0.7
-    description: Nozzle Tile Version
+    label: New Relic Nozzle Version
+    default: v1.1.13
+    description: New Relic Nozzle Tile Version
     configurable: false
   - name: newrelic_insights_base_url
     type: string
@@ -97,6 +97,14 @@ forms:
     type: secret
     label: Insights Insert Key
     description: New Relic Insights Insert Key - obtain from your New Relic Insights https://insights.newrelic.com/accounts/<RPM_ID>/manage/api_keys
+  - name: newrelic_insights_max_events
+    type: integer
+    default: 500
+    label: New Relic Maximum Events
+    description: New Relic maximum number of events per upload packet. If you upload LogMessage events, keep this value around 500 or less.
+    constraints:
+      min: 50
+      max: 990
   - name: nozzle_uaa_url
     type: string
     label: UAA URL
