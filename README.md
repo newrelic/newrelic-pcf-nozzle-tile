@@ -118,7 +118,7 @@ select count(*) from PcfFirehoseEvent since 1 day ago facet FirehoseEventType
 
 select count(*) from PcfFirehoseEvent since 1 day ago facet job timeseries
 
-select count(*) from PcfFirehoseEvent where job = 'diego_cell' since 1 day ago facet origin  timeseries
+select count(*) from PcfFirehoseEvent where job = 'diego_cell' since 1 day ago facet origin timeseries
 
 select average(containerMetricCpuPercentage) from PcfFirehoseEvent facet containerMetricApplicationId timeseries
 
