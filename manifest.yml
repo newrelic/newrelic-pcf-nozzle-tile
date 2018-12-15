@@ -5,8 +5,9 @@ applications:
   instances: 3
   health-check-type: none
   random-route: true
-  buildpack: https://github.com/cloudfoundry/go-buildpack.git
-  # command: go run main.go
+  buildpacks:
+    - binary_buildpack
+  command: ./nr-nozzle
   env:
     NOZZLE_USERNAME: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity"
     NOZZLE_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password"
@@ -22,7 +23,7 @@ applications:
     NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
     NEWRELIC_INSIGHTS_RPM_ID: New Relic Account ID
     NEWRELIC_INSIGHTS_INSERT_KEY: New Relic Insights Insert Key
-    NEWRELIC_NOZZLE_VERSION: 1.1.13
+    NEWRELIC_NOZZLE_VERSION: 1.1.14
     NEWRELIC_INSIGHTS_MAX_EVENTS: 500
 
     NOZZLE_GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS: ex. 'dep1, dep2'

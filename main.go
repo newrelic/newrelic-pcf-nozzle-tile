@@ -111,7 +111,8 @@ var insightsClient http.Client
 var NREventsMap      = make([]NREventType, 0)
 var appInfo          = map[string]*AppInfoType{} // caching app extended info (app/name/org names, etc.)
 var nozzleInstanceId   = os.Getenv("CF_INSTANCE_INDEX")
-var logger           = log.New(os.Stdout, ">>> ", 0)
+// var logger           = log.New(os.Stdout, ">>> ", 0)
+var logger           = log.New(os.Stdout, fmt.Sprintf(">>> Nozzle Instance: %3s -- ", nozzleInstanceId), 0)
 
 var nozzleVersion string
 var insightsMaxEvents int
@@ -265,12 +266,12 @@ func main() {
 		SkipSslValidation: pcfConfig.SkipSSL,
 	}
 	client, _ := cfclient.NewClient(c)
-	getAppList(client) // initial call to get list of current apps and their detail info
-	// extended org/space/app data
 	appDetailsInterval, err := strconv.Atoi(pcfExtendedConfig.APP_DETAIL_INTERVAL)
 	if err!=nil {
 		panic(err)
 	}
+	getAppList(client, appDetailsInterval) // initial call to get list of current apps and their detail info
+	// extended org/space/app data
 	getAppInfo(client, appDetailsInterval) // use a go routine to update app info periodically
 
 
@@ -438,7 +439,7 @@ func setFilters(pcfExtendedConfig PcfExtConfig) { //, filters EventFilters) {
 }
 
 func getAppInfo(client *cfclient.Client, appDetailsInterval int) {
-	logger.Printf("getAppInfo");
+	logger.Printf("Starting Goroutine getAppInfo -- refreshing applications list every %d minute(s)\n", appDetailsInterval);
 	ticker := time.NewTicker(time.Duration(int64(appDetailsInterval)) * time.Minute)
 	quit := make(chan struct{})
 
@@ -446,7 +447,7 @@ func getAppInfo(client *cfclient.Client, appDetailsInterval int) {
 		for {
 			select {
 			case <-ticker.C:
-				getAppList(client)
+				getAppList(client, appDetailsInterval)
 
 			case <-quit:
 				logger.Print("quit \r\n")
@@ -456,20 +457,24 @@ func getAppInfo(client *cfclient.Client, appDetailsInterval int) {
 	}()
 }
 
-func getAppList(client *cfclient.Client) {
+func getAppList(client *cfclient.Client, appDetailsInterval int) {
+	logger.Println("Refreshing applications list...")
+	apps, err := client.ListApps()
+	if err != nil {
+		// error in cf-clinet library -- failed to get updated applist - will try next cycle
+		logger.Printf("Warning: cf-client failed to return applications list - will refresh app list in %d minute(s)...\n", appDetailsInterval)
+	} else {
+		eventCount := len(apps)
+		logger.Printf("App Count: %3d\n", eventCount)
 
-	apps, _ := client.ListApps()
-
-	eventCount := len(apps)
-	logger.Println("App Count: ", eventCount)
-
-	tempAppInfo := map[string]*AppInfoType{}
-	for _, app := range apps {
-		addAppDetails(tempAppInfo, app)
-		// logger.Printf(">>>> index: %3d: name: %-45s\n", idx+1, tempAppInfo[app.Guid].name)
+		tempAppInfo := map[string]*AppInfoType{}
+		for _, app := range apps {
+			addAppDetails(tempAppInfo, app)
+			// logger.Printf(">>>> index: %3d: name: %-45s\n", idx+1, tempAppInfo[app.Guid].name)
+		}
+		appInfo = tempAppInfo
+		tempAppInfo = nil
 	}
-	appInfo = tempAppInfo
-	tempAppInfo = nil
 }
 
 func addAppDetails(appInfo map[string]*AppInfoType, app cfclient.App) {
@@ -502,8 +507,8 @@ func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insights
 			logger.Println("error:", err)
 		}
 		// logger.Println("jsonstr:", string(jsonStr)) // TEMP
-		logger.Printf("Nozzle Instance: %3s -- Value Metrics: %d, Counter Events: %d, Container Events: %d, Http StartStop Events: %d, Log Messages: %d, Errors: %d\n",
-			nozzleInstanceId, pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents, 
+		logger.Printf("Value Metrics: %d, Counter Events: %d, Container Events: %d, Http StartStop Events: %d, Log Messages: %d, Errors: %d\n",
+			pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents, 
 			pcfCounters.httpStartStopEvents, pcfCounters.logMessageEvents, pcfCounters.errors)
 
 

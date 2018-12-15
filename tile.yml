@@ -30,12 +30,19 @@ packages:
   label: New Relic Firehose Nozzle
   manifest:
     buildpack: binary_buildpack
-    path: ../newrelic-pcf-nozzle-tile
+    # path: ../newrelic-pcf-nozzle-tile
+    path: src
     command: ./nr-nozzle
     health-check-type: none
     instances: (( .properties.nozzle_instances.value ))
     # instances: 2
     memory: 512M
+  post_deploy: |
+    # 12-12-2018
+    # remove older apps with underscores ("_") in their names
+    echo "### post-deploy"
+    echo "package name: ${PKG_NAME} -- old package name: $(echo ${PKG_NAME} | sed 's/-/_/g') -- app name: ${APP_NAME}"
+    delete_older_versions $(echo ${PKG_NAME} | sed 's/-/_/g') ${APP_NAME}
 
 # Include stemcell criteria if you don't want to accept the default.
 # Since this stemcell is only used to run pre and post errands, we
@@ -81,7 +88,7 @@ forms:
   - name: newrelic_nozzle_version
     type: string
     label: New Relic Nozzle Version
-    default: v1.1.13
+    default: v1.1.14
     description: New Relic Nozzle Tile Version
     configurable: false
   - name: newrelic_insights_base_url
@@ -231,6 +238,8 @@ forms:
         label: etcd
       - name: file_server
         label: file_server
+      - name: garden-linux
+        label: garden-linux
       - name: garden_linux
         label: garden_linux
       - name: gorouter
@@ -556,6 +565,8 @@ forms:
         label: etcd
       - name: file_server
         label: file_server
+      - name: garden-linux
+        label: garden-linux
       - name: garden_linux
         label: garden_linux
       - name: gorouter
