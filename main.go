@@ -36,13 +36,7 @@ import (
 )
 
 const (
-	nrLogDataset      = "Log Messages"
-	nrErrorDataset    = "Error Messages"
-	nrMetricsDataset  = "Metric Messages"
-
-	// insightsMaxEvents = 500 // size of insights json insert packet
 	maxConnectionAttempts = 3
-	// nozzleVersion     = "1.1.13"
 	pcfEventType      = "PcfFirehoseEvent"
 )
 
@@ -117,7 +111,8 @@ var logger           = log.New(os.Stdout, fmt.Sprintf(">>> Nozzle Instance: %3s 
 var nozzleVersion string
 var insightsMaxEvents int
 
-var debug            = false
+var debug                   = false
+var cfclientRefreshInterval = 58 // minutes to refresh go-cfclient credentials
 
 type EventFilters struct {
 	// global filters = exclusion
@@ -147,18 +142,21 @@ type EventFilters struct {
 }
 var filters EventFilters
 
+var client *cfclient.Client
+var cfClientErr error
+
 func main() {
+	logger.Println("New Relic Firehose Nozzle")
 	if (os.Getenv("DEBUG") == "1" || os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "TRUE") {
 		debug = true
 	}
-	logger.Println("hello world!")
-
+	startHealthCheck()
 	// ------------------------------------------------------------------------
 	pcfConfig, err := config.Parse()
 	if err != nil {
 		panic(err)
 	}
-//10-16-18 - logger.Println("port", pcfConfig.Port)
+
 	if debug {
 		logger.Printf("pcfConfig: %v\n", pcfConfig)
 	}
@@ -258,6 +256,7 @@ func main() {
 	}
 	// logger.Printf("token: %v\n", token)
 
+	// ------------------------------------------
 	// prepare to collect application details for ContainerEvent (app, space, org names, etc.)
 	c := &cfclient.Config{
 		ApiAddress:   "https://api." + pcfDomain,
@@ -265,7 +264,13 @@ func main() {
 		Password:     pcfExtendedConfig.ADMIN_PASSWORD,
 		SkipSslValidation: pcfConfig.SkipSSL,
 	}
-	client, _ := cfclient.NewClient(c)
+	client, cfClientErr = cfclient.NewClient(c)
+	if cfClientErr != nil {
+		panic(cfClientErr)
+	}
+	refreshCfClient(c) // start goroutine to refresh cfclient credentials
+	// ------------------------------------------
+
 	appDetailsInterval, err := strconv.Atoi(pcfExtendedConfig.APP_DETAIL_INTERVAL)
 	if err!=nil {
 		panic(err)
@@ -436,6 +441,33 @@ func setFilters(pcfExtendedConfig PcfExtConfig) { //, filters EventFilters) {
 	logger.Printf("filters.valueMetricNoneSelected: %v\n", filters.valueMetricNoneSelected)
 	logger.Printf("filters.totalValueMetricFiltersCount: %v\n", filters.totalValueMetricFiltersCount)
 	logger.Printf("filters.totalValueMetricMetricsCount: %v\n", filters.totalValueMetricMetricsCount)
+}
+
+func refreshCfClient(c *cfclient.Config) {
+	logger.Printf("Starting Goroutine refreshCfClient -- refreshing go-cfclient credentials every %d minute(s)\n", cfclientRefreshInterval);
+	ticker := time.NewTicker(time.Duration(int64(cfclientRefreshInterval)) * time.Minute)
+	quit := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				logger.Print("refreshing cfclient...\r\n")
+				client, cfClientErr = cfclient.NewClient(c)
+				if cfClientErr != nil {
+					panic(cfClientErr)
+				}
+				if debug {
+					fmt.Printf("c: %v\n", c)
+					fmt.Printf("client: %v\n", client)
+				}
+
+			case <-quit:
+				logger.Print("quit \r\n")
+				ticker.Stop()
+			}
+		}
+	}()
 }
 
 func getAppInfo(client *cfclient.Client, appDetailsInterval int) {
@@ -659,36 +691,30 @@ func transformEvent(cfEvent *events.Envelope, nrEvent map[string]interface{}, pc
 		switch *cfEvent.EventType {
 			case events.Envelope_HttpStartStop:
 				pcfCounters.httpStartStopEvents++
-				nrEvent["DatasetName"] = nrLogDataset
 				transformHttpStartStopEvent(cfEvent, nrEvent)
 
 			case events.Envelope_LogMessage:
 				pcfCounters.logMessageEvents++
-				nrEvent["DatasetName"] = nrLogDataset
 				transformLogMessage(cfEvent, nrEvent)
 
 			case events.Envelope_ContainerMetric:
 				pcfCounters.containerEvents++
-				nrEvent["DatasetName"] = nrMetricsDataset
 				transformContainerMetric(cfEvent, nrEvent)
 				//nrEvent["containerMetric"] = cfEvent.GetContainerMetric().String()
 
 			case events.Envelope_CounterEvent:
 				pcfCounters.counterEvents++
-				nrEvent["DatasetName"] = nrMetricsDataset
 				transformCounterEvent(cfEvent, nrEvent)
 				// nrEvent["counterEvent"] = cfEvent.GetCounterEvent().String()
 
 			case events.Envelope_ValueMetric:
 
 				pcfCounters.valueMetricEvents++
-				nrEvent["DatasetName"] = nrMetricsDataset
 				transformValueMetric(cfEvent, nrEvent)
 				//nrEvent["valueMetric"] = cfEvent.GetValueMetric().String()
 
 			case events.Envelope_Error:
 				pcfCounters.errors++
-				nrEvent["DatasetName"] = nrErrorDataset
 				transformErrorEvent(cfEvent, nrEvent)
 				//nrEvent["errorField"] = cfEvent.GetError().String()
 				if debug {
@@ -787,9 +813,9 @@ func transformContainerMetric(cfEvent *events.Envelope, nrEvent map[string]inter
 func transformLogMessage(cfEvent *events.Envelope, nrEvent map[string]interface{}) {
 	// event: origin:"rep" eventType:LogMessage timestamp:1497038366041617814 deployment:"cf" job:"diego_cell" index:"0f4dc7bd-c941-42bf-a835-7c29445ddf8b" ip:"192.168.16.24" logMessage:<message:"[{\"DatasetName\":\"Metric Messages\",\"FirehoseEventType\":\"CounterEvent\",\"ceDelta\":166908,\"ceName\":\"dropsondeListener.receivedByteCount\",\"ceTotal\":25664179951,\"deployment\":\"cf\",\"eventType\":\"FirehoseEventTest\",\"index\":\"ca858dc5-2a09-465a-831d-c31fa5fb8802\",\"ip\":\"192.168.16.26\",\"job\":\"doppler\",\"origin\":\"DopplerServer\",\"timestamp\":1497038161107}]" message_type:OUT timestamp:1497038366041615818 app_id:"f22aac70-c5a9-47a9-b74c-355dd99abbe2" source_type:"APP/PROC/WEB" source_instance:"0" > 
 	message := cfEvent.LogMessage
-	if debug {
-		logger.Printf(">>>>> raw log message: %v\n", cfEvent)
-	}
+	// if debug {
+	// 	logger.Printf(">>>>> raw log message: %v\n", cfEvent)
+	// }
 	prefix := "log"
 	if message.Message != nil {
 		msgContent := message.GetMessage()
@@ -917,3 +943,17 @@ func splitString(value string, separator string) []string {
 	return filters
 }
 
+func startHealthCheck() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	go func() {
+	    http.HandleFunc("/health", healthCheckHandler)
+	    logger.Fatal(http.ListenAndServe(":" + port, nil))
+	}()
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "I'm alive and well!")
+}

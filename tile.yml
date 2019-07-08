@@ -30,12 +30,11 @@ packages:
   label: New Relic Firehose Nozzle
   manifest:
     buildpack: binary_buildpack
-    # path: ../newrelic-pcf-nozzle-tile
     path: src
     command: ./nr-nozzle
-    health-check-type: none
+    health-check-type: http
+    health-check-http-endpoint: /health
     instances: (( .properties.nozzle_instances.value ))
-    # instances: 2
     memory: 512M
   post_deploy: |
     # 12-12-2018
@@ -44,42 +43,11 @@ packages:
     echo "package name: ${PKG_NAME} -- old package name: $(echo ${PKG_NAME} | sed 's/-/_/g') -- app name: ${APP_NAME}"
     delete_older_versions $(echo ${PKG_NAME} | sed 's/-/_/g') ${APP_NAME}
 
-# Include stemcell criteria if you don't want to accept the default.
-# Since this stemcell is only used to run pre and post errands, we
-# strongly recommend you leave this alone so that your tile always
-# runs with the latest stemcell.
-#
-# stemcell_criteria:
-#   os: ubuntu-trusty
-#   requires_cpi: false
-#   version: '3062'
+stemcell_criteria:
+  os: ubuntu-xenial
+  # version: '170'
+  version: '315'
 
-# Add properties you want to pass to your applications.
-# Properties specified here will not be configurable by the user.
-#
-# properties:
-# - name: example_property
-#   type: string
-#   default: specify a value
-#   label: Label for the field on the GUI
-#   description: Longer description of the field's purpose
-
-# Uncomment this section if you want to display forms with configurable
-# properties in Ops Manager. These properties will be passed to your
-# applications as environment variables. You can also refer to them
-# elsewhere in this template by using:
-#     (( .properties.<property-name> ))
-# 
-# forms:
-# - name: buildpack_properties
-#   label: Buildpack
-#   description: Buildpack_properties
-#   properties:
-#   - name: buildpack_rank
-#     type: integer
-#     default: 0
-#     label: Buildpack rank for this buildpack_rank
-#     description: Ranking of this buildpack relative to others
 forms:
 - name: newrelic-firehose-nozzle-properties
   label: New Relic Firehose Nozzle
@@ -88,7 +56,7 @@ forms:
   - name: newrelic_nozzle_version
     type: string
     label: New Relic Nozzle Version
-    default: v1.1.14
+    default: 1.1.17
     description: New Relic Nozzle Tile Version
     configurable: false
   - name: newrelic_insights_base_url
@@ -166,7 +134,7 @@ forms:
     description: ERT/PAS -> Credentials -> UAA - Admin Credentials -> password (or password for the selected user)
   - name: nozzle_app_detail_interval
     type: integer
-    default: 1
+    default: 3
     label: App Detail Collection Interval (minutes)
     description: Interval for collecting application details (app/space/org name and guid, etc.)
     constraints:
@@ -1660,29 +1628,3 @@ forms:
 ### ####################################################################################
 ### ####################################################################################
 ### ####################################################################################
-
-
-# Add any dependencies your tile has on other installed products.
-# This is often appropriate when using automatic service provisioning
-# for any of your packages above, with services provided by other
-# products.
-#
-# requires_product_versions:
-# - name: p-mysql
-#   version: '~> 1.7'
-
-# Customize upgrade parameters if the defaults don't meet your needs.
-#
-# update:
-#   canaries: 1
-#   canary_watch_time: 10000-100000
-#   max_in_flight: 1
-#   update_watch_time: 10000-100000
-
-# If prior versions of your tile are installed and configured, their
-# property values will not be overwritten by new defaults provided
-# in this file. If that is your intent, you must do the overwriting
-# explicitly using JavaScript migration functions, like so:
-#
-# migration: |
-#   properties['properties']['.properties.org']['value'] = 'system';
