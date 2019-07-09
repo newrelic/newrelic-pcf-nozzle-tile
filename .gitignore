@@ -1,3 +1,5 @@
 product/
 release/
 tile-history.yml
+main
+run_nozzle.sh
