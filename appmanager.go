@@ -89,8 +89,8 @@ func (am *AppManager) refreshAppData() {
 		// error in cf-clinet library -- failed to get updated applist - will try next cycle
 		logger.Printf("Warning: cf-client failed to return applications list - will try again in %d minute(s)...\n", am.appUpdateInterval)
 	} else {
-		eventCount := len(apps)
-		logger.Printf("App Count: %3d\n", eventCount)
+		//eventCount := len(apps)
+		//logger.Printf("App Count: %3d\n", eventCount)
 
 		tempAppInfo := map[string]*AppInfo{}
 		for _, app := range apps {

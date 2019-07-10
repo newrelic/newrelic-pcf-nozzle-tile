@@ -7,9 +7,8 @@ import (
 	//"regexp"
 	"fmt"
 	//"net"
-	"bytes"
+
 	"errors"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -33,6 +32,7 @@ import (
 	"github.com/cf-platform-eng/uaa"
 
 	"github.com/cloudfoundry-community/go-cfclient"
+	insights "github.com/newrelic/go-insights/client"
 )
 
 const (
@@ -82,8 +82,8 @@ var pcfCounters PcfCounters
 var mem runtime.MemStats
 var nozzleInstanceIp string
 var pcfDomain string
-var insightsClient http.Client
 var appManager *AppManager
+var insightsClient *insights.InsertClient
 
 var NREventsMap = make([]NREventType, 0)
 var nozzleInstanceId = os.Getenv("CF_INSTANCE_INDEX")
@@ -167,16 +167,23 @@ func main() {
 	logger.Printf("APP_DETAIL_INTERVAL: %s\n", pcfExtendedConfig.APP_DETAIL_INTERVAL)
 	// ------------------------------------------------------------------------
 
-	insightsClient = http.Client{
-		Timeout: time.Second * 10,
-	}
-
 	// ###########################################################################
 
 	insightsUrl := fmt.Sprintf("%s/accounts/%s/events", nrConfig.INSIGHTS_BASE_URL, nrConfig.INSIGHTS_RPM_ID)
 	insightsInsertKey := nrConfig.INSIGHTS_INSERT_KEY
 	nozzleVersion = os.Getenv("NEWRELIC_NOZZLE_VERSION")
 	insightsMaxEvents, err = strconv.Atoi(os.Getenv("NEWRELIC_INSIGHTS_MAX_EVENTS"))
+	if err != nil {
+		panic(err)
+	}
+
+	insightsClient = insights.NewInsertClient(insightsInsertKey, nrConfig.INSIGHTS_RPM_ID)
+	if err := insightsClient.Validate(); err != nil {
+		panic(err)
+	}
+	insightsClient.SetCompression(insights.Gzip)
+	insightsClient.BatchSize = insightsMaxEvents
+	err = insightsClient.Start()
 	if err != nil {
 		panic(err)
 	}
@@ -251,7 +258,10 @@ func main() {
 	if cfClientErr != nil {
 		panic(cfClientErr)
 	}
-	refreshCfClient(c) // start goroutine to refresh cfclient credentials
+
+	//refreshClient causes a data race
+	//TODO -- add capability to pass client safely to the appManager
+	//refreshCfClient(c) // start goroutine to refresh cfclient credentials
 	// ------------------------------------------
 
 	appDetailsInterval, err := strconv.Atoi(pcfExtendedConfig.APP_DETAIL_INTERVAL)
@@ -269,34 +279,39 @@ func main() {
 	}, nil)
 
 	evs, errors := consumer.Firehose(pcfConfig.FirehoseSubscriptionID, token)
+	ticker := time.NewTicker(time.Minute)
 
 	i := 0
 	logger.Printf("starting to capture firehose events...\n")
 	for {
-		i++
-		//nrEvent := make(NREventType) // -- create below in the if stmt only if it's needed
-
 		select {
 		case ev := <-evs:
 			// logger.Printf("event %d: %v\n", i, ev)
+			i++
 			firehoseEventType := ev.GetEventType()
 			if includedEventTypes[firehoseEventType] {
 				nrEvent := make(NREventType)
 				if err := transformEvent(ev, nrEvent, pcfExtendedConfig, firehoseEventType.String()); err != nil {
 					// event skipped -- do not insert
-					//panic(err)
+					//logger.Printf("Skipped event: %s\n", err.Error())
 				} else { // insert event to insgihts
 					//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
 					nrEvent["firehoseSubscriptionId"] = pcfConfig.FirehoseSubscriptionID
 					nrEvent["nozzleVersion"] = nozzleVersion
-					pushToInsights(nrEvent, insightsUrl, insightsInsertKey)
-					//logger.Printf("filtered: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
+					insightsClient.EnqueueEvent(nrEvent)
 				}
 			}
 
 		case ev := <-errors:
 			logger.Printf("%d: ev is %+s\n", i, ev.Error())
 			//nrEvent["error"] = ev.Error()
+
+		case <-ticker.C:
+			logger.Printf("Value Metrics: %d, Counter Events: %d, Container Events: %d, Http StartStop Events: %d, Log Messages: %d, Errors: %d, Events Received in last minute: %d\n",
+				pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents,
+				pcfCounters.httpStartStopEvents, pcfCounters.logMessageEvents, pcfCounters.errors, i)
+			i = 0
+
 		}
 	}
 }
@@ -447,49 +462,6 @@ func refreshCfClient(c *cfclient.Config) {
 			}
 		}
 	}()
-}
-
-func pushToInsights(nrEvent map[string]interface{}, insightsUrl string, insightsInsertKey string) {
-
-	NREventsMap = append(NREventsMap, nrEvent)
-
-	if len(NREventsMap) >= insightsMaxEvents {
-		jsonStr, err := json.Marshal(NREventsMap)
-		if err != nil {
-			logger.Println("error:", err)
-		}
-		// logger.Println("jsonstr:", string(jsonStr)) // TEMP
-		// logger.Printf("Value Metrics: %d, Counter Events: %d, Container Events: %d, Http StartStop Events: %d, Log Messages: %d, Errors: %d\n",
-		// 	pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents,
-		// 	pcfCounters.httpStartStopEvents, pcfCounters.logMessageEvents, pcfCounters.errors)
-
-		for attempt := 1; attempt <= maxConnectionAttempts; attempt++ {
-			req, err := http.NewRequest("POST", insightsUrl, bytes.NewBuffer(jsonStr))
-			req.Header.Set("X-Insert-Key", insightsInsertKey)
-			req.Header.Set("Content-Type", "application/json")
-
-			resp, err := insightsClient.Do(req)
-			if err != nil {
-				if attempt == maxConnectionAttempts {
-					log.Printf("\n>>>> insights json packet: %v\n", string(jsonStr))
-					log.Printf(">>>> packet size: %d\n", len(string(jsonStr)))
-					log.Output(0, "Failed to push events to New Relic!")
-					panic(err)
-				}
-			} else {
-				defer resp.Body.Close()
-				if resp.StatusCode != 200 {
-					log.Printf("httpstatus: %d", resp.StatusCode)
-					b, _ := ioutil.ReadAll(resp.Body)
-					log.Fatal(string(b))
-				} else {
-					break
-				}
-			}
-		}
-		NREventsMap = nil
-		NREventsMap = make([]NREventType, 0)
-	}
 }
 
 func fillGenericMetrics(nrEvent map[string]interface{}, eventOrigin string, firehoseEventType string,
@@ -735,6 +707,9 @@ func transformLogMessage(cfEvent *events.Envelope, nrEvent map[string]interface{
 	prefix := "log"
 	if message.Message != nil {
 		msgContent := message.GetMessage()
+		if len(msgContent) > 4096 {
+			msgContent = msgContent[0:4095]
+		}
 		// re := regexp.MustCompile("=>")
 		// payload := string([]byte(`payload: {"instance"=>"a305bf1e-f869-4307-5bdc-7f7b", "index"=>0, "reason"=>"CRASHED", "exit_description"=>"Instance never healthy after 1m0s: Failed to make TCP connection to port 8080: connection refused", "crash_count"=>2, "crash_timestamp"=>1522812923161363839, "version"=>"68a457a6-2f43-4ed7-af5f-038f2e1da1fc"}`))
 		// fmt.Println(re.ReplaceAllString(payload, ": "))
