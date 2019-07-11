@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
@@ -13,19 +14,8 @@ import (
 
 // TaskListResponse is the JSON response from the API.
 type TaskListResponse struct {
-	Pagination struct {
-		TotalResults int `json:"total_results"`
-		TotalPages   int `json:"total_pages"`
-		First        struct {
-			Href string `json:"href"`
-		} `json:"first"`
-		Last struct {
-			Href string `json:"href"`
-		} `json:"last"`
-		Next     interface{} `json:"next"`
-		Previous interface{} `json:"previous"`
-	} `json:"pagination"`
-	Tasks []Task `json:"resources"`
+	Pagination Pagination `json:"pagination"`
+	Tasks      []Task     `json:"resources"`
 }
 
 // Task is a description of a task element.
@@ -44,15 +34,9 @@ type Task struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 	DropletGUID string    `json:"droplet_guid"`
 	Links       struct {
-		Self struct {
-			Href string `json:"href"`
-		} `json:"self"`
-		App struct {
-			Href string `json:"href"`
-		} `json:"app"`
-		Droplet struct {
-			Href string `json:"href"`
-		} `json:"droplet"`
+		Self    Link `json:"self"`
+		App     Link `json:"app"`
+		Droplet Link `json:"droplet"`
 	} `json:"links"`
 }
 
@@ -66,8 +50,9 @@ type TaskRequest struct {
 	DropletGUID      string `json:"droplet_guid"`
 }
 
-func (c *Client) makeTaskListRequest() ([]byte, error) {
-	req := c.NewRequest("GET", "/v3/tasks")
+func (c *Client) makeTaskListRequestWithParams(baseUrl string, query url.Values) ([]byte, error) {
+	requestUrl := baseUrl + "?" + query.Encode()
+	req := c.NewRequest("GET", requestUrl)
 	resp, err := c.DoRequest(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error requesting tasks")
@@ -88,9 +73,8 @@ func parseTaskListRespones(answer []byte) (TaskListResponse, error) {
 	return response, nil
 }
 
-// ListTasks returns all tasks the user has access to.
-func (c *Client) ListTasks() ([]Task, error) {
-	body, err := c.makeTaskListRequest()
+func (c *Client) handleTasksApiCall(apiUrl string, query url.Values) ([]Task, error) {
+	body, err := c.makeTaskListRequestWithParams(apiUrl, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error requesting tasks")
 	}
@@ -99,6 +83,32 @@ func (c *Client) ListTasks() ([]Task, error) {
 		return nil, errors.Wrap(err, "Error reading tasks")
 	}
 	return response.Tasks, nil
+}
+
+// ListTasks returns all tasks the user has access to.
+// See http://v3-apidocs.cloudfoundry.org/version/3.12.0/index.html#list-tasks
+func (c *Client) ListTasks() ([]Task, error) {
+	return c.handleTasksApiCall("/v3/tasks", url.Values{})
+}
+
+// ListTasksByQuery returns all tasks the user has access to, with query parameters.
+// See http://v3-apidocs.cloudfoundry.org/version/3.12.0/index.html#list-tasks
+func (c *Client) ListTasksByQuery(query url.Values) ([]Task, error) {
+	return c.handleTasksApiCall("/v3/tasks", query)
+}
+
+// TasksByApp returns task structures which aligned to an app identified by the given guid.
+// See: http://v3-apidocs.cloudfoundry.org/version/3.12.0/index.html#list-tasks-for-an-app
+func (c *Client) TasksByApp(guid string) ([]Task, error) {
+	return c.TasksByAppByQuery(guid, url.Values{})
+}
+
+// TasksByAppByQuery returns task structures which aligned to an app identified by the given guid
+// and filtered by the given query parameters.
+// See: http://v3-apidocs.cloudfoundry.org/version/3.12.0/index.html#list-tasks-for-an-app
+func (c *Client) TasksByAppByQuery(guid string, query url.Values) ([]Task, error) {
+	uri := fmt.Sprintf("/v3/apps/%s/tasks", guid)
+	return c.handleTasksApiCall(uri, query)
 }
 
 func createReader(tr TaskRequest) (io.Reader, error) {
@@ -151,8 +161,8 @@ func (c *Client) CreateTask(tr TaskRequest) (task Task, err error) {
 	return task, err
 }
 
-// TaskByGuid returns a task structure by requesting it with the tasks GUID.
-func (c *Client) TaskByGuid(guid string) (task Task, err error) {
+// GetTaskByGuid returns a task structure by requesting it with the tasks GUID.
+func (c *Client) GetTaskByGuid(guid string) (task Task, err error) {
 	request := fmt.Sprintf("/v3/tasks/%s", guid)
 	req := c.NewRequest("GET", request)
 
@@ -174,27 +184,8 @@ func (c *Client) TaskByGuid(guid string) (task Task, err error) {
 	return task, err
 }
 
-// TasksByApp retuns task structures which aligned to an app identified by the given guid.
-func (c *Client) TasksByApp(guid string) ([]Task, error) {
-	request := fmt.Sprintf("/v3/apps/%s/tasks", guid)
-	req := c.NewRequest("GET", request)
-
-	resp, err := c.DoRequest(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error requesting task")
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error reading tasks")
-	}
-
-	response, err := parseTaskListRespones(body)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing tasks")
-	}
-	return response.Tasks, nil
+func (c *Client) TaskByGuid(guid string) (task Task, err error) {
+	return c.GetTaskByGuid(guid)
 }
 
 // TerminateTask cancels a task identified by its GUID.

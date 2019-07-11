@@ -1,6 +1,8 @@
 product/
 release/
 dist/
+vendor/
+
 tile-history.yml
 main
 run_nozzle.sh

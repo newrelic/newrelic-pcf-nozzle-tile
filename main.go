@@ -23,13 +23,10 @@ import (
 
 	// "reflect"
 
+	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/kelseyhightower/envconfig"
-
-	// "github.com/cf-platform-eng/api"
-	"github.com/cf-platform-eng/config"
-	"github.com/cf-platform-eng/uaa"
 
 	"github.com/cloudfoundry-community/go-cfclient"
 	insights "github.com/newrelic/go-insights/client"
@@ -124,6 +121,18 @@ type EventFilters struct {
 	totalValueMetricMetricsCount              int
 }
 
+type Config struct {
+	APIURL                 string `envconfig:"api_url"`
+	UAAURL                 string `envconfig:"uaa_url"`
+	Username               string `required:"true"`
+	Password               string `required:"true"`
+	TrafficControllerURL   string `envconfig:"traffic_controller_url"`
+	FirehoseSubscriptionID string `required:"true" envconfig:"firehose_subscription_id"`
+	SkipSSL                bool   `default:"false" envconfig:"skip_ssl"`
+
+	SelectedEvents []events.Envelope_EventType `ignored:"true"`
+}
+
 var filters EventFilters
 
 var client *cfclient.Client
@@ -136,7 +145,7 @@ func main() {
 	}
 	startHealthCheck()
 	// ------------------------------------------------------------------------
-	pcfConfig, err := config.Parse()
+	pcfConfig, err := Parse()
 	if err != nil {
 		panic(err)
 	}
@@ -236,8 +245,15 @@ func main() {
 			logger.Fatal(errors.New("NOZZLE_TRAFFIC_CONTROLLER_URL is required when authenticating via UAA"))
 		}
 
-		fetcher := uaa.NewUAATokenFetcher(pcfConfig.UAAURL, pcfConfig.Username, pcfConfig.Password, pcfConfig.SkipSSL)
-		token, err = fetcher.FetchAuthToken()
+		uaaClient, err := uaago.NewClient(pcfConfig.UAAURL)
+		if err != nil {
+			logger.Printf("Failed to create uaa client")
+			logger.Fatal(err)
+		}
+		token, err = uaaClient.GetAuthToken(pcfConfig.Username, pcfConfig.Password, pcfConfig.SkipSSL)
+
+		// fetcher := uaa.NewUAATokenFetcher(pcfConfig.UAAURL, pcfConfig.Username, pcfConfig.Password, pcfConfig.SkipSSL)
+		// token, err = fetcher.FetchAuthToken()
 		if err != nil {
 			logger.Fatal("Unable to fetch token via UAA", err)
 		}
@@ -847,4 +863,45 @@ func startHealthCheck() {
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "I'm alive and well!")
+}
+
+func Parse() (*Config, error) {
+	config := &Config{}
+
+	err := envconfig.Process("nozzle", config)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedEvents, err := parseSelectedEvents()
+	if err != nil {
+		return nil, err
+	}
+	config.SelectedEvents = selectedEvents
+
+	return config, nil
+}
+
+func parseSelectedEvents() ([]events.Envelope_EventType, error) {
+	envValue := os.Getenv("NOZZLE_SELECTED_EVENTS")
+	if envValue == "" {
+		var defaultEvents = []events.Envelope_EventType{
+			events.Envelope_ValueMetric,
+			events.Envelope_CounterEvent,
+		}
+		return defaultEvents, nil
+	} else {
+		selectedEvents := []events.Envelope_EventType{}
+
+		for _, envValueSplit := range strings.Split(envValue, ",") {
+			envValueSlitTrimmed := strings.TrimSpace(envValueSplit)
+			val, found := events.Envelope_EventType_value[envValueSlitTrimmed]
+			if found {
+				selectedEvents = append(selectedEvents, events.Envelope_EventType(val))
+			} else {
+				return nil, errors.New(fmt.Sprintf("[%s] is not a valid event type", envValueSlitTrimmed))
+			}
+		}
+		return selectedEvents, nil
+	}
 }
