@@ -159,7 +159,10 @@ This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10
 
 The application is already built and ready to run on PCF linux. If you make any changes to the code, or would like to run on other OS's, you can rebuild the binary.
 
+The project uses dep to manage the dependencies. To pull the necessary packages into the vendor folder run: ```dep ensure```
+
 <pre>
+dep ensure
 env GOOS=&lt;OS-name&gt; GOARCH=amd64 go build -o nr-nozzle
 cf push
 </pre>
