@@ -87,34 +87,31 @@ func (am *AppManager) refreshAppData() {
 	apps, err := client.ListApps()
 	if err != nil {
 		// error in cf-clinet library -- failed to get updated applist - will try next cycle
-		logger.Printf("Warning: cf-client failed to return applications list - will try again in %d minute(s)...\n", am.appUpdateInterval)
-	} else {
-		//eventCount := len(apps)
-		//logger.Printf("App Count: %3d\n", eventCount)
-
-		tempAppInfo := map[string]*AppInfo{}
-		for _, app := range apps {
-
-			tempAppInfo[app.Guid] = &AppInfo{
-				time.Now().UnixNano() / 1000000,
-				app.Name,
-				app.Guid,
-				app.CreatedAt,
-				app.UpdatedAt,
-				app.Instances,
-				app.StackGuid,
-				app.State,
-				app.Diego,
-				app.EnableSSH,
-				app.SpaceData.Entity.Name,
-				app.SpaceData.Entity.Guid,
-				app.SpaceData.Entity.OrgData.Entity.Name,
-				app.SpaceData.Entity.OrgData.Entity.Guid,
-			}
-		}
-		//write updated app data to channel to avoid ReplaceAllString
-		am.updateChannel <- tempAppInfo
+		logger.Printf("Warning: cf-client ListApps failed - will try again in %d minute(s). Error: %s\n",
+			am.appUpdateInterval, err.Error())
+		return
 	}
+	tempAppInfo := map[string]*AppInfo{}
+	for _, app := range apps {
+
+		tempAppInfo[app.Guid] = &AppInfo{
+			time.Now().UnixNano() / 1000000,
+			app.Name,
+			app.Guid,
+			app.CreatedAt,
+			app.UpdatedAt,
+			app.Instances,
+			app.StackGuid,
+			app.State,
+			app.Diego,
+			app.EnableSSH,
+			app.SpaceData.Entity.Name,
+			app.SpaceData.Entity.Guid,
+			app.SpaceData.Entity.OrgData.Entity.Name,
+			app.SpaceData.Entity.OrgData.Entity.Guid,
+		}
+	}
+	am.updateChannel <- tempAppInfo
 }
 
 //GetAppData will look in the cache for the appGuid
