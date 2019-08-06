@@ -15,8 +15,12 @@ When pushed as an application, you need to have a [manifest][d] with the followi
 	- name: newrelic-firehose-nozzle
 	  memory: 512M
 	  instances: 2
-	  health-check-type: none
+	  health-check-type: http
 	  host: cf-firehose-nozzle-${random-word}
+          buildpacks:
+          - binrary_buildpack
+          path: dist
+          command: ./nr-nozzle
 	  env:
 	    NOZZLE_USERNAME: <nozzle user>
 	    NOZZLE_PASSWORD: <nozzle password>
@@ -159,8 +163,11 @@ This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10
 
 The application is already built and ready to run on PCF linux. If you make any changes to the code, or would like to run on other OS's, you can rebuild the binary.
 
+The project uses dep to manage the dependencies. To pull the necessary packages into the vendor folder run: ```dep ensure```
+
 <pre>
-env GOOS=&lt;OS-name&gt; GOARCH=amd64 go build -o nr-nozzle
+dep ensure
+env GOOS=&lt;OS-name&gt; GOARCH=amd64 go build -o dist/nr-nozzle
 cf push
 </pre>
 

@@ -30,12 +30,21 @@ packages:
   label: New Relic Firehose Nozzle
   manifest:
     buildpack: binary_buildpack
-    path: src
+    path: dist
     command: ./nr-nozzle
     health-check-type: http
     health-check-http-endpoint: /health
     instances: (( .properties.nozzle_instances.value ))
     memory: 512M
+    env:
+      NEWRELIC_NOZZLE_VERSION: 1.1.19
+      NOZZLE_UAA_URL: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+      NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.(( ..cf.cloud_controller.system_domain.value )):(( ..cf.properties.logger_endpoint_port.value || "443" ))
+      NOZZLE_ADMIN_USER: admin
+      NOZZLE_ADMIN_PASSWORD: (( ..cf.uaa.admin_credentials.password ))
+      NOZZLE_USERNAME: opentsdb-firehose-nozzle
+      NOZZLE_PASSWORD: (( ..cf.uaa.opentsdb_nozzle_credentials.password ))
+
   post_deploy: |
     # 12-12-2018
     # remove older apps with underscores ("_") in their names
@@ -53,12 +62,6 @@ forms:
   label: New Relic Firehose Nozzle
   description: Used to feed PCF log events and metrics to New Relic insights 
   properties:
-  - name: newrelic_nozzle_version
-    type: string
-    label: New Relic Nozzle Version
-    default: 1.1.17
-    description: New Relic Nozzle Tile Version
-    configurable: false
   - name: newrelic_insights_base_url
     type: string
     default: https://insights-collector.newrelic.com/v1
@@ -80,10 +83,6 @@ forms:
     constraints:
       min: 50
       max: 990
-  - name: nozzle_uaa_url
-    type: string
-    label: UAA URL
-    description: eg https://uaa.system_domain
   - name: nozzle_instances
     type: integer
     default: 3
@@ -92,27 +91,10 @@ forms:
     constraints:
       min: 1
       max: 20
-
-  #   type: string
-  #   label: API URL
-  #   description: eg https://api.system_domain
   - name: nozzle_skip_ssl
     type: boolean
     label: Skip SSL Verification
     description: Skip SSL Verification (boolean true/false)
-  - name: nozzle_username
-    type: string
-    default: opentsdb-firehose-nozzle
-    label: UAA API user account name
-    description: user account created via the uaac cli
-  - name: nozzle_password
-    type: secret
-    label: UAA API user account password
-    description: password for the user you created with the uaac cli
-  - name: nozzle_traffic_controller_url
-    type: string
-    label: Traffic Controller URL
-    description: Traffic Controller URL (i.e. wss://doppler.system_domain:443)
   - name: nozzle_firehose_subscription_id
     type: string
     default: newrelic.firehose
@@ -122,16 +104,6 @@ forms:
     type: string
     label: Selected Events
     description: Selected Events (i.e. ValueMetric,CounterEvent,ContainerMetric)
-
-  - name: nozzle_admin_user
-    type: string
-    default: admin
-    label: Admin User Id
-    description: ERT/PAS -> Credentials -> UAA - Admin Credentials -> identity (or any user id with access privileges to all orgs and spaces)
-  - name: nozzle_admin_password
-    type: secret
-    label: Admin Password
-    description: ERT/PAS -> Credentials -> UAA - Admin Credentials -> password (or password for the selected user)
   - name: nozzle_app_detail_interval
     type: integer
     default: 3
@@ -140,7 +112,6 @@ forms:
     constraints:
       min: 1
       max: 60
-
   - name: http_proxy
     type: string
     optional: true
@@ -473,9 +444,6 @@ forms:
         label: upgrade-all-service-instances
       - name: windows_diego_cell
         label: windows_diego_cell
-
-
-
 
 
 
