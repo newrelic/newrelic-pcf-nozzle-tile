@@ -178,7 +178,7 @@ func main() {
 
 	// ###########################################################################
 
-	insightsUrl := fmt.Sprintf("%s/accounts/%s/events", nrConfig.INSIGHTS_BASE_URL, nrConfig.INSIGHTS_RPM_ID)
+	insightsUrl := fmt.Sprintf("%s/accounts", nrConfig.INSIGHTS_BASE_URL) // SK - 8-21-19 -- let go-insights build the full url
 	insightsInsertKey := nrConfig.INSIGHTS_INSERT_KEY
 	nozzleVersion = os.Getenv("NEWRELIC_NOZZLE_VERSION")
 	insightsMaxEvents, err = strconv.Atoi(os.Getenv("NEWRELIC_INSIGHTS_MAX_EVENTS"))
@@ -190,6 +190,7 @@ func main() {
 	if err := insightsClient.Validate(); err != nil {
 		panic(err)
 	}
+	insightsClient.UseCustomURL(insightsUrl) // SK - 8-21-19 -- override with insights url from the nozzle config
 	insightsClient.SetCompression(insights.Gzip)
 	insightsClient.BatchSize = insightsMaxEvents
 	err = insightsClient.Start()
