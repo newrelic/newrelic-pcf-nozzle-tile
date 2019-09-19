@@ -37,7 +37,7 @@ packages:
     instances: (( .properties.nozzle_instances.value ))
     memory: 512M
     env:
-      NEWRELIC_NOZZLE_VERSION: 1.1.20
+      NEWRELIC_NOZZLE_VERSION: 1.1.21
       NOZZLE_UAA_URL: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
       NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.(( ..cf.cloud_controller.system_domain.value )):(( ..cf.properties.logger_endpoint_port.value || "443" ))
       NOZZLE_ADMIN_USER: admin

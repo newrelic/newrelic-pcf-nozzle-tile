@@ -305,22 +305,26 @@ func main() {
 		case ev := <-evs:
 			// logger.Printf("event %d: %v\n", i, ev)
 			i++
-			firehoseEventType := ev.GetEventType()
-			if includedEventTypes[firehoseEventType] {
-				nrEvent := make(NREventType)
-				if err := transformEvent(ev, nrEvent, pcfExtendedConfig, firehoseEventType.String()); err != nil {
-					// event skipped -- do not insert
-					//logger.Printf("Skipped event: %s\n", err.Error())
-				} else { // insert event to insgihts
-					//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
-					nrEvent["firehoseSubscriptionId"] = pcfConfig.FirehoseSubscriptionID
-					nrEvent["nozzleVersion"] = nozzleVersion
-					insightsClient.EnqueueEvent(nrEvent)
+			if (ev == nil) {
+				logger.Println("Skipping null event")
+			} else {
+				firehoseEventType := ev.GetEventType()
+				if includedEventTypes[firehoseEventType] {
+					nrEvent := make(NREventType)
+					if err := transformEvent(ev, nrEvent, pcfExtendedConfig, firehoseEventType.String()); err != nil {
+						// event skipped -- do not insert
+						logger.Printf("Skipped event: %v --- eve: %v\n", err.Error(), ev)
+					} else { // insert event to insgihts
+						//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
+						nrEvent["firehoseSubscriptionId"] = pcfConfig.FirehoseSubscriptionID
+						nrEvent["nozzleVersion"] = nozzleVersion
+						insightsClient.EnqueueEvent(nrEvent)
+					}
 				}
 			}
 
 		case ev := <-errors:
-			logger.Printf("%d: ev is %+s\n", i, ev.Error())
+			logger.Println(i, " error: ", ev) //logger.Printf("%d: ev is %+s\n", i, ev.Error())
 			//nrEvent["error"] = ev.Error()
 
 		case <-ticker.C:
@@ -568,9 +572,12 @@ func transformEvent(cfEvent *events.Envelope, nrEvent map[string]interface{}, pc
 	}
 
 	if processEvent {
-
+		eventIndex := cfEvent.GetIndex() // returns index quid or ""
+		eventIp := cfEvent.GetIp() // returns ip or ""
+		eventTimestamp := cfEvent.GetTimestamp() // returns timestamp or 0
+		eventTags := cfEvent.GetTags() // returns map[string]string of tags or nil
 		fillGenericMetrics(nrEvent, eventOrigin, firehoseEventType, eventDeployment, eventJob,
-			cfEvent.GetIndex(), cfEvent.GetIp(), cfEvent.GetTimestamp(), cfEvent.Tags)
+			eventIndex, eventIp, eventTimestamp, eventTags)
 
 		// // add generic fields
 		// nrEvent["origin"] = eventOrigin
