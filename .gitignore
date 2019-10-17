@@ -1,3 +1,6 @@
 product/
 release/
 tile-history.yml
+dist/
+manifest-*.yml
+r1.sh
