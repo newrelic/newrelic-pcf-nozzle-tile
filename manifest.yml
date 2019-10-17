@@ -25,8 +25,13 @@ applications:
     NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
     NEWRELIC_INSIGHTS_RPM_ID: New Relic Account ID
     NEWRELIC_INSIGHTS_INSERT_KEY: New Relic Insights Insert Key
-    NEWRELIC_NOZZLE_VERSION: 1.1.19
+    NEWRELIC_NOZZLE_VERSION: 1.1.22
     NEWRELIC_INSIGHTS_MAX_EVENTS: 500
+
+    # if you plan to use redis database for caching application metadata use this variable
+    NOZZLE_REDIS_DB: {"value":"Enable","selected_option":{"nozzle_redis_service_name":"<REDIS_SERVICE_NAME>","nozzle_redis_service_plan":"<REDIS_SERVICE_PLAN>"}}
+    # if you want to disable redis use the following line
+    # NOZZLE_REDIS_DB: {"value":"Disable","selected_option":{"nozzle_redis_service_name":"none","nozzle_redis_service_plan":"none"}}
 
     NOZZLE_GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS: ''
     NOZZLE_GLOBAL_ORIGIN_EXCLUSION_FILTERS: '[]'

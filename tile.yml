@@ -9,21 +9,11 @@ label: New Relic Firehose Nozzle
 description: This tile is used to feed PCF log events and metrics to New Relic insights 
 metadata_version: 1.8                 # Optional, defaults to 1.5
 
-# Global defaults (all optional)
-#
-# org: test-org                         # Name of org to create for your apps
-# space: test-space                     # Name of space to create for your apps
-# org: newrelic                         # Name of org to create for your apps
-# space: austin                       # Name of space to create for your apps
+# org: newrelic                       # Name of org to create for your apps
+# space: nozzle                       # Name of space to create for your apps
 apply_open_security_group: true       # Apply open security group, default: false
 
-# Specify the packages to be included in your tile.
-# The format of the section to include depends on the type
-# of package you are describing. For fragments of each type
-# that you can copy & paste, see:
-#
-# https://github.com/cf-platform-eng/tile-generator/blob/master/README.md
-#
+
 packages:
 - name: newrelic-firehose-nozzle
   type: app
@@ -37,13 +27,20 @@ packages:
     instances: (( .properties.nozzle_instances.value ))
     memory: 512M
     env:
-      NEWRELIC_NOZZLE_VERSION: 1.1.21
+      NEWRELIC_NOZZLE_VERSION: 1.1.22
       NOZZLE_UAA_URL: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
       NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.(( ..cf.cloud_controller.system_domain.value )):(( ..cf.properties.logger_endpoint_port.value || "443" ))
       NOZZLE_ADMIN_USER: admin
       NOZZLE_ADMIN_PASSWORD: (( ..cf.uaa.admin_credentials.password ))
       NOZZLE_USERNAME: opentsdb-firehose-nozzle
       NOZZLE_PASSWORD: (( ..cf.uaa.opentsdb_nozzle_credentials.password ))
+      NOZZLE_REDIS_DB: (( .properties.nozzle_redis_db.value ))
+
+  auto_services:
+  - name: (( .properties.nozzle_redis_db.enabled.nozzle_redis_service_name.value ))
+    plan: (( .properties.nozzle_redis_db.enabled.nozzle_redis_service_plan.value ))
+
+
 
   post_deploy: |
     # 12-12-2018
@@ -54,7 +51,6 @@ packages:
 
 stemcell_criteria:
   os: ubuntu-xenial
-  # version: '170'
   version: '315'
 
 forms:
@@ -106,12 +102,44 @@ forms:
     description: Selected Events (i.e. ValueMetric,CounterEvent,ContainerMetric)
   - name: nozzle_app_detail_interval
     type: integer
-    default: 3
+    default: 5
     label: App Detail Collection Interval (minutes)
     description: Interval for collecting application details (app/space/org name and guid, etc.)
     constraints:
       min: 1
       max: 60
+
+
+  - name: nozzle_redis_db
+    type: selector
+    label: Use DB for Srorage
+    configurable: true
+    default: "Enable"
+    option_templates:
+    - name: enabled
+      select_value: "Enable"
+      property_blueprints:
+      - name: nozzle_redis_service_name
+        type: string
+        label: Redis Service Name
+        configurable: true
+      - name: nozzle_redis_service_plan
+        type: string
+        label: Redis Service Plan Name
+        configurable: true
+    - name: disabled
+      select_value: "Disable"
+      property_blueprints:
+      - name: nozzle_redis_service_name
+        type: string
+        configurable: false
+        default: none
+      - name: nozzle_redis_service_plan
+        type: string
+        configurable: false
+        default: none
+
+
   - name: http_proxy
     type: string
     optional: true
@@ -122,6 +150,7 @@ forms:
     optional: true
     label: proxy bypass
     description: specify any addresses to bypass proxy. only the server name. do not specify any protocol nor port
+
 
 ### ####################################################################################
 ### ####################################################################################
