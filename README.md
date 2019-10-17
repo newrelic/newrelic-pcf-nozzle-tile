@@ -21,24 +21,39 @@ When pushed as an application, you need to have a [manifest][d] with the followi
           - binrary_buildpack
           path: dist
           command: ./nr-nozzle
-	  env:
-	    NOZZLE_USERNAME: <nozzle user>
-	    NOZZLE_PASSWORD: <nozzle password>
-	    NOZZLE_UAA_URL: https://uaa.<your-pcf-domain>
-	    NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.<your-pcf-domain>:<ssl-port>
-	    NOZZLE_FIREHOSE_SUBSCRIPTION_ID: newrelic.firehose
-	    NOZZLE_SKIP_SSL: true/false
-	    NOZZLE_SELECTED_EVENTS: Comma-separated list of firehose event types (optional)
-        NOZZLE_EXCLUDED_DEPLOYMENTS: Comma-separated list of deployments to exclude (optional)
-        NOZZLE_EXCLUDED_ORIGINS: Comma-separated list of origins to exclude (optional)
-        NOZZLE_EXCLUDED_JOBS: Comma-separated list of jobs to exclude
-        NOZZLE_ADMIN_USER: <admin-user> with admin privileges to obtain all application details in all orgs/spaces
-        NOZZLE_ADMIN_PASSWORD: <admin-password> password for the user with admin privileges
-        NOZZLE_APP_DETAIL_INTERVAL: interval for querying application details (defaults to 1 minute)
-	    NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
-	    NEWRELIC_INSIGHTS_RPM_ID: <newrelic-rpm-account-id>
-	    NEWRELIC_INSIGHTS_INSERT_KEY: <insights-insert-key>
+    env:
+        NOZZLE_USERNAME: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity"
+        NOZZLE_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password"
+        NOZZLE_UAA_URL: "run cf curl /v2/info to get the url"
+        NOZZLE_TRAFFIC_CONTROLLER_URL: "run cf curl /v2/info to get the url"
+        NOZZLE_FIREHOSE_SUBSCRIPTION_ID: newrelic.firehose
+        NOZZLE_SKIP_SSL: true
+        NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,LogMessage,ContainerMetric,HttpStartStop,Error
 
+        NOZZLE_ADMIN_USER: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Admin Credentials -> Link to Credential -> identity"
+        NOZZLE_ADMIN_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Admin Credentials -> Link to Credential -> password"
+        NOZZLE_APP_DETAIL_INTERVAL: 1
+        NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
+        NEWRELIC_INSIGHTS_RPM_ID: New Relic Account ID
+        NEWRELIC_INSIGHTS_INSERT_KEY: New Relic Insights Insert Key
+        NEWRELIC_NOZZLE_VERSION: 1.1.22
+        NEWRELIC_INSIGHTS_MAX_EVENTS: 500
+
+        # if you plan to use redis database for caching application metadata use this variable
+        NOZZLE_REDIS_DB: {"value":"Enable","selected_option":{"nozzle_redis_service_name":"<REDIS_SERVICE_NAME>","nozzle_redis_service_plan":"<REDIS_SERVICE_PLAN>"}}
+        # if you want to disable redis use the following line
+        # NOZZLE_REDIS_DB: {"value":"Disable","selected_option":{"nozzle_redis_service_name":"none","nozzle_redis_service_plan":"none"}}
+
+        NOZZLE_GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS: ''
+        NOZZLE_GLOBAL_ORIGIN_EXCLUSION_FILTERS: '[]'
+        NOZZLE_GLOBAL_JOB_EXCLUSION_FILTERS: '[]'
+
+        NOZZLE_VALUEMETRIC_DEPLOYMENT_INCLUSION_FILTERS: ''
+        NOZZLE_VALUEMETRIC_ORIGIN_INCLUSION_FILTERS: '[]'
+        NOZZLE_VALUEMETRIC_JOB_INCLUSION_FILTERS: '[]'
+        NOZZLE_VALUEMETRIC_METRIC_INCLUSION_FILTERS: '[]'
+
+        # # if proxy used in your environment
         # http_proxy: <proxy server address:port>
         # no_proxy:  <comma separated list of servers to bypass proxy>
 
@@ -155,7 +170,7 @@ If you use the tile, during the setup of the tile in Ops Mgr you can specify val
 
 ## **Compatibility**
 
-This project has been tested and is compatible with PCF **1.8**, **1.9**, **1.10**, **1.11**, **1.12**, and **2.0**.
+This project has been tested and is compatible with PCF **2.4** and higher.
 
 
 
