@@ -181,6 +181,7 @@ The application is already built and ready to run on PCF linux. If you make any 
 The project uses dep to manage the dependencies. To pull the necessary packages into the vendor folder run: ```dep ensure```
 
 <pre>
+dep init
 dep ensure
 env GOOS=&lt;OS-name&gt; GOARCH=amd64 go build -o dist/nr-nozzle
 cf push
