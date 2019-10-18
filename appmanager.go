@@ -77,7 +77,6 @@ func NewAppManager(cfClient *cfclient.Client, updateInterval int, config *PcfExt
 	instance.updateChannel = make(chan map[string]*AppInfo)
 	instance.pcfExtendedConfig = config
 	instance.lastUpdate = time.Now()
-
 	instance.parseRedisDbOptions()
 	if (instance.redisDbEnabled) {
 		instance.initRedisClient()
@@ -86,14 +85,18 @@ func NewAppManager(cfClient *cfclient.Client, updateInterval int, config *PcfExt
 }
 
 func (am *AppManager) parseRedisDbOptions() {
-	var options *RedisDbOptions
-	err := json.Unmarshal([]byte(am.pcfExtendedConfig.REDIS_DB), &options)
-	if err != nil {
-		logger.Printf("Failed to unmarshal app json from redis: %s\n", err.Error())
+	if (am.pcfExtendedConfig.REDIS_DB != "") {
+		var options *RedisDbOptions
+		err := json.Unmarshal([]byte(am.pcfExtendedConfig.REDIS_DB), &options)
+		if err != nil {
+			logger.Printf("Failed to unmarshal app json from redis: %s\n", err.Error())
+		}
+		am.redisDbEnabled = (options.RedisDb == "Enable")
+		am.redisServiceName = options.SELECTED_OPTION.RedisServiceName
+		am.redisServicePlan = options.SELECTED_OPTION.RedisServicePlan
+	} else {
+		am.redisDbEnabled = false
 	}
-	am.redisDbEnabled = (options.RedisDb == "Enable")
-	am.redisServiceName = options.SELECTED_OPTION.RedisServiceName
-	am.redisServicePlan = options.SELECTED_OPTION.RedisServicePlan		
 }
 
 func (am *AppManager) initRedisClient() {
@@ -109,6 +112,8 @@ func (am *AppManager) initRedisClient() {
 	pong, err := client.Ping().Result()
 	if err != nil {
 		logger.Printf("Redis Client-pong failed: %s\n", err.Error())
+		logger.Println("Could not connect to Redis. Ignoring database.")
+		am.redisDbEnabled = false
 		return
 	}
 	logger.Printf("pong result: %s\n", pong)
@@ -120,7 +125,6 @@ func (am *AppManager) initRedisClient() {
 
 func (am *AppManager) getDbCredentialsFromVcapServices() {
 	// parse VCAP_SERVICES to find redis host, port, pw
-
 	appEnv, err := cfenv.Current()
 	if (err != nil) {
 		// error - "unable to get app environment"
