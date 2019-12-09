@@ -1,7 +1,7 @@
 ---
 # The high-level description of your tile.
 # Replace these properties with real values.
-# last updated: 2018-06-19
+# last updated: 2019-12-09
 #
 name: nr-firehose-nozzle
 icon_file: resources/images/nr-square-black-256x256.png
@@ -27,7 +27,7 @@ packages:
     instances: (( .properties.nozzle_instances.value ))
     memory: 512M
     env:
-      NEWRELIC_NOZZLE_VERSION: 1.1.22
+      NEWRELIC_NOZZLE_VERSION: 1.1.26
       NOZZLE_UAA_URL: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
       NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.(( ..cf.cloud_controller.system_domain.value )):(( ..cf.properties.logger_endpoint_port.value || "443" ))
       NOZZLE_ADMIN_USER: admin
@@ -86,7 +86,7 @@ forms:
     description: Instances of the Nozzle running in PCF
     constraints:
       min: 1
-      max: 20
+      max: 30
   - name: nozzle_skip_ssl
     type: boolean
     label: Skip SSL Verification
@@ -112,7 +112,7 @@ forms:
 
   - name: nozzle_redis_db
     type: selector
-    label: Use DB for Srorage
+    label: Use DB for Storage
     configurable: true
     default: "Enable"
     option_templates:
@@ -122,10 +122,12 @@ forms:
       - name: nozzle_redis_service_name
         type: string
         label: Redis Service Name
+        description: Redis Service Name (first column in "cf marketplace" output for on-demand Redis Service)
         configurable: true
       - name: nozzle_redis_service_plan
         type: string
         label: Redis Service Plan Name
+        description: Redis Plan Name (second column in "cf marketplace" output for on-demand Redis Service)
         configurable: true
     - name: disabled
       select_value: "Disable"

@@ -307,11 +307,7 @@ func main() {
 				firehoseEventType := ev.GetEventType()
 				if includedEventTypes[firehoseEventType] {
 					nrEvent := make(NREventType)
-					if err := transformEvent(ev, nrEvent, pcfExtendedConfig, firehoseEventType.String()); err != nil {
-						// event skipped -- do not insert
-						logger.Printf("Skipped event: %v --- eve: %v\n", err.Error(), ev)
-					} else { // insert event to insgihts
-						//logger.Printf(">>reported: origin=%s  --  job=%s\n", ev.GetOrigin(), ev.GetJob())
+					if err := transformEvent(ev, nrEvent, pcfExtendedConfig, firehoseEventType.String()); err == nil {
 						nrEvent["firehoseSubscriptionId"] = pcfConfig.FirehoseSubscriptionID
 						nrEvent["nozzleVersion"] = nozzleVersion
 						insightsClient.EnqueueEvent(nrEvent)
@@ -328,7 +324,6 @@ func main() {
 				pcfCounters.valueMetricEvents, pcfCounters.counterEvents, pcfCounters.containerEvents,
 				pcfCounters.httpStartStopEvents, pcfCounters.logMessageEvents, pcfCounters.errors, i)
 			i = 0
-
 		}
 	}
 }
