@@ -1,47 +1,34 @@
----
 applications:
 - name: newrelic-firehose-nozzle
   memory: 512M
-  instances: 3
+  disk_quota: 256M
+  instances: 2
   health-check-type: http
   health-check-http-endpoint: /health
-  random-route: true
   buildpacks:
   - binary_buildpack
-  path: dist
-  command: ./nr-nozzle
+  path: ./dist
+  command: ./nr-fh-nozzle
   env:
-    NOZZLE_USERNAME: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> identity"
-    NOZZLE_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Opentsdb Nozzle Credentials -> Link to Credential -> password"
-    NOZZLE_UAA_URL: "run cf curl /v2/info to get the url"
-    NOZZLE_TRAFFIC_CONTROLLER_URL: "run cf curl /v2/info to get the url"
-    NOZZLE_FIREHOSE_SUBSCRIPTION_ID: newrelic.firehose
-    NOZZLE_SKIP_SSL: true
-    NOZZLE_SELECTED_EVENTS: ValueMetric,CounterEvent,LogMessage,ContainerMetric,HttpStartStop,Error
-
-    NOZZLE_ADMIN_USER: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Admin Credentials -> Link to Credential -> identity"
-    NOZZLE_ADMIN_PASSWORD: "Ops Mgr -> Elastic Runtime -> Credentials -> Job -> UAA -> Admin Credentials -> Link to Credential -> password"
-    NOZZLE_APP_DETAIL_INTERVAL: 1
-    NEWRELIC_INSIGHTS_BASE_URL: https://insights-collector.newrelic.com/v1
-    NEWRELIC_INSIGHTS_RPM_ID: New Relic Account ID
-    NEWRELIC_INSIGHTS_INSERT_KEY: New Relic Insights Insert Key
-    NEWRELIC_NOZZLE_VERSION: 1.1.22
-    NEWRELIC_INSIGHTS_MAX_EVENTS: 500
-
-    # if you plan to use redis database for caching application metadata use this variable
-    NOZZLE_REDIS_DB: {"value":"Enable","selected_option":{"nozzle_redis_service_name":"<REDIS_SERVICE_NAME>","nozzle_redis_service_plan":"<REDIS_SERVICE_PLAN>"}}
-    # if you want to disable redis use the following line
-    # NOZZLE_REDIS_DB: {"value":"Disable","selected_option":{"nozzle_redis_service_name":"none","nozzle_redis_service_plan":"none"}}
-
-    NOZZLE_GLOBAL_DEPLOYMENT_EXCLUSION_FILTERS: ''
-    NOZZLE_GLOBAL_ORIGIN_EXCLUSION_FILTERS: '[]'
-    NOZZLE_GLOBAL_JOB_EXCLUSION_FILTERS: '[]'
-
-    NOZZLE_VALUEMETRIC_DEPLOYMENT_INCLUSION_FILTERS: ''
-    NOZZLE_VALUEMETRIC_ORIGIN_INCLUSION_FILTERS: '[]'
-    NOZZLE_VALUEMETRIC_JOB_INCLUSION_FILTERS: '[]'
-    NOZZLE_VALUEMETRIC_METRIC_INCLUSION_FILTERS: '[]'
-
-    # # if proxy used in your environment
-    # http_proxy: <proxy server address:port>
-    # no_proxy:  <comma separated list of servers to bypass proxy>
+    NRF_CF_API_URL: https://api.YOUR-PCF-DOMAIN  
+    NRF_CF_API_USERNAME: admin
+    NRF_CF_API_PASSWORD: XXXXXXXXXXXX
+    NRF_CF_API_UAA_URL: https://uaa.YOUR-PCF-DOMAIN
+    NRF_CF_CLIENT_ID: firehose-to-newrelic
+    NRF_CF_CLIENT_SECRET: XXXXXXXXXXX
+    NRF_NEWRELIC_INSERT_KEY: 
+    NRF_NEWRELIC_ACCOUNT_ID: 
+    NRF_NEWRELIC_ACCOUNT_REGION: US
+    NRF_CF_SKIP_SSL: true
+    NRF_FIREHOSE_ID: newrelic.firehose
+    # NRF_NEWRELIC_DRAIN_INTERVAL: 59s
+    # NRF_FIREHOSE_DIODE_BUFFER: 8192
+    # NRF_ENABLED_ENVELOPE_TYPES: ContainerMetric|CounterEvent|HttpStartStop|LogMessage|ValueMetric
+    # NRF_LOGMESSAGE_SOURCE_INCLUDE:
+    # NRF_LOGMESSAGE_SOURCE_EXCLUDE:
+    # NRF_LOGMESSAGE_MESSAGE_INCLUDE:
+    # NRF_LOGMESSAGE_MESSAGE_EXCLUDE: 
+    # NRF_FIREHOSE_HTTP_TIMEOUT_MINS: 16
+    # NRF_FIREHOSE_RESTART_THRESH_SECS: 15
+    # http_proxy: PROXY-SERVER-ADDRESS:PORT
+    # no_proxy: COMMA-SEPARATED-LIST-OF-SERVERS-TO-BYPASS-PROXY
