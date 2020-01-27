@@ -1,1629 +1,193 @@
 ---
 # The high-level description of your tile.
 # Replace these properties with real values.
-# last updated: 2019-12-09
 #
-name: nr-firehose-nozzle
+name: nr-firehose-nozzle # By convention lowercase with dashes
 icon_file: resources/images/nr-square-black-256x256.png
 label: New Relic Firehose Nozzle
-description: This tile is used to feed PCF log events and metrics to New Relic insights 
-metadata_version: 1.8                 # Optional, defaults to 1.5
+description: This tile is used to feed PCF log events and metrics to New Relic insights
+metadata_version: 1.8                 # Optional, defaults to 1.8
 
-# org: newrelic                       # Name of org to create for your apps
-# space: nozzle                       # Name of space to create for your apps
+# Global defaults (all optional)
+#
+# org: test-org                         # Name of org to create for your apps
+# space: test-space                     # Name of space to create for your apps
 apply_open_security_group: true       # Apply open security group, default: false
+# standalone: false                     # Suppress default CF properties in property_blueprints metadata, default: false
 
-
+# Specify the packages to be included in your tile.
+# The format of the section to include depends on the type
+# of package you are describing. For fragments of each type
+# that you can copy & paste, see:
+#
+# http://docs.pivotal.io/tiledev/tile-generator.html
+#
 packages:
 - name: newrelic-firehose-nozzle
   type: app
-  label: New Relic Firehose Nozzle
+  label: New Relic Firehose Nozzle      # Package name for use in human-readable labels in OpsManager
   manifest:
-    buildpack: binary_buildpack
     path: dist
-    command: ./nr-nozzle
+    buildpack: binary_buildpack
+    command: ./nr-fh-nozzle
     health-check-type: http
     health-check-http-endpoint: /health
     instances: (( .properties.nozzle_instances.value ))
     memory: 512M
+    disk_quota: 256M
     env:
-      NEWRELIC_NOZZLE_VERSION: 1.1.26
-      NOZZLE_UAA_URL: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
-      NOZZLE_TRAFFIC_CONTROLLER_URL: wss://doppler.(( ..cf.cloud_controller.system_domain.value )):(( ..cf.properties.logger_endpoint_port.value || "443" ))
-      NOZZLE_ADMIN_USER: admin
-      NOZZLE_ADMIN_PASSWORD: (( ..cf.uaa.admin_credentials.password ))
-      NOZZLE_USERNAME: opentsdb-firehose-nozzle
-      NOZZLE_PASSWORD: (( ..cf.uaa.opentsdb_nozzle_credentials.password ))
-      NOZZLE_REDIS_DB: (( .properties.nozzle_redis_db.value ))
-
-  auto_services:
-  - name: (( .properties.nozzle_redis_db.enabled.nozzle_redis_service_name.value ))
-    plan: (( .properties.nozzle_redis_db.enabled.nozzle_redis_service_plan.value ))
+      NRF_CF_API_UAA_URL: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+      NRF_CF_API_URL: https://api.(( ..cf.cloud_controller.system_domain.value ))
+      NRF_CF_API_RLPG_URL: https://log-stream.(( ..cf.cloud_controller.system_domain.value ))
+      NRF_CF_CLIENT_ID: opentsdb-firehose-nozzle
+      NRF_CF_CLIENT_SECRET: (( ..cf.uaa.opentsdb_nozzle_credentials.password ))
+      NRF_CF_API_USERNAME: admin
+      NRF_CF_API_PASSWORD: (( ..cf.uaa.admin_credentials.password ))
 
 
-
-  post_deploy: |
-    # 12-12-2018
-    # remove older apps with underscores ("_") in their names
-    echo "### post-deploy"
-    echo "package name: ${PKG_NAME} -- old package name: $(echo ${PKG_NAME} | sed 's/-/_/g') -- app name: ${APP_NAME}"
-    delete_older_versions $(echo ${PKG_NAME} | sed 's/-/_/g') ${APP_NAME}
-
-stemcell_criteria:
-  os: ubuntu-xenial
-  version: '315'
+# Include stemcell criteria if you don't want to accept the default.
+# Since this stemcell is only used to run pre and post errands, we
+# strongly recommend you leave this alone so that your tile always
+# runs with the latest stemcell.
+#
+# stemcell_criteria:
+#   os: ubuntu-xenial
+#   version: '315'
 
 forms:
 - name: newrelic-firehose-nozzle-properties
   label: New Relic Firehose Nozzle
-  description: Used to feed PCF log events and metrics to New Relic insights 
+  description: Used to feed PCF log events and metrics to New Relic Insights.
   properties:
-  - name: newrelic_insights_base_url
-    type: string
-    default: https://insights-collector.newrelic.com/v1
-    label: New Relic Insights Base Url
-    description: New Relic Insights Base Url (i.e. https://insights-collector.newrelic.com/v1)
-  - name: newrelic_insights_rpm_id
+  - name: nrf_newrelic_account_id
     type: string
     label: New Relic RPM Account ID
     description: New Relic RPM Account ID - signup @ https://newrelic.com/signup
-  - name: newrelic_insights_insert_key
+  - name: nrf_newrelic_account_region
+    type: dropdown_select
+    label: New Relic RPM Account Region
+    description: New Relic RPM Account Region (choose EU if your RPM URL contains .eu.)
+    default: 'US'
+    options: 
+      - name: US
+        label: 'US'
+      - name: EU
+        label: 'EU'
+  - name: nrf_newrelic_insert_key
     type: secret
-    label: Insights Insert Key
+    label: New Relic Insights Insert Key
     description: New Relic Insights Insert Key - obtain from your New Relic Insights https://insights.newrelic.com/accounts/<RPM_ID>/manage/api_keys
-  - name: newrelic_insights_max_events
-    type: integer
-    default: 500
-    label: New Relic Maximum Events
-    description: New Relic maximum number of events per upload packet. If you upload LogMessage events, keep this value around 500 or less.
-    constraints:
-      min: 50
-      max: 990
-  - name: nozzle_instances
-    type: integer
-    default: 3
-    label: Nozzle instances
-    description: Instances of the Nozzle running in PCF
-    constraints:
-      min: 1
-      max: 30
-  - name: nozzle_skip_ssl
-    type: boolean
-    label: Skip SSL Verification
-    description: Skip SSL Verification (boolean true/false)
-  - name: nozzle_firehose_subscription_id
+  - name: nrf_firehose_id
     type: string
     default: newrelic.firehose
     label: Firehose Subscription ID
-    description: Firehose Subscription ID (i.e. newrelic.firehose)
-  - name: nozzle_selected_events
-    type: string
-    label: Selected Events
-    description: Selected Events (i.e. ValueMetric,CounterEvent,ContainerMetric)
-  - name: nozzle_app_detail_interval
+    description: Firhose Subscription ID (i.e. newrelic.firehose).  Events will be load balanced across multiple nozzles with the same subscription ID in the same CF domain.
+  - name: nozzle_instances
     type: integer
-    default: 5
-    label: App Detail Collection Interval (minutes)
-    description: Interval for collecting application details (app/space/org name and guid, etc.)
-    constraints:
+    default: 2
+    label: Nozzle Instance Count
+    description: Number of nozzle instances
+    constraints: 
       min: 1
-      max: 60
-
-
-  - name: nozzle_redis_db
-    type: selector
-    label: Use DB for Storage
-    configurable: true
-    default: "Enable"
-    option_templates:
-    - name: enabled
-      select_value: "Enable"
-      property_blueprints:
-      - name: nozzle_redis_service_name
-        type: string
-        label: Redis Service Name
-        description: Redis Service Name (first column in "cf marketplace" output for on-demand Redis Service)
-        configurable: true
-      - name: nozzle_redis_service_plan
-        type: string
-        label: Redis Service Plan Name
-        description: Redis Plan Name (second column in "cf marketplace" output for on-demand Redis Service)
-        configurable: true
-    - name: disabled
-      select_value: "Disable"
-      property_blueprints:
-      - name: nozzle_redis_service_name
-        type: string
-        configurable: false
-        default: none
-      - name: nozzle_redis_service_plan
-        type: string
-        configurable: false
-        default: none
-
-
+      max: 30
+- name: newrelic-firehose-nozzle-advanced-properties
+  label: Advanced Settings
+  description: Advanced settings for New Relic Firehose Nozzle
+  properties: 
   - name: http_proxy
     type: string
     optional: true
-    label: proxy server address and port
-    description: specify the the proxy server address and port (i.e. http://my_proxy_server:proxy_port)
+    label: Proxy Server Address and Port
+    description: Specify the proxy server address and port if required (i.e. http://my_proxy_server:proxy_port)
+    constraints: 
+    - must_match_regex: '^http[s]?:\/\/[^:]+:\d+'
+      error_message: 'Proxy settings must match the format http://my_proxy_server:proxy_port or https://my_proxy_server:proxy_port'
   - name: no_proxy
     type: string
     optional: true
-    label: proxy bypass
-    description: specify any addresses to bypass proxy. only the server name. do not specify any protocol nor port
-
-
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### global exclusion filters
-
-- name: newrelic-firehose-nozzle-global-exclusion-filter-properties
-  label: New Relic Firehose Nozzle Global Exclusion Filters
-  description: Setup Filters for Global Excluded Events 
-
+    label: Proxy Bypass
+    description: Specify any addresses that should bypass the proxy server.  Only include the server name or URL.  Do not specify any protocol or port
+  - name: nrf_cf_skip_ssl
+    type: boolean
+    default: true
+    label: Skip SSL Verification
+    description: Skip SSL Verification (boolean true/false)
+  - name: nrf_enabled_envelope_types
+    type: string
+    default: ContainerMetric,CounterEvent,HttpStartStop,LogMessage,ValueMetric
+    label: Selected Events
+    description: Comma or Pipe separated list of enabled event types (i.e. ValueMetric,CounterEvent,ContainerMetric)
+  - name: nrf_newrelic_drain_interval
+    type: dropdown_select
+    default: '59s'
+    options: 
+      - name: 29s
+        label: '30s'
+      - name: 59s
+        label: '60s'
+      - name: 89s
+        label: '90s'
+      - name: 119s
+        label: '120s'
+    label: Drain Interval
+    description: How often aggregated metrics should be sent to New Relic Insights (default 60s). Events (LogMessage and HttpStartStop) are sent immediately.
+  - name: nrf_firehose_http_timeout_mins
+    type: integer
+    default: 16
+    label: Firehose -> Reverse Log Proxy Gateway Timeout (minutes)
+    description: HTTP connection timeout (in minutes).  If a connection lasts longer than this threshold, it will be destroyed and a new connection will be automatically created.
+    constraints:
+      min: 15
+  - name: nrf_firehose_restart_thresh_secs
+    type: integer
+    default: 15
+    label: Firehose No Traffic Restart Threshold (seconds)
+    description: Number of seconds with no messages from the nozzle before the Reverse Log Proxy Gateway connection is cancelled and recreated.
+    constraints:
+      min: 15
+  - name: nrf_firehose_diode_buffer
+    type: integer
+    default: 8192
+    label: Firehose Queue Buffer Size (messages)
+    description: Number of messages that can be held in the queue before messages are dropped.  Log message Firehose diode dropped X messages will be generated if the queue fills
+    constraints:
+      min: 6000
+  - name: nrf_log_level
+    type: dropdown_select
+    default: INFO
+    options: 
+      - name: INFO
+        label: 'INFO'
+      - name: DEBUG
+        label: 'DEBUG'
+    label: Log Level
+    description: Log verbosity.
+  - name: nrf_tracer
+    type: boolean
+    default: false
+    label: Enable Tracer
+    description: Enable tracer logging functionality.  Warning - this is extremely verbose.  (boolean true/false)
+- name: newrelic-firehose-nozzle-log-filters
+  label: LogMessage Filters
+  description: Filters to include/exclude LogMessage events
   properties:
-  - name: nozzle_global_deployment_exclusion_filters
+  - name: nrf_logmessage_source_include
     type: string
     optional: true
-    label: Global Deployments Exclusion Filters
-    description: Comma-sparated list of Deployments to exclude - all means all deployments - if all is specified here, you need to explicitly specify deployments by name at events type filter inclusion level
-
-  - name: nozzle_global_origin_exclusion_filters
-    type: collection
-    optional: true
-    label: Global Origin Exclusion Filters
-    description: Global Origin names to exclude - all means all origins - if all is specified here, you need to explicitly specify origins by name at events type filter inclusion level
-    configurable: true
-    property_blueprints:
-    - name: value
-      type: dropdown_select
-      label: Global Origin Name
-      options:
-      # - name: none
-      #   label: none
-      #   default: true
-      - name: all
-        label: all
-      - name: auctioneer
-        label: auctioneer
-      - name: bbs
-        label: bbs
-      - name: bosh-system-metrics-forwarder
-        label: bosh-system-metrics-forwarder
-      - name: cc
-        label: cc
-      - name: cc_uploader
-        label: cc_uploader
-      - name: cf-syslog-drain.adapter
-        label: cf-syslog-drain.adapter
-      - name: cf-syslog-drain.scheduler
-        label: cf-syslog-drain.scheduler
-      - name: cloud_controller
-        label: cloud_controller
-      - name: DopplerServer
-        label: DopplerServer
-      - name: etcd
-        label: etcd
-      - name: file_server
-        label: file_server
-      - name: garden-linux
-        label: garden-linux
-      - name: garden_linux
-        label: garden_linux
-      - name: gorouter
-        label: gorouter
-      - name: grootfs
-        label: grootfs
-      - name: healthwatch
-        label: healthwatch
-      - name: iptables-logger
-        label: iptables-logger
-      - name: locket
-        label: locket
-      - name: loggregator.metron
-        label: loggregator.metron
-      - name: loggregator.rlp
-        label: loggregator.rlp
-      - name: loggregator.trafficcontroller
-        label: loggregator.trafficcontroller
-      - name: LoggregatorTrafficController
-        label: LoggregatorTrafficController
-      - name: MetronAgent
-        label: MetronAgent
-      - name: mysql
-        label: mysql
-      - name: netmon
-        label: netmon
-      - name: nsync_bulker
-        label: nsync_bulker
-      - name: nsync_listener
-        label: nsync_listener
-      - name: p-mysql
-        label: p-mysql
-      - name: p-rabbitmq
-        label: p-rabbitmq
-      - name: p-redis
-        label: p-redis
-      - name: p.cloudcache
-        label: p.cloudcache
-      - name: p.mysql
-        label: p.mysql
-      - name: p.rabbitmq
-        label: p.rabbitmq
-      - name: p.redis
-        label: p.redis
-      - name: policy-server
-        label: policy-server
-      - name: policy-server-internal
-        label: policy-server-internal
-      - name: rep
-        label: rep
-      - name: route_emitter
-        label: route_emitter
-      - name: routing_api
-        label: routing_api
-      - name: scalablesyslog.adapter
-        label: scalablesyslog.adapter
-      - name: scalablesyslog.scheduler
-        label: scalablesyslog.scheduler
-      - name: silk-controller
-        label: silk-controller
-      - name: silk-daemon
-        label: silk-daemon
-      - name: ssh_proxy
-        label: ssh_proxy
-      - name: stager
-        label: stager
-      - name: syslog_drain_binder
-        label: syslog_drain_binder
-      - name: tcp-router
-        label: tcp-router
-      - name: tcp_emitter
-        label: tcp_emitter
-      - name: tps_listener
-        label: tps_listener
-      - name: tps_watcher
-        label: tps_watcher
-      - name: uaa
-        label: uaa
-      - name: vxlan-policy-agent
-        label: vxlan-policy-agent
-
-  - name: nozzle_global_job_exclusion_filters
-    type: collection
-    optional: true
-    label: Global Job Exclusion Filters
-    description: Global Job names to exclude - all means all jobs - if all is specified here, you need to explicitly specify jobs by name at events type filter inclusion level
-    configurable: true
-    property_blueprints:
-    - name: value
-      type: dropdown_select
-      label: Global Job Name
-      options:
-      # - name: none
-      #   label: none
-      #   default: true
-      - name: all
-        label: all
-      - name: alertmanager
-        label: alertmanager
-      - name: backup-prepare
-        label: backup-prepare
-      - name: bosh-health-check
-        label: bosh-health-check
-      - name: broker
-        label: broker
-      - name: broker-registrar
-        label: broker-registrar
-      - name: cf-mysql-broker
-        label: cf-mysql-broker
-      - name: cf-redis-broker
-        label: cf-redis-broker
-      - name: clock_global
-        label: clock_global
-      - name: cloud_controller
-        label: cloud_controller
-      - name: cloud_controller_worker
-        label: cloud_controller_worker
-      - name: cloudcache-broker
-        label: cloudcache-broker
-      - name: consul_server
-        label: consul_server
-      - name: create-uaa-client
-        label: create-uaa-client
-      - name: credhub
-        label: credhub
-      - name: dedicated-mysql-broker
-        label: dedicated-mysql-broker
-      - name: dedicated-node
-        label: dedicated-node
-      - name: delete-all
-        label: delete-all
-      - name: delete-all-service-instances
-        label: delete-all-service-instances
-      - name: delete-all-service-instances-and-deregister-broker
-        label: delete-all-service-instances-and-deregister-broker
-      - name: delete-metrics-1-3-space
-        label: delete-metrics-1-3-space
-      - name: delete-metrics-1-4-space
-        label: delete-metrics-1-4-space
-      - name: deploy-all
-        label: deploy-all
-      - name: deploy-scheduler
-        label: deploy-scheduler
-      - name: deploy-service-broker
-        label: deploy-service-broker
-      - name: deregister-and-purge-instances
-        label: deregister-and-purge-instances
-      - name: deregister-on-demand-service-broker
-        label: deregister-on-demand-service-broker
-      - name: destroy-service-broker
-        label: destroy-service-broker
-      - name: diego_brain
-        label: diego_brain
-      - name: diego_cell
-        label: diego_cell
-      - name: diego_database
-        label: diego_database
-      - name: doppler
-        label: doppler
-      - name: elasticsearch_data
-        label: elasticsearch_data
-      - name: elasticsearch_master
-        label: elasticsearch_master
-      - name: grafana
-        label: grafana
-      - name: ha_proxy
-        label: ha_proxy
-      - name: healthwatch-forwarder
-        label: healthwatch-forwarder
-      - name: hm-forwarder
-        label: hm-forwarder
-      - name: install-hwc-buildpack
-        label: install-hwc-buildpack
-      - name: integration-tests
-        label: integration-tests
-      - name: jmx-firehose-nozzle
-        label: jmx-firehose-nozzle
-      - name: locator
-        label: locator
-      - name: locator-server
-        label: locator-server
-      - name: loggregator_trafficcontroller
-        label: loggregator_trafficcontroller
-      - name: maximus
-        label: maximus
-      - name: metron_forwarder
-        label: metron_forwarder
-      - name: migrate-data-to-1-4
-        label: migrate-data-to-1-4
-      - name: monitoring
-        label: monitoring
-      - name: multitenant-smoke-tests
-        label: multitenant-smoke-tests
-      - name: mysql
-        label: mysql
-      - name: mysql_monitor
-        label: mysql_monitor
-      - name: mysql_proxy
-        label: mysql_proxy
-      - name: nats
-        label: nats
-      - name: nfs_server
-        label: nfs_server
-      - name: nginx
-        label: nginx
-      - name: on-demand-broker
-        label: on-demand-broker
-      - name: on-demand-broker-smoke-tests
-        label: on-demand-broker-smoke-tests
-      - name: prime-cluster-for-pcc
-        label: prime-cluster-for-pcc
-      - name: prometheus
-        label: prometheus
-      - name: proxy
-        label: proxy
-      - name: publicize-scheduler
-        label: publicize-scheduler
-      - name: push-apps
-        label: push-apps
-      - name: rabbitmq-broker
-        label: rabbitmq-broker
-      - name: rabbitmq-haproxy
-        label: rabbitmq-haproxy
-      - name: rabbitmq-server
-        label: rabbitmq-server
-      - name: redis
-        label: redis
-      - name: redis-instance
-        label: redis-instance
-      - name: redis-on-demand-broker
-        label: redis-on-demand-broker
-      - name: register-broker
-        label: register-broker
-      - name: register-on-demand-service-broker
-        label: register-on-demand-service-broker
-      - name: register-service-broker
-        label: register-service-broker
-      - name: register_on_demand_service_broker
-        label: register_on_demand_service_broker
-      - name: router
-        label: router
-      - name: run-smoke-tests
-        label: run-smoke-tests
-      - name: run-tests
-        label: run-tests
-      - name: server
-        label: server
-      - name: smoke-tests
-        label: smoke-tests
-      - name: syslog_adapter
-        label: syslog_adapter
-      - name: syslog_scheduler
-        label: syslog_scheduler
-      - name: tcp_router
-        label: tcp_router
-      - name: test-scheduler
-        label: test-scheduler
-      - name: test-scheduler-diagnostics
-        label: test-scheduler-diagnostics
-      - name: uaa
-        label: uaa
-      - name: upgrade-all-service-instances
-        label: upgrade-all-service-instances
-      - name: windows_diego_cell
-        label: windows_diego_cell
-
-
-
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### value metric inclusion filters
-
-- name: newrelic-firehose-nozzle-valuemetrics-inclusion-filter-properties
-  label: New Relic Firehose Nozzle ValueMetric Inclusion Filters
-  description: Setup Filters for ValueMetric Events 
-
-  properties:
-  - name: nozzle_valuemetric_deployment_inclusion_filters
+    label: LogMessage Source Include Filter
+    description: Ignore events unless the source matches a source in this list.  For example, RTR or APP/PROC/WEB.  Multiple sources can be included as long as they are , or | separated.
+  - name: nrf_logmessage_source_exclude
     type: string
     optional: true
-    label: ValueMetric Deployment Inclusion Filters
-    description: Comma-sparated list of Deployments to include
-
-  - name: nozzle_valuemetric_origin_inclusion_filters
-    type: collection
+    label: LogMessage Source Exclude Filter
+    description: Ignore events if the source matches a source in this list.  For example, RTR or APP/PROC/WEB.  Multiple sources can be included as long as they are , or | separated.  Exclude filters are processed after include filters.
+  - name: nrf_logmessage_message_include
+    type: string
     optional: true
-    label: ValueMetric Origin Inclusion Filters
-    description: Origin names to include
-    configurable: true
-    property_blueprints:
-    - name: value
-      type: dropdown_select
-      label: Value Metric Origin Name
-      options:
-      # - name: none
-      #   label: none
-      #   default: true
-      - name: all
-        label: all
-      - name: auctioneer
-        label: auctioneer
-      - name: bbs
-        label: bbs
-      - name: bosh-system-metrics-forwarder
-        label: bosh-system-metrics-forwarder
-      - name: cc
-        label: cc
-      - name: cc_uploader
-        label: cc_uploader
-      - name: cf-syslog-drain.adapter
-        label: cf-syslog-drain.adapter
-      - name: cf-syslog-drain.scheduler
-        label: cf-syslog-drain.scheduler
-      - name: cloud_controller
-        label: cloud_controller
-      - name: DopplerServer
-        label: DopplerServer
-      - name: etcd
-        label: etcd
-      - name: file_server
-        label: file_server
-      - name: garden-linux
-        label: garden-linux
-      - name: garden_linux
-        label: garden_linux
-      - name: gorouter
-        label: gorouter
-      - name: grootfs
-        label: grootfs
-      - name: healthwatch
-        label: healthwatch
-      - name: iptables-logger
-        label: iptables-logger
-      - name: locket
-        label: locket
-      - name: loggregator.metron
-        label: loggregator.metron
-      - name: loggregator.rlp
-        label: loggregator.rlp
-      - name: loggregator.trafficcontroller
-        label: loggregator.trafficcontroller
-      - name: LoggregatorTrafficController
-        label: LoggregatorTrafficController
-      - name: MetronAgent
-        label: MetronAgent
-      - name: mysql
-        label: mysql
-      - name: netmon
-        label: netmon
-      - name: nsync_bulker
-        label: nsync_bulker
-      - name: nsync_listener
-        label: nsync_listener
-      - name: p-mysql
-        label: p-mysql
-      - name: p-rabbitmq
-        label: p-rabbitmq
-      - name: p-redis
-        label: p-redis
-      - name: p.cloudcache
-        label: p.cloudcache
-      - name: p.mysql
-        label: p.mysql
-      - name: p.rabbitmq
-        label: p.rabbitmq
-      - name: p.redis
-        label: p.redis
-      - name: policy-server
-        label: policy-server
-      - name: policy-server-internal
-        label: policy-server-internal
-      - name: rep
-        label: rep
-      - name: route_emitter
-        label: route_emitter
-      - name: routing_api
-        label: routing_api
-      - name: scalablesyslog.adapter
-        label: scalablesyslog.adapter
-      - name: scalablesyslog.scheduler
-        label: scalablesyslog.scheduler
-      - name: silk-controller
-        label: silk-controller
-      - name: silk-daemon
-        label: silk-daemon
-      - name: ssh_proxy
-        label: ssh_proxy
-      - name: stager
-        label: stager
-      - name: syslog_drain_binder
-        label: syslog_drain_binder
-      - name: tcp-router
-        label: tcp-router
-      - name: tcp_emitter
-        label: tcp_emitter
-      - name: tps_listener
-        label: tps_listener
-      - name: tps_watcher
-        label: tps_watcher
-      - name: uaa
-        label: uaa
-      - name: vxlan-policy-agent
-        label: vxlan-policy-agent
-
-  - name: nozzle_valuemetric_job_inclusion_filters
-    type: collection
+    label: LogMessage Message Content Include Filter
+    description: Ignore events unless the message contains a pattern in this list.  For example, ERROR or crashed.  Multiple patterns can be included as long as they are , or | separated.
+  - name: nrf_logmessage_message_exclude
+    type: string
     optional: true
-    label: ValueMetric Job Inclusion Filters
-    description: Job names to include
-    configurable: true
-    property_blueprints:
-    - name: value
-      type: dropdown_select
-      label: Value Metric Job Name
-      options:
-      # - name: none
-      #   label: none
-      #   default: true
-      - name: all
-        label: all
-      - name: alertmanager
-        label: alertmanager
-      - name: backup-prepare
-        label: backup-prepare
-      - name: bosh-health-check
-        label: bosh-health-check
-      - name: broker
-        label: broker
-      - name: broker-registrar
-        label: broker-registrar
-      - name: cf-mysql-broker
-        label: cf-mysql-broker
-      - name: cf-redis-broker
-        label: cf-redis-broker
-      - name: clock_global
-        label: clock_global
-      - name: cloud_controller
-        label: cloud_controller
-      - name: cloud_controller_worker
-        label: cloud_controller_worker
-      - name: cloudcache-broker
-        label: cloudcache-broker
-      - name: consul_server
-        label: consul_server
-      - name: create-uaa-client
-        label: create-uaa-client
-      - name: credhub
-        label: credhub
-      - name: dedicated-mysql-broker
-        label: dedicated-mysql-broker
-      - name: dedicated-node
-        label: dedicated-node
-      - name: delete-all
-        label: delete-all
-      - name: delete-all-service-instances
-        label: delete-all-service-instances
-      - name: delete-all-service-instances-and-deregister-broker
-        label: delete-all-service-instances-and-deregister-broker
-      - name: delete-metrics-1-3-space
-        label: delete-metrics-1-3-space
-      - name: delete-metrics-1-4-space
-        label: delete-metrics-1-4-space
-      - name: deploy-all
-        label: deploy-all
-      - name: deploy-scheduler
-        label: deploy-scheduler
-      - name: deploy-service-broker
-        label: deploy-service-broker
-      - name: deregister-and-purge-instances
-        label: deregister-and-purge-instances
-      - name: deregister-on-demand-service-broker
-        label: deregister-on-demand-service-broker
-      - name: destroy-service-broker
-        label: destroy-service-broker
-      - name: diego_brain
-        label: diego_brain
-      - name: diego_cell
-        label: diego_cell
-      - name: diego_database
-        label: diego_database
-      - name: doppler
-        label: doppler
-      - name: elasticsearch_data
-        label: elasticsearch_data
-      - name: elasticsearch_master
-        label: elasticsearch_master
-      - name: grafana
-        label: grafana
-      - name: ha_proxy
-        label: ha_proxy
-      - name: healthwatch-forwarder
-        label: healthwatch-forwarder
-      - name: hm-forwarder
-        label: hm-forwarder
-      - name: install-hwc-buildpack
-        label: install-hwc-buildpack
-      - name: integration-tests
-        label: integration-tests
-      - name: jmx-firehose-nozzle
-        label: jmx-firehose-nozzle
-      - name: locator
-        label: locator
-      - name: locator-server
-        label: locator-server
-      - name: loggregator_trafficcontroller
-        label: loggregator_trafficcontroller
-      - name: maximus
-        label: maximus
-      - name: metron_forwarder
-        label: metron_forwarder
-      - name: migrate-data-to-1-4
-        label: migrate-data-to-1-4
-      - name: monitoring
-        label: monitoring
-      - name: multitenant-smoke-tests
-        label: multitenant-smoke-tests
-      - name: mysql
-        label: mysql
-      - name: mysql_monitor
-        label: mysql_monitor
-      - name: mysql_proxy
-        label: mysql_proxy
-      - name: nats
-        label: nats
-      - name: nfs_server
-        label: nfs_server
-      - name: nginx
-        label: nginx
-      - name: on-demand-broker
-        label: on-demand-broker
-      - name: on-demand-broker-smoke-tests
-        label: on-demand-broker-smoke-tests
-      - name: prime-cluster-for-pcc
-        label: prime-cluster-for-pcc
-      - name: prometheus
-        label: prometheus
-      - name: proxy
-        label: proxy
-      - name: publicize-scheduler
-        label: publicize-scheduler
-      - name: push-apps
-        label: push-apps
-      - name: rabbitmq-broker
-        label: rabbitmq-broker
-      - name: rabbitmq-haproxy
-        label: rabbitmq-haproxy
-      - name: rabbitmq-server
-        label: rabbitmq-server
-      - name: redis
-        label: redis
-      - name: redis-instance
-        label: redis-instance
-      - name: redis-on-demand-broker
-        label: redis-on-demand-broker
-      - name: register-broker
-        label: register-broker
-      - name: register-on-demand-service-broker
-        label: register-on-demand-service-broker
-      - name: register-service-broker
-        label: register-service-broker
-      - name: register_on_demand_service_broker
-        label: register_on_demand_service_broker
-      - name: router
-        label: router
-      - name: run-smoke-tests
-        label: run-smoke-tests
-      - name: run-tests
-        label: run-tests
-      - name: server
-        label: server
-      - name: smoke-tests
-        label: smoke-tests
-      - name: syslog_adapter
-        label: syslog_adapter
-      - name: syslog_scheduler
-        label: syslog_scheduler
-      - name: tcp_router
-        label: tcp_router
-      - name: test-scheduler
-        label: test-scheduler
-      - name: test-scheduler-diagnostics
-        label: test-scheduler-diagnostics
-      - name: uaa
-        label: uaa
-      - name: upgrade-all-service-instances
-        label: upgrade-all-service-instances
-      - name: windows_diego_cell
-        label: windows_diego_cell
-
-  - name: nozzle_valuemetric_metric_inclusion_filters
-    type: collection
-    optional: true
-    label: ValueMetric Metric Name Inclusion Filters
-    description: ValueMetric Metric Names to include
-    configurable: true
-    property_blueprints:
-    - name: value
-      type: dropdown_select
-      label: ValueMetric Name
-      options:
-      # - name: none
-      #   label: none
-      #   default: true
-      - name: all
-        label: all
-      - name: adapters
-        label: adapters
-      - name: AuctioneerFetchStatesDuration
-        label: AuctioneerFetchStatesDuration
-      - name: BBSMasterElected
-        label: BBSMasterElected
-      - name: bosh.deployment
-        label: bosh.deployment
-      - name: buffered_messages
-        label: buffered_messages
-      - name: CapacityAllocatedDisk
-        label: CapacityAllocatedDisk
-      - name: CapacityAllocatedMemory
-        label: CapacityAllocatedMemory
-      - name: CommittedQuotaInBytes
-        label: CommittedQuotaInBytes
-      - name: container_metric_sinks
-        label: container_metric_sinks
-      - name: ContainerUsageDisk
-        label: ContainerUsageDisk
-      - name: ContainerUsageMemory
-        label: ContainerUsageMemory
-      - name: CredCreationSucceededDuration
-        label: CredCreationSucceededDuration
-      - name: database.global.completed.count
-        label: database.global.completed.count
-      - name: database.global.completed.time
-        label: database.global.completed.time
-      - name: database.global.unhealthy.count
-        label: database.global.unhealthy.count
-      - name: database.global.unhealthy.time
-        label: database.global.unhealthy.time
-      - name: DBOpenConnections
-        label: DBOpenConnections
-      - name: DBQueriesFailed
-        label: DBQueriesFailed
-      - name: DBQueriesInFlight
-        label: DBQueriesInFlight
-      - name: DBQueriesSucceeded
-        label: DBQueriesSucceeded
-      - name: DBQueriesTotal
-        label: DBQueriesTotal
-      - name: DBQueryDurationMax
-        label: DBQueryDurationMax
-      - name: Diego.AppsDomainSynced
-        label: Diego.AppsDomainSynced
-      - name: Diego.AvailableFreeChunks
-        label: Diego.AvailableFreeChunks
-      - name: Diego.LRPsAdded.1H
-        label: Diego.LRPsAdded.1H
-      - name: Diego.TotalAvailableContainerCapacity.5M
-        label: Diego.TotalAvailableContainerCapacity.5M
-      - name: Diego.TotalAvailableDiskCapacity.5M
-        label: Diego.TotalAvailableDiskCapacity.5M
-      - name: Diego.TotalAvailableMemoryCapacity.5M
-        label: Diego.TotalAvailableMemoryCapacity.5M
-      - name: Diego.TotalPercentageAvailableContainerCapacity.5M
-        label: Diego.TotalPercentageAvailableContainerCapacity.5M
-      - name: Diego.TotalPercentageAvailableDiskCapacity.5M
-        label: Diego.TotalPercentageAvailableDiskCapacity.5M
-      - name: Diego.TotalPercentageAvailableMemoryCapacity.5M
-        label: Diego.TotalPercentageAvailableMemoryCapacity.5M
-      - name: Doppler.MessagesAverage.1M
-        label: Doppler.MessagesAverage.1M
-      - name: DownloadedLayersSizeInBytes
-        label: DownloadedLayersSizeInBytes
-      - name: drain_bindings
-        label: drain_bindings
-      - name: dump_sinks
-        label: dump_sinks
-      - name: events.published
-        label: events.published
-      - name: ExclusiveLockingTime
-        label: ExclusiveLockingTime
-      - name: failed_job_count.cc-cloud_controller-1
-        label: failed_job_count.cc-cloud_controller-1
-      - name: failed_job_count.cc-cloud_controller-2
-        label: failed_job_count.cc-cloud_controller-2
-      - name: failed_job_count.cc-generic
-        label: failed_job_count.cc-generic
-      - name: failed_job_count.orphaned_blobs_cleanup
-        label: failed_job_count.orphaned_blobs_cleanup
-      - name: failed_job_count.pending_droplets
-        label: failed_job_count.pending_droplets
-      - name: Firehose.LossRate.1H
-        label: Firehose.LossRate.1H
-      - name: Firehose.LossRate.1M
-        label: Firehose.LossRate.1M
-      - name: Galera.ClusterStatusSum
-        label: Galera.ClusterStatusSum
-      - name: Galera.TotalPercentageHealthyNodes
-        label: Galera.TotalPercentageHealthyNodes
-      - name: GardenContainerCreationDuration
-        label: GardenContainerCreationDuration
-      - name: GardenContainerCreationSucceededDuration
-        label: GardenContainerCreationSucceededDuration
-      - name: GardenContainerDestructionFailedDuration
-        label: GardenContainerDestructionFailedDuration
-      - name: GardenContainerDestructionSucceededDuration
-        label: GardenContainerDestructionSucceededDuration
-      - name: health.bosh.deployment.probe.count
-        label: health.bosh.deployment.probe.count
-      - name: health.check.bosh.director.probe.available
-        label: health.check.bosh.director.probe.available
-      - name: health.check.bosh.director.probe.count
-        label: health.check.bosh.director.probe.count
-      - name: health.check.bosh.director.success
-        label: health.check.bosh.director.success
-      - name: health.check.bosh.director.timeout
-        label: health.check.bosh.director.timeout
-      - name: health.check.CanaryApp.available
-        label: health.check.CanaryApp.available
-      - name: health.check.CanaryApp.probe.available
-        label: health.check.CanaryApp.probe.available
-      - name: health.check.CanaryApp.probe.count
-        label: health.check.CanaryApp.probe.count
-      - name: health.check.CanaryApp.responseTime
-        label: health.check.CanaryApp.responseTime
-      - name: health.check.cliCommand.delete
-        label: health.check.cliCommand.delete
-      - name: health.check.cliCommand.delete.timeout
-        label: health.check.cliCommand.delete.timeout
-      - name: health.check.cliCommand.duration
-        label: health.check.cliCommand.duration
-      - name: health.check.cliCommand.login
-        label: health.check.cliCommand.login
-      - name: health.check.cliCommand.logs
-        label: health.check.cliCommand.logs
-      - name: health.check.cliCommand.probe.available
-        label: health.check.cliCommand.probe.available
-      - name: health.check.cliCommand.probe.count
-        label: health.check.cliCommand.probe.count
-      - name: health.check.cliCommand.push
-        label: health.check.cliCommand.push
-      - name: health.check.cliCommand.push.timeout
-        label: health.check.cliCommand.push.timeout
-      - name: health.check.cliCommand.pushTime
-        label: health.check.cliCommand.pushTime
-      - name: health.check.cliCommand.start
-        label: health.check.cliCommand.start
-      - name: health.check.cliCommand.start.timeout
-        label: health.check.cliCommand.start.timeout
-      - name: health.check.cliCommand.stop
-        label: health.check.cliCommand.stop
-      - name: health.check.cliCommand.success
-        label: health.check.cliCommand.success
-      - name: health.check.OpsMan.available
-        label: health.check.OpsMan.available
-      - name: health.check.OpsMan.probe.available
-        label: health.check.OpsMan.probe.available
-      - name: health.check.OpsMan.probe.count
-        label: health.check.OpsMan.probe.count
-      - name: health.check.UIavailability.probe.count
-        label: health.check.UIavailability.probe.count
-      - name: healthwatch.ingestor.disconnects
-        label: healthwatch.ingestor.disconnects
-      - name: healthwatch.loader.dropped
-        label: healthwatch.loader.dropped
-      - name: healthwatch.metrics.published
-        label: healthwatch.metrics.published
-      - name: healthwatch.ui.available
-        label: healthwatch.ui.available
-      - name: http_status.3XX
-        label: http_status.3XX
-      - name: http_status.4XX
-        label: http_status.4XX
-      - name: http_status.5XX
-        label: http_status.5XX
-      - name: info.clients.blocked_clients
-        label: info.clients.blocked_clients
-      - name: info.clients.client_biggest_input_buf
-        label: info.clients.client_biggest_input_buf
-      - name: info.clients.client_longest_output_list
-        label: info.clients.client_longest_output_list
-      - name: info.clients.connected_clients
-        label: info.clients.connected_clients
-      - name: info.cluster.cluster_enabled
-        label: info.cluster.cluster_enabled
-      - name: info.cpu.used_cpu_sys
-        label: info.cpu.used_cpu_sys
-      - name: info.cpu.used_cpu_sys_children
-        label: info.cpu.used_cpu_sys_children
-      - name: info.cpu.used_cpu_user
-        label: info.cpu.used_cpu_user
-      - name: info.cpu.used_cpu_user_children
-        label: info.cpu.used_cpu_user_children
-      - name: info.memory.maxmemory
-        label: info.memory.maxmemory
-      - name: info.memory.mem_fragmentation_ratio
-        label: info.memory.mem_fragmentation_ratio
-      - name: info.memory.used_memory
-        label: info.memory.used_memory
-      - name: info.memory.used_memory_lua
-        label: info.memory.used_memory_lua
-      - name: info.memory.used_memory_peak
-        label: info.memory.used_memory_peak
-      - name: info.memory.used_memory_rss
-        label: info.memory.used_memory_rss
-      - name: info.persistence.aof_current_rewrite_time_sec
-        label: info.persistence.aof_current_rewrite_time_sec
-      - name: info.persistence.aof_last_bgrewrite_status
-        label: info.persistence.aof_last_bgrewrite_status
-      - name: info.persistence.aof_last_rewrite_time_sec
-        label: info.persistence.aof_last_rewrite_time_sec
-      - name: info.persistence.aof_last_write_status
-        label: info.persistence.aof_last_write_status
-      - name: info.persistence.aof_rewrite_in_progress
-        label: info.persistence.aof_rewrite_in_progress
-      - name: info.persistence.aof_rewrite_scheduled
-        label: info.persistence.aof_rewrite_scheduled
-      - name: info.persistence.loading
-        label: info.persistence.loading
-      - name: info.persistence.rdb_bgsave_in_progress
-        label: info.persistence.rdb_bgsave_in_progress
-      - name: info.persistence.rdb_changes_since_last_save
-        label: info.persistence.rdb_changes_since_last_save
-      - name: info.persistence.rdb_current_bgsave_time_sec
-        label: info.persistence.rdb_current_bgsave_time_sec
-      - name: info.persistence.rdb_last_bgsave_status
-        label: info.persistence.rdb_last_bgsave_status
-      - name: info.persistence.rdb_last_bgsave_time_sec
-        label: info.persistence.rdb_last_bgsave_time_sec
-      - name: info.persistence.rdb_last_save_time
-        label: info.persistence.rdb_last_save_time
-      - name: info.replication.connected_slaves
-        label: info.replication.connected_slaves
-      - name: info.replication.master_repl_offset
-        label: info.replication.master_repl_offset
-      - name: info.replication.repl_backlog_active
-        label: info.replication.repl_backlog_active
-      - name: info.replication.repl_backlog_first_byte_offset
-        label: info.replication.repl_backlog_first_byte_offset
-      - name: info.replication.repl_backlog_histlen
-        label: info.replication.repl_backlog_histlen
-      - name: info.replication.repl_backlog_size
-        label: info.replication.repl_backlog_size
-      - name: info.server.arch_bits
-        label: info.server.arch_bits
-      - name: info.server.hz
-        label: info.server.hz
-      - name: info.server.lru_clock
-        label: info.server.lru_clock
-      - name: info.server.uptime_in_days
-        label: info.server.uptime_in_days
-      - name: info.server.uptime_in_seconds
-        label: info.server.uptime_in_seconds
-      - name: info.stats.evicted_keys
-        label: info.stats.evicted_keys
-      - name: info.stats.expired_keys
-        label: info.stats.expired_keys
-      - name: info.stats.instantaneous_input_kbps
-        label: info.stats.instantaneous_input_kbps
-      - name: info.stats.instantaneous_ops_per_sec
-        label: info.stats.instantaneous_ops_per_sec
-      - name: info.stats.instantaneous_output_kbps
-        label: info.stats.instantaneous_output_kbps
-      - name: info.stats.keyspace_hits
-        label: info.stats.keyspace_hits
-      - name: info.stats.keyspace_misses
-        label: info.stats.keyspace_misses
-      - name: info.stats.latest_fork_usec
-        label: info.stats.latest_fork_usec
-      - name: info.stats.migrate_cached_sockets
-        label: info.stats.migrate_cached_sockets
-      - name: info.stats.pubsub_channels
-        label: info.stats.pubsub_channels
-      - name: info.stats.pubsub_patterns
-        label: info.stats.pubsub_patterns
-      - name: info.stats.rejected_connections
-        label: info.stats.rejected_connections
-      - name: info.stats.sync_full
-        label: info.stats.sync_full
-      - name: info.stats.sync_partial_err
-        label: info.stats.sync_partial_err
-      - name: info.stats.sync_partial_ok
-        label: info.stats.sync_partial_ok
-      - name: info.stats.total_commands_processed
-        label: info.stats.total_commands_processed
-      - name: info.stats.total_connections_received
-        label: info.stats.total_connections_received
-      - name: info.stats.total_net_input_bytes
-        label: info.stats.total_net_input_bytes
-      - name: info.stats.total_net_output_bytes
-        label: info.stats.total_net_output_bytes
-      - name: ingestor.disconnects
-        label: ingestor.disconnects
-      - name: ingestor.dropped
-        label: ingestor.dropped
-      - name: job_queue_length.app_usage_events
-        label: job_queue_length.app_usage_events
-      - name: job_queue_length.audit_events
-        label: job_queue_length.audit_events
-      - name: job_queue_length.cc-cloud_controller-0
-        label: job_queue_length.cc-cloud_controller-0
-      - name: job_queue_length.cc-cloud_controller-1
-        label: job_queue_length.cc-cloud_controller-1
-      - name: job_queue_length.cc-cloud_controller-2
-        label: job_queue_length.cc-cloud_controller-2
-      - name: job_queue_length.cc-generic
-        label: job_queue_length.cc-generic
-      - name: job_queue_length.completed_tasks
-        label: job_queue_length.completed_tasks
-      - name: job_queue_length.expired_blob_cleanup
-        label: job_queue_length.expired_blob_cleanup
-      - name: job_queue_length.expired_orphaned_blob_cleanup
-        label: job_queue_length.expired_orphaned_blob_cleanup
-      - name: job_queue_length.expired_resource_cleanup
-        label: job_queue_length.expired_resource_cleanup
-      - name: job_queue_length.failed_jobs
-        label: job_queue_length.failed_jobs
-      - name: job_queue_length.orphaned_blobs_cleanup
-        label: job_queue_length.orphaned_blobs_cleanup
-      - name: job_queue_length.pending_builds
-        label: job_queue_length.pending_builds
-      - name: job_queue_length.pending_droplets
-        label: job_queue_length.pending_droplets
-      - name: job_queue_length.pollable_job_cleanup
-        label: job_queue_length.pollable_job_cleanup
-      - name: job_queue_length.service_usage_events
-        label: job_queue_length.service_usage_events
-      - name: latency.blobstore
-        label: latency.blobstore
-      - name: latency.redis-broker
-        label: latency.redis-broker
-      - name: latency.uaa
-        label: latency.uaa
-      - name: LockHeld
-        label: LockHeld
-      - name: logSenderTotalMessagesRead
-        label: logSenderTotalMessagesRead
-      - name: metrics.published
-        label: metrics.published
-      - name: MigrationDuration
-        label: MigrationDuration
-      - name: OpenFileDescriptors
-        label: OpenFileDescriptors
-      - name: redis.counterEventQueue.size
-        label: redis.counterEventQueue.size
-      - name: redis.valueMetricQueue.size
-        label: redis.valueMetricQueue.size
-      - name: RequestLatencyMax
-        label: RequestLatencyMax
-      - name: requests.api.completed.count
-        label: requests.api.completed.count
-      - name: requests.api.completed.time
-        label: requests.api.completed.time
-      - name: requests.clients.completed.count
-        label: requests.clients.completed.count
-      - name: requests.clients.completed.time
-        label: requests.clients.completed.time
-      - name: requests.global.completed.count
-        label: requests.global.completed.count
-      - name: requests.global.completed.time
-        label: requests.global.completed.time
-      - name: requests.global.status_1xx.count
-        label: requests.global.status_1xx.count
-      - name: requests.global.status_2xx.count
-        label: requests.global.status_2xx.count
-      - name: requests.global.status_3xx.count
-        label: requests.global.status_3xx.count
-      - name: requests.global.status_4xx.count
-        label: requests.global.status_4xx.count
-      - name: requests.global.status_5xx.count
-        label: requests.global.status_5xx.count
-      - name: requests.global.unhealthy.count
-        label: requests.global.unhealthy.count
-      - name: requests.global.unhealthy.time
-        label: requests.global.unhealthy.time
-      - name: requests.groups.completed.count
-        label: requests.groups.completed.count
-      - name: requests.groups.completed.time
-        label: requests.groups.completed.time
-      - name: requests.oauth-oidc.completed.count
-        label: requests.oauth-oidc.completed.count
-      - name: requests.oauth-oidc.completed.time
-        label: requests.oauth-oidc.completed.time
-      - name: requests.static-content.completed.count
-        label: requests.static-content.completed.count
-      - name: requests.static-content.completed.time
-        label: requests.static-content.completed.time
-      - name: requests.uaa.global.metrics.completed.count
-        label: requests.uaa.global.metrics.completed.count
-      - name: requests.uaa.global.metrics.completed.time
-        label: requests.uaa.global.metrics.completed.time
-      - name: requests.ui.completed.count
-        label: requests.ui.completed.count
-      - name: requests.ui.completed.time
-        label: requests.ui.completed.time
-      - name: requests.unknown.completed.count
-        label: requests.unknown.completed.count
-      - name: requests.unknown.completed.time
-        label: requests.unknown.completed.time
-      - name: requests.users.completed.count
-        label: requests.users.completed.count
-      - name: requests.users.completed.time
-        label: requests.users.completed.time
-      - name: RequestsFailed
-        label: RequestsFailed
-      - name: RequestsInFlight
-        label: RequestsInFlight
-      - name: RequestsStarted
-        label: RequestsStarted
-      - name: RequestsSucceeded
-        label: RequestsSucceeded
-      - name: route_registration_latency
-        label: route_registration_latency
-      - name: RouteRegistration.MessagesDelta
-        label: RouteRegistration.MessagesDelta
-      - name: server.idle.time
-        label: server.idle.time
-      - name: server.inflight.count
-        label: server.inflight.count
-      - name: server.up.time
-        label: server.up.time
-      - name: staging.failed
-        label: staging.failed
-      - name: staging.failed_duration
-        label: staging.failed_duration
-      - name: staging.requested
-        label: staging.requested
-      - name: staging.succeeded
-        label: staging.succeeded
-      - name: staging.succeeded_duration
-        label: staging.succeeded_duration
-      - name: StalledGardenDuration
-        label: StalledGardenDuration
-      - name: StoreAllErrorTime
-        label: StoreAllErrorTime
-      - name: StoreByGuidsErrorTime
-        label: StoreByGuidsErrorTime
-      - name: StrandedEvacuatingActualLRPs
-        label: StrandedEvacuatingActualLRPs
-      - name: StreamInDuration
-        label: StreamInDuration
-      - name: subscriptions
-        label: subscriptions
-      - name: SyslogDrain.Adapter.BindingsAverage.5M
-        label: SyslogDrain.Adapter.BindingsAverage.5M
-      - name: SyslogDrain.Adapter.LossRate.1M
-        label: SyslogDrain.Adapter.LossRate.1M
-      - name: SyslogDrain.RLP.LossRate.1M
-        label: SyslogDrain.RLP.LossRate.1M
-      - name: system.cpu.sys
-        label: system.cpu.sys
-      - name: system.cpu.user
-        label: system.cpu.user
-      - name: system.cpu.wait
-        label: system.cpu.wait
-      - name: system.disk.ephemeral.inode_percent
-        label: system.disk.ephemeral.inode_percent
-      - name: system.disk.ephemeral.percent
-        label: system.disk.ephemeral.percent
-      - name: system.disk.persistent.inode_percent
-        label: system.disk.persistent.inode_percent
-      - name: system.disk.persistent.percent
-        label: system.disk.persistent.percent
-      - name: system.disk.system.inode_percent
-        label: system.disk.system.inode_percent
-      - name: system.disk.system.percent
-        label: system.disk.system.percent
-      - name: system.healthy
-        label: system.healthy
-      - name: system.load.1m
-        label: system.load.1m
-      - name: system.mem.kb
-        label: system.mem.kb
-      - name: system.mem.percent
-        label: system.mem.percent
-      - name: system.swap.kb
-        label: system.swap.kb
-      - name: system.swap.percent
-        label: system.swap.percent
-      - name: TasksFailed
-        label: TasksFailed
-      - name: TasksStarted
-        label: TasksStarted
-      - name: TasksSucceeded
-        label: TasksSucceeded
-      - name: total_dropped_messages
-        label: total_dropped_messages
-      - name: uaa.throughput.rate
-        label: uaa.throughput.rate
-      - name: UnusedLayersSize
-        label: UnusedLayersSize
-      - name: Uptime
-        label: Uptime
-      - name: vitals.jvm.cpu.load
-        label: vitals.jvm.cpu.load
-      - name: vitals.jvm.heap.committed
-        label: vitals.jvm.heap.committed
-      - name: vitals.jvm.heap.init
-        label: vitals.jvm.heap.init
-      - name: vitals.jvm.heap.max
-        label: vitals.jvm.heap.max
-      - name: vitals.jvm.heap.used
-        label: vitals.jvm.heap.used
-      - name: vitals.jvm.non-heap.committed
-        label: vitals.jvm.non-heap.committed
-      - name: vitals.jvm.non-heap.init
-        label: vitals.jvm.non-heap.init
-      - name: vitals.jvm.non-heap.max
-        label: vitals.jvm.non-heap.max
-      - name: vitals.jvm.non-heap.used
-        label: vitals.jvm.non-heap.used
-      - name: vitals.jvm.thread.count
-        label: vitals.jvm.thread.count
-      - name: vitals.vm.cpu.count
-        label: vitals.vm.cpu.count
-      - name: vitals.vm.cpu.load
-        label: vitals.vm.cpu.load
-      - name: vitals.vm.memory.committed
-        label: vitals.vm.memory.committed
-      - name: vitals.vm.memory.free
-        label: vitals.vm.memory.free
-      - name: vitals.vm.memory.total
-        label: vitals.vm.memory.total
-      - name: ActiveLocks
-        label: ActiveLocks
-      - name: ActivePresences
-        label: ActivePresences
-      - name: audit_service.client_authentication_count
-        label: audit_service.client_authentication_count
-      - name: audit_service.client_authentication_failure_count
-        label: audit_service.client_authentication_failure_count
-      - name: audit_service.principal_authentication_failure_count
-        label: audit_service.principal_authentication_failure_count
-      - name: audit_service.principal_not_found_count
-        label: audit_service.principal_not_found_count
-      - name: audit_service.user_authentication_count
-        label: audit_service.user_authentication_count
-      - name: audit_service.user_authentication_failure_count
-        label: audit_service.user_authentication_failure_count
-      - name: audit_service.user_not_found_count
-        label: audit_service.user_not_found_count
-      - name: audit_service.user_password_changes
-        label: audit_service.user_password_changes
-      - name: audit_service.user_password_failures
-        label: audit_service.user_password_failures
-      - name: average_envelope
-        label: average_envelope
-      - name: CapacityRemainingContainers
-        label: CapacityRemainingContainers
-      - name: CapacityRemainingDisk
-        label: CapacityRemainingDisk
-      - name: CapacityRemainingMemory
-        label: CapacityRemainingMemory
-      - name: CapacityTotalContainers
-        label: CapacityTotalContainers
-      - name: CapacityTotalDisk
-        label: CapacityTotalDisk
-      - name: CapacityTotalMemory
-        label: CapacityTotalMemory
-      - name: ContainerCount
-        label: ContainerCount
-      - name: ContainerCreationDuration
-        label: ContainerCreationDuration
-      - name: containerMetadataTime
-        label: containerMetadataTime
-      - name: ConvergenceLRPDuration
-        label: ConvergenceLRPDuration
-      - name: ConvergenceTaskDuration
-        label: ConvergenceTaskDuration
-      - name: CrashedActualLRPs
-        label: CrashedActualLRPs
-      - name: CrashingDesiredLRPs
-        label: CrashingDesiredLRPs
-      - name: DepotDirs
-        label: DepotDirs
-      - name: Domain.cf-apps
-        label: Domain.cf-apps
-      - name: Domain.cf-tasks
-        label: Domain.cf-tasks
-      - name: doppler_proxy.app_streams
-        label: doppler_proxy.app_streams
-      - name: doppler_proxy.container_metrics_latency
-        label: doppler_proxy.container_metrics_latency
-      - name: doppler_proxy.firehoses
-        label: doppler_proxy.firehoses
-      - name: doppler_proxy.recent_logs_latency
-        label: doppler_proxy.recent_logs_latency
-      - name: drains
-        label: drains
-      - name: failed_job_count.cc-cloud_controller-0
-        label: failed_job_count.cc-cloud_controller-0
-      - name: failed_job_count.total
-        label: failed_job_count.total
-      - name: file_descriptors
-        label: file_descriptors
-      - name: freeLeases
-        label: freeLeases
-      - name: grpcManager.subscriptions
-        label: grpcManager.subscriptions
-      - name: HealthRequestTime
-        label: HealthRequestTime
-      - name: http_status.2XX
-        label: http_status.2XX
-      - name: HTTPRouteCount
-        label: HTTPRouteCount
-      - name: ImageCleanTime
-        label: ImageCleanTime
-      - name: ImageCreationTime
-        label: ImageCreationTime
-      - name: ImageDeletionTime
-        label: ImageDeletionTime
-      - name: ImageStatsTime
-        label: ImageStatsTime
-      - name: InternalPoliciesRequestTime
-        label: InternalPoliciesRequestTime
-      - name: iptablesEnforceTime
-        label: iptablesEnforceTime
-      - name: IPTablesRuleCount
-        label: IPTablesRuleCount
-      - name: job_queue_length.total
-        label: job_queue_length.total
-      - name: key_refresh_events
-        label: key_refresh_events
-      - name: latency
-        label: latency
-      - name: latency.CloudController
-        label: latency.CloudController
-      - name: latency.MySQLProxy
-        label: latency.MySQLProxy
-      - name: latency.route-emitter
-        label: latency.route-emitter
-      - name: LeasesIndexRequestTime
-        label: LeasesIndexRequestTime
-      - name: LeasesRenewRequestTime
-        label: LeasesRenewRequestTime
-      - name: LinuxFileDescriptor
-        label: LinuxFileDescriptor
-      - name: log_count.all
-        label: log_count.all
-      - name: log_count.debug
-        label: log_count.debug
-      - name: log_count.debug1
-        label: log_count.debug1
-      - name: log_count.debug2
-        label: log_count.debug2
-      - name: log_count.error
-        label: log_count.error
-      - name: log_count.fatal
-        label: log_count.fatal
-      - name: log_count.info
-        label: log_count.info
-      - name: log_count.off
-        label: log_count.off
-      - name: log_count.warn
-        label: log_count.warn
-      - name: LRPsClaimed
-        label: LRPsClaimed
-      - name: LRPsDesired
-        label: LRPsDesired
-      - name: LRPsExtra
-        label: LRPsExtra
-      - name: LRPsMissing
-        label: LRPsMissing
-      - name: LRPsRunning
-        label: LRPsRunning
-      - name: LRPsUnclaimed
-        label: LRPsUnclaimed
-      - name: memoryStats.lastGCPauseTimeNS
-        label: memoryStats.lastGCPauseTimeNS
-      - name: memoryStats.numBytesAllocated
-        label: memoryStats.numBytesAllocated
-      - name: memoryStats.numBytesAllocatedHeap
-        label: memoryStats.numBytesAllocatedHeap
-      - name: memoryStats.numBytesAllocatedStack
-        label: memoryStats.numBytesAllocatedStack
-      - name: memoryStats.numFrees
-        label: memoryStats.numFrees
-      - name: memoryStats.numMallocs
-        label: memoryStats.numMallocs
-      - name: messageRouter.numberOfContainerMetricSinks
-        label: messageRouter.numberOfContainerMetricSinks
-      - name: messageRouter.numberOfDumpSinks
-        label: messageRouter.numberOfDumpSinks
-      - name: messageRouter.numberOfFirehoseSinks
-        label: messageRouter.numberOfFirehoseSinks
-      - name: messageRouter.numberOfSyslogSinks
-        label: messageRouter.numberOfSyslogSinks
-      - name: messageRouter.numberOfWebsocketSinks
-        label: messageRouter.numberOfWebsocketSinks
-      - name: MetricsReporting
-        label: MetricsReporting
-      - name: ms_since_last_registry_update
-        label: ms_since_last_registry_update
-      - name: NetInterfaceCount
-        label: NetInterfaceCount
-      - name: numberLeases
-        label: numberLeases
-      - name: numCPUS
-        label: numCPUS
-      - name: numGoRoutines
-        label: numGoRoutines
-      - name: OverlayRxBytes
-        label: OverlayRxBytes
-      - name: OverlayRxDropped
-        label: OverlayRxDropped
-      - name: OverlayTxBytes
-        label: OverlayTxBytes
-      - name: OverlayTxDropped
-        label: OverlayTxDropped
-      - name: policyServerPollTime
-        label: policyServerPollTime
-      - name: RepBulkSyncDuration
-        label: RepBulkSyncDuration
-      - name: RequestLatency
-        label: RequestLatency
-      - name: requests.completed
-        label: requests.completed
-      - name: requests.outstanding
-        label: requests.outstanding
-      - name: route_lookup_time
-        label: route_lookup_time
-      - name: RouteEmitterSyncDuration
-        label: RouteEmitterSyncDuration
-      - name: RoutesTotal
-        label: RoutesTotal
-      - name: SharedLockingTime
-        label: SharedLockingTime
-      - name: staleLeases
-        label: staleLeases
-      - name: StartingContainerCount
-        label: StartingContainerCount
-      - name: StoreAllSuccessTime
-        label: StoreAllSuccessTime
-      - name: StoreByGuidsSuccessTime
-        label: StoreByGuidsSuccessTime
-      - name: StoreUsage
-        label: StoreUsage
-      - name: tasks_running.count
-        label: tasks_running.count
-      - name: tasks_running.memory_in_mb
-        label: tasks_running.memory_in_mb
-      - name: TasksCompleted
-        label: TasksCompleted
-      - name: TasksPending
-        label: TasksPending
-      - name: TasksResolving
-        label: TasksResolving
-      - name: TasksRunning
-        label: TasksRunning
-      - name: TCPRouteCount
-        label: TCPRouteCount
-      - name: thread_info.event_machine.connection_count
-        label: thread_info.event_machine.connection_count
-      - name: thread_info.event_machine.resultqueue.num_waiting
-        label: thread_info.event_machine.resultqueue.num_waiting
-      - name: thread_info.event_machine.resultqueue.size
-        label: thread_info.event_machine.resultqueue.size
-      - name: thread_info.event_machine.threadqueue.num_waiting
-        label: thread_info.event_machine.threadqueue.num_waiting
-      - name: thread_info.event_machine.threadqueue.size
-        label: thread_info.event_machine.threadqueue.size
-      - name: thread_info.thread_count
-        label: thread_info.thread_count
-      - name: total_http_routes
-        label: total_http_routes
-      - name: total_http_subscriptions
-        label: total_http_subscriptions
-      - name: total_routes
-        label: total_routes
-      - name: total_tcp_routes
-        label: total_tcp_routes
-      - name: total_tcp_subscriptions
-        label: total_tcp_subscriptions
-      - name: total_token_errors
-        label: total_token_errors
-      - name: total_users
-        label: total_users
-      - name: totalLeases
-        label: totalLeases
-      - name: totalPolicies
-        label: totalPolicies
-      - name: totalPollTime
-        label: totalPollTime
-      - name: UnhealthyCell
-        label: UnhealthyCell
-      - name: Uptime
-        label: Uptime
-      - name: uptime
-        label: uptime
-      - name: UptimeRequestTime
-        label: UptimeRequestTime
-      - name: vitals.cpu
-        label: vitals.cpu
-      - name: vitals.cpu_load_avg
-        label: vitals.cpu_load_avg
-      - name: vitals.mem_bytes
-        label: vitals.mem_bytes
-      - name: vitals.mem_free_bytes
-        label: vitals.mem_free_bytes
-      - name: vitals.mem_used_bytes
-        label: vitals.mem_used_bytes
-      - name: vitals.num_cores
-        label: vitals.num_cores
-      - name: vitals.uptime
-        label: vitals.uptime
-
-
-
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
-### ####################################################################################
+    label: LogMessage Message Content Exclude Filter
+    description: Ignore events if the message contains a pattern in this list.  For example, GET or DEBUG.  Multiple patterns can be included as long as they are , or | separated.  Exclude filters are processed after include filters.

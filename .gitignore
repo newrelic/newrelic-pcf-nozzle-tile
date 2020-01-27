@@ -4,3 +4,9 @@ tile-history.yml
 dist/
 manifest-*.yml
 r1.sh
+vendor/
+.profile
+manifest.local.yaml
+debug*
+.DS_Store
+_vendor*
