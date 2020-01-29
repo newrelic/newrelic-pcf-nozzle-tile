@@ -6,6 +6,7 @@ package capacity
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"github.com/fatih/camelcase"
@@ -41,13 +42,14 @@ func (cMap capacityMap) Has(s metricKeyword) (cMetrics *capacityMetrics, found b
 }
 
 // CapacityData ...
-type capcityData map[*entities.Entity]capacityMap
+type capacityData map[*entities.Entity]capacityMap
 
 // Metrics extends metric.Accumulator for
 // Firehose ContainerMetric Envelope Event Types
 type Metrics struct {
 	accumulators.Accumulator
-	capacityData capcityData
+	capacityData capacityData
+	sync         *sync.RWMutex
 }
 
 // New satisfies metric.Accumulator
@@ -57,7 +59,8 @@ func (m Metrics) New() accumulators.Interface {
 			// This isn't a v2 envelope type, but the router will route matching Gauge envelopes here.
 			"ValueMetric",
 		),
-		capacityData: capcityData{},
+		capacityData: capacityData{},
+		sync:         &sync.RWMutex{},
 	}
 	return i
 }
@@ -97,6 +100,8 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 		var cMetrics *capacityMetrics
 		var found bool
 
+		// Lock before making changes to m.capacityData to avoid race conditions
+		m.sync.Lock()
 		if cMap, found = m.capacityData[entity]; !found {
 			cMap = capacityMap{}
 			m.capacityData[entity] = cMap
@@ -117,13 +122,30 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 		case "Remaining":
 			cMetrics.Remaining = metric
 		}
+
+		// Unlock - done making changes to m.capacityData
+		m.sync.Unlock()
 	}
 }
 
 // Drain overrides Accumulator Drain for deriving metrics here
 func (m Metrics) Drain() (c []*entities.Entity) {
 
-	for entity, cMap := range m.capacityData {
+	// Lock before making changes to m.capacityData to avoid race conditions
+	m.sync.Lock()
+	// Copying data into another map to reduce the amount of time the lock is needed.
+	myCapacityData := capacityData{}
+	for k, v := range m.capacityData {
+		myCapacityData[k] = v
+	}
+	// Removing old data from capacityData to avoid reporting old entities
+	for k := range m.capacityData {
+		delete(m.capacityData, k)
+	}
+	// Unlock - done making changes to m.capacityData
+	m.sync.Unlock()
+
+	for entity, cMap := range myCapacityData {
 
 		newEntity := entities.NewEntity(entity.Attributes())
 
