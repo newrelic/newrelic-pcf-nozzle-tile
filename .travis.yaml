@@ -1,0 +1,31 @@
+language: go
+go:
+- '1.13'
+jobs:
+  include:
+# Tile creation 
+  - stage: creating Tile
+    os: linux
+    before_script:
+    - sudo apt-get update
+    - go get -u github.com/golang/dep/cmd/dep
+    - sudo apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3
+    - curl -O -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.2.0/bosh-cli-6.2.0-linux-amd64
+    - chmod +x ./bosh-cli-6.2.0-linux-amd64
+    - sudo mv ./bosh-cli-6.2.0-linux-amd64 /usr/local/bin/bosh
+    - curl -O -L https://github.com/cf-platform-eng/tile-generator/releases/download/v14.0.3/tile_linux-64bit
+    - chmod +x tile_linux-64bit
+    - sudo mv tile_linux-64bit /usr/local/bin/tile
+    script:
+    - export RELEASE_TAG=$TRAVIS_TAG
+    - make release
+    deploy:
+      provider: releases
+      file_glob: true
+      api_key:
+        secure: r0cYVM56iytUT+SFYqMs8Ex1x6INf7/NjoaMtfFt+i4ucLof0vxstyHH7vguyAgAxlvZiEiMLPo1c73E9cRhv5CLlVWKI9h5KYAVNpbzd4pXdfGIbxD1CL6LHv6/WS+dkhExcW38jGrwYSaujbJ6UddE+MhEPC+BsvzbEHsK7AovsLMKMKdHVxlkS1zySKAUAsGkpHv9VTdYfYZAnzWjnTyvxas4juvZQjRj6ikfY5pFJ/lJMz/c+hqet5UsZ+6QKb8erCw8kMlWRLkdsX5gCEySxztGbPOc+R6QBSpgGYIXl7BTFBUNzf4s8lZpMCyqJVOLM0OwcwzfvVtAohZKac9bGn7jYgolu7uFUXBk5nnY7BPnpgUbzFzWEeGPZSpGtLLMpw/YwCUanifN6ajFZJhTQ+R7ocDUvbZFwA9eW6/oyVCzl5L6XMpuVIYMXr+HFFt5fh72i/6fUkYZqi0JZ4vfWga4lzrP+EJ//oC7qKT5toOWF1Qw/lYLnRw1krxKYpQlObf3V+zatw/pqEIj+svZtWvYxOEsP7ioxx/mlCfO+l1F22r8VgkxiuaWVnJMt74IvrwvQCvWg78Habo852Fw+8IRHhr3m+q8LA25j0FAhvtkfMEdrFRAaWp73joUisfD6PqYZPE+sYLVyyzPehc6u/3E6wVEOdEbmCu2OPQ=
+      file:
+      - "./product/*.pivotal"
+      skip_cleanup: true
+      on:
+        tags: true
