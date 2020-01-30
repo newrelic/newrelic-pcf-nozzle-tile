@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"github.com/fatih/camelcase"
@@ -44,12 +45,16 @@ func (cMap capacityMap) Has(s metricKeyword) (cMetrics *capacityMetrics, found b
 // CapacityData ...
 type capacityData map[*entities.Entity]capacityMap
 
+// CapacityUpdateTime ...
+type capacityUpdateTime map[*entities.Entity]time.Time
+
 // Metrics extends metric.Accumulator for
 // Firehose ContainerMetric Envelope Event Types
 type Metrics struct {
 	accumulators.Accumulator
-	capacityData capacityData
-	sync         *sync.RWMutex
+	capacityData       capacityData
+	capacityUpdateTime capacityUpdateTime
+	sync               *sync.RWMutex
 }
 
 // New satisfies metric.Accumulator
@@ -59,8 +64,9 @@ func (m Metrics) New() accumulators.Interface {
 			// This isn't a v2 envelope type, but the router will route matching Gauge envelopes here.
 			"ValueMetric",
 		),
-		capacityData: capacityData{},
-		sync:         &sync.RWMutex{},
+		capacityData:       capacityData{},
+		capacityUpdateTime: capacityUpdateTime{},
+		sync:               &sync.RWMutex{},
 	}
 	return i
 }
@@ -123,6 +129,7 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 			cMetrics.Remaining = metric
 		}
 
+		m.capacityUpdateTime[entity] = time.Now()
 		// Unlock - done making changes to m.capacityData
 		m.sync.Unlock()
 	}
@@ -130,17 +137,21 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 
 // Drain overrides Accumulator Drain for deriving metrics here
 func (m Metrics) Drain() (c []*entities.Entity) {
-
 	// Lock before making changes to m.capacityData to avoid race conditions
 	m.sync.Lock()
+	// If new metric data hasn't been received in over the threshold defined in CAPACITY_ENTITY_AGE_MINS, drop this entity and its metrics before draining
+	ageThreshold := app.Get().Config.GetDuration("CAPACITY_ENTITY_AGE_MINS")
+	for k, v := range m.capacityUpdateTime {
+		if time.Since(v) >= ageThreshold*time.Minute {
+			delete(m.capacityUpdateTime, k)
+			delete(m.capacityData, k)
+			app.Get().Log.Debugf("\n##Removing entity data for %v. No update in %v minutes.\n", k, ageThreshold)
+		}
+	}
 	// Copying data into another map to reduce the amount of time the lock is needed.
 	myCapacityData := capacityData{}
 	for k, v := range m.capacityData {
 		myCapacityData[k] = v
-	}
-	// Removing old data from capacityData to avoid reporting old entities
-	for k := range m.capacityData {
-		delete(m.capacityData, k)
 	}
 	// Unlock - done making changes to m.capacityData
 	m.sync.Unlock()
