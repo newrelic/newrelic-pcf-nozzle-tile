@@ -139,20 +139,19 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 func (m Metrics) Drain() (c []*entities.Entity) {
 	// Lock before making changes to m.capacityData to avoid race conditions
 	m.sync.Lock()
+	// Copying data into another map to reduce the amount of time the lock is needed.
+	myCapacityData := capacityData{}
 	// If new metric data hasn't been received in over the threshold defined in CAPACITY_ENTITY_AGE_MINS, drop this entity and its metrics before draining
 	ageThreshold := app.Get().Config.GetDuration("CAPACITY_ENTITY_AGE_MINS")
 	for k, v := range m.capacityUpdateTime {
 		if time.Since(v) >= ageThreshold*time.Minute {
 			delete(m.capacityUpdateTime, k)
 			delete(m.capacityData, k)
-			app.Get().Log.Debugf("\n##Removing entity data for %v. No update in %v minutes.\n", k, ageThreshold)
+			continue
 		}
+		myCapacityData[k] = m.capacityData[k]
 	}
-	// Copying data into another map to reduce the amount of time the lock is needed.
-	myCapacityData := capacityData{}
-	for k, v := range m.capacityData {
-		myCapacityData[k] = v
-	}
+
 	// Unlock - done making changes to m.capacityData
 	m.sync.Unlock()
 

@@ -100,7 +100,7 @@ func set() *Config {
 	v.SetDefault("NEWRELIC_DRAIN_INTERVAL", "59s")
 	v.SetDefault("NEWRELIC_ENQUEUE_TIMEOUT", "1s")
 
-	v.SetDefault("CAPACITY_ENTITY_AGE_MINS", 15)
+	v.SetDefault("CAPACITY_ENTITY_AGE_MINS", 5)
 
 	v.SetDefault(NewRelicEventTypeContainer, "PCFContainerMetric")
 	v.SetDefault(NewRelicEventTypeValueMetric, "PCFValueMetric")
