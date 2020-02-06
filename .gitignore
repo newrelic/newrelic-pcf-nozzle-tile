@@ -13,3 +13,4 @@ _vendor*
 coverage.xml
 .idea/
 .vscode/
+.env

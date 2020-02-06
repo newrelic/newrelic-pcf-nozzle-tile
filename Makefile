@@ -9,7 +9,7 @@ TEST_DEPS     = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 all: release
 
-build: clean deps test-deps test compile
+build: clean deps test-deps compile test
 
 clean:
 	@echo "=== $(INTEGRATION) === [ clean ]: removing binaries and coverage file..."
