@@ -12,3 +12,4 @@ debug*
 _vendor*
 coverage.xml
 .idea/
+.vscode/
