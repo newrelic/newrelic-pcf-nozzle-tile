@@ -1,3 +1,5 @@
+// +build integration
+
 package test
 
 import (
@@ -10,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/tests/integration/mocks"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/tests/integration/helpers"
 )
 
 type apiMocks struct {
@@ -28,7 +30,7 @@ func runNozzleAndMocks() *apiMocks {
 		insights: mocks.NewMockInsights("Gzip"),
 		nozzle:   exec.Command("../../dist/nr-fh-nozzle"), //TODO add int test to make file to
 	}
-	m.firehose = mocks.NewMockFirehose(1, "token")
+	m.firehose = mocks.NewMockFirehose(360, "token")
 	m.uaa.Start()
 	m.firehose.Start()
 	m.cc.Start()

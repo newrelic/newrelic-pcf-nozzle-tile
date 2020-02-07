@@ -3,13 +3,14 @@ export PATH := $(PATH):$(GOPATH)/bin
 INTEGRATION  := newrelic-pcf-nozzle
 BINARY_NAME   = nr-fh-nozzle
 GO_FILES     := ./...
+GO_INTEGRATION_FILE := ./tests/...
 #Release version must be mayor.minor.patch for tile generator
 RELEASE_TAG   := 0.0.1
 TEST_DEPS     = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 all: release
 
-build: clean deps test-deps compile test
+build: clean deps test-deps compile test integration-test
 
 clean:
 	@echo "=== $(INTEGRATION) === [ clean ]: removing binaries and coverage file..."
@@ -27,6 +28,10 @@ test:
 	@echo "=== $(INTEGRATION) === [ test ]: running unit tests..."
 	@gocov test $(GO_FILES) | gocov-xml > coverage.xml
 
+integration-test: compile
+	@echo "=== $(INTEGRATION) === [ integration test ]: running integration tests..."
+	@go test $(GO_INTEGRATION_FILE) -tags=integration -v
+
 compile:
 	@echo "=== $(INTEGRATION) === [ compile ]: building $(BINARY_NAME)..."
 	@mkdir -p dist 
@@ -35,9 +40,5 @@ compile:
 release: build
 	@echo "=== $(INTEGRATION) === [ release ]: generating release..."
 	@tile build $(RELEASE_TAG)
-
-integration-test: test-deps 
-	@echo "=== $(INTEGRATION) === [ test ]: running integration tests..."
-	@go test -v -race ./tests/integration/.
 
 .PHONY: all build clean compile test-deps test release integration-test
