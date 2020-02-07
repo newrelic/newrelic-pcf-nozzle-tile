@@ -65,12 +65,12 @@ func (m *Map) Put(entity *Entity) {
 			panic(err)
 		}
 		defer f.Close()
-		if _, err = f.Write([]byte("\n\nstartWaiting on entity lock\n\n")); err != nil {
+		if _, err = f.Write([]byte("\nstartWaiting on entity lock\n")); err != nil {
 			panic(err)
 		}
 
 		m.sync.Lock()
-		if _, err = f.Write([]byte("\n\nfiniscedWaiting on entity lock\n\n")); err != nil {
+		if _, err = f.Write([]byte("\nfiniscedWaiting on entity lock\n")); err != nil {
 			panic(err)
 		}
 		m.collection[entity.Signature()] = entity

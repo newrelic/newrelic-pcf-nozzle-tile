@@ -85,12 +85,12 @@ func (m *Map) Put(metric *Metric) {
 			panic(err)
 		}
 		defer f.Close()
-		if _, err = f.Write([]byte("\n\nstartWaiting on metric lock\n\n")); err != nil {
+		if _, err = f.Write([]byte("\nstartWaiting on metric lock\n")); err != nil {
 			panic(err)
 		}
 
 		m.sync.Lock()
-		if _, err = f.Write([]byte("\n\nfiniscedWaiting on metric lock\n\n")); err != nil {
+		if _, err = f.Write([]byte("\nfiniscedWaiting on metric lock\n")); err != nil {
 			panic(err)
 		}
 		m.collection[metric.Signature()] = metric
