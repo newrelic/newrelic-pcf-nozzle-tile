@@ -21,12 +21,12 @@ func (s *Sample) SetAttribute(name string, value interface{}) *Sample {
 }
 
 // Done ...
-func (s *Sample) Done() *metrics.Metric {
+func (s *Sample) Done() (string, *metrics.Metric) {
 	if metric, found := s.entity.HasMetric(s.sample); found {
 		metric.Update(s.sample.Value())
-		return metric
+		return "metric already present\n", metric
 	}
 	metric := s.sample.NewMetric()
 	s.entity.PutMetric(metric)
-	return metric
+	return "new metric\n", metric
 }

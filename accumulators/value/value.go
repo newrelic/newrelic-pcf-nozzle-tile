@@ -6,6 +6,7 @@ package value
 import (
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"encoding/json"
+	"fmt"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/accumulators"
@@ -37,6 +38,8 @@ func (m Metrics) New() accumulators.Interface {
 // Update satisfies metric.Accumulator
 func (m Metrics) Update(e *loggregator_v2.Envelope) {
 
+	var update string
+	var debug *metrics.Metric
 	jsonP, _ := json.Marshal(e)
 	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
@@ -57,10 +60,13 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 	g := e.GetGauge()
 	// A single v2 envelope can contain multiple metrics.
 	for key, met := range g.Metrics {
-		debug := ent.NewSample(key, metrics.Types.Gauge, met.GetUnit(), met.GetValue()).Done()
+		update, debug = ent.NewSample(key, metrics.Types.Gauge, met.GetUnit(), met.GetValue()).Done()
 		jsonP, _ = json.Marshal(debug.Marshal())
 	}
 
+	if _, err = f.Write([]byte(update + " " + fmt.Sprintf("%d", m.Accumulator.Entities.Count()))); err != nil {
+		panic(err)
+	}
 	if _, err = f.Write(jsonP); err != nil {
 		panic(err)
 	}

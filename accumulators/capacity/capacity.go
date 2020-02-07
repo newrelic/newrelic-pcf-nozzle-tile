@@ -84,7 +84,7 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 
 		splits := camelcase.Split(key)
 
-		metric := entity.
+		_, metric := entity.
 			NewSample(
 				key,
 				metrics.Types.Gauge,
