@@ -5,6 +5,7 @@ package value
 
 import (
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
+	"encoding/json"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/accumulators"
@@ -12,6 +13,7 @@ import (
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/insights"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/metrics"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrpcf"
+	"os"
 )
 
 // Metrics extends metric.Accumulator for
@@ -22,6 +24,7 @@ type Metrics struct {
 
 // New satisfies metric.Accumulator
 func (m Metrics) New() accumulators.Interface {
+
 	i := Metrics{
 		Accumulator: accumulators.NewAccumulator(
 			// Does not match a v2 envelope type, but router will send appropriate envelopes here.
@@ -34,26 +37,26 @@ func (m Metrics) New() accumulators.Interface {
 // Update satisfies metric.Accumulator
 func (m Metrics) Update(e *loggregator_v2.Envelope) {
 
+	json, _ := json.Marshal(e)
+	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if _, err = f.Write(json); err != nil {
+		panic(err)
+	}
+
 	ent := m.GetEntity(e, nrpcf.GetPCFAttributes(e))
 	g := e.GetGauge()
 	// A single v2 envelope can contain multiple metrics.
 	for key, met := range g.Metrics {
-		ent.
-			NewSample(
-				key,
-				metrics.Types.Gauge,
-				met.GetUnit(),
-				met.GetValue(),
-			).
-			Done()
+		ent.NewSample(key, metrics.Types.Gauge, met.GetUnit(), met.GetValue()).Done()
 	}
 }
 
 // HarvestMetrics ...
-func (m Metrics) HarvestMetrics(
-	entity *entities.Entity,
-	metric *metrics.Metric,
-) {
+func (m Metrics) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric) {
 
 	metric.SetAttribute(
 		"eventType",
@@ -67,5 +70,15 @@ func (m Metrics) HarvestMetrics(
 	// Get a client with the insert key and RPM account ID from the config.
 	client := insights.New().Get(app.Get().Config.GetNewRelicConfig())
 	client.EnqueueEvent(metric.Marshal())
+
+	json, _ := json.Marshal(metric.Marshal())
+	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if _, err = f.Write(json); err != nil {
+		panic(err)
+	}
 
 }

@@ -18,7 +18,8 @@ jobs:
     - sudo mv tile_linux-64bit /usr/local/bin/tile
     script:
     - export RELEASE_TAG=$TRAVIS_TAG
-    - make release
+    - make release || true
+    - cat ./tests/tmpdat1
     deploy:
       provider: releases
       file_glob: true
