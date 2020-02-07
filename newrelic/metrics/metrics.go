@@ -119,6 +119,7 @@ func Signature(
 // Lock determines if metric is part of Map and acts accordingly
 func (m *Metric) Lock() {
 	if m.mapSync == nil {
+		panic("test")
 		return
 	}
 	m.mapSync.Lock()
@@ -127,6 +128,7 @@ func (m *Metric) Lock() {
 // Unlock determines if metric is part of Map and acts accordingly
 func (m *Metric) Unlock() {
 	if m.mapSync == nil {
+		panic("test")
 		return
 	}
 	m.mapSync.Unlock()
@@ -135,6 +137,7 @@ func (m *Metric) Unlock() {
 // RLock determines if metric is part of Map and acts accordingly
 func (m *Metric) RLock() {
 	if m.mapSync == nil {
+		panic("test")
 		return
 	}
 	m.mapSync.RLock()
@@ -143,6 +146,7 @@ func (m *Metric) RLock() {
 // RUnlock determines if metric is part of Map and acts accordingly
 func (m *Metric) RUnlock() {
 	if m.mapSync == nil {
+		panic("test")
 		return
 	}
 	m.mapSync.RUnlock()

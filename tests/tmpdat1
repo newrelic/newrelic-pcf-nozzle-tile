@@ -1,0 +1,109 @@
+
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":1}}}}}
+{"metric.max":1,"metric.min":1,"metric.name":"name","metric.sample.last.value":1,"metric.samples.count":1,"metric.sum":1,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":2}}}}}
+{"metric.max":2,"metric.min":1,"metric.name":"name","metric.sample.last.value":2,"metric.samples.count":2,"metric.sum":3,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":3}}}}}
+{"metric.max":3,"metric.min":1,"metric.name":"name","metric.sample.last.value":3,"metric.samples.count":3,"metric.sum":6,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":4}}}}}
+{"metric.max":4,"metric.min":1,"metric.name":"name","metric.sample.last.value":4,"metric.samples.count":4,"metric.sum":10,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":5}}}}}
+{"metric.max":5,"metric.min":1,"metric.name":"name","metric.sample.last.value":5,"metric.samples.count":5,"metric.sum":15,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":6}}}}}
+{"metric.max":6,"metric.min":1,"metric.name":"name","metric.sample.last.value":6,"metric.samples.count":6,"metric.sum":21,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":7}}}}}
+{"metric.max":7,"metric.min":1,"metric.name":"name","metric.sample.last.value":7,"metric.samples.count":7,"metric.sum":28,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":8}}}}}
+{"metric.max":8,"metric.min":1,"metric.name":"name","metric.sample.last.value":8,"metric.samples.count":8,"metric.sum":36,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":9}}}}}
+{"metric.max":9,"metric.min":1,"metric.name":"name","metric.sample.last.value":9,"metric.samples.count":9,"metric.sum":45,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":10}}}}}
+{"metric.max":10,"metric.min":1,"metric.name":"name","metric.sample.last.value":10,"metric.samples.count":10,"metric.sum":55,"metric.type":"Gauge","metric.unit":"counter"}
+
+HARVEST
+
+{"metric.max":10,"metric.min":1,"metric.name":"name","metric.sample.last.value":10,"metric.samples.count":10,"metric.sum":55,"metric.type":"Gauge","metric.unit":"counter"}{"agent.instance":0,"agent.ip":"","agent.subscription":"newrelic-firehose","agent.version":"0.0.1","bosh.domain":"127.0.0.1","eventType":"PCFValueMetric","metric.max":10,"metric.min":1,"metric.name":"name","metric.sample.last.value":10,"metric.samples.count":10,"metric.sum":55,"metric.type":"Gauge","metric.unit":"counter","pcf.IP":"","pcf.deployment":"","pcf.domain":"127.0.0.1","pcf.envelope.type":"Gauge","pcf.index":"","pcf.job":"","pcf.origin":""}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":1}}}}}
+{"metric.max":1,"metric.min":1,"metric.name":"name","metric.sample.last.value":1,"metric.samples.count":1,"metric.sum":1,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":2}}}}}
+{"metric.max":2,"metric.min":1,"metric.name":"name","metric.sample.last.value":2,"metric.samples.count":2,"metric.sum":3,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":3}}}}}
+{"metric.max":3,"metric.min":1,"metric.name":"name","metric.sample.last.value":3,"metric.samples.count":3,"metric.sum":6,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":4}}}}}
+{"metric.max":4,"metric.min":1,"metric.name":"name","metric.sample.last.value":4,"metric.samples.count":4,"metric.sum":10,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":5}}}}}
+{"metric.max":5,"metric.min":1,"metric.name":"name","metric.sample.last.value":5,"metric.samples.count":5,"metric.sum":15,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":6}}}}}
+{"metric.max":6,"metric.min":1,"metric.name":"name","metric.sample.last.value":6,"metric.samples.count":6,"metric.sum":21,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":7}}}}}
+{"metric.max":7,"metric.min":1,"metric.name":"name","metric.sample.last.value":7,"metric.samples.count":7,"metric.sum":28,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":8}}}}}
+{"metric.max":8,"metric.min":1,"metric.name":"name","metric.sample.last.value":8,"metric.samples.count":8,"metric.sum":36,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":9}}}}}
+{"metric.max":9,"metric.min":1,"metric.name":"name","metric.sample.last.value":9,"metric.samples.count":9,"metric.sum":45,"metric.type":"Gauge","metric.unit":"counter"}
+
+NEW METRIC
+
+{"source_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","instance_id":"c70684e2-4443-4ed5-8dc8-28b7cf7d97ed","Message":{"Gauge":{"metrics":{"name":{"unit":"counter","value":10}}}}}
+{"metric.max":10,"metric.min":1,"metric.name":"name","metric.sample.last.value":10,"metric.samples.count":10,"metric.sum":55,"metric.type":"Gauge","metric.unit":"counter"}
+
+HARVEST
+
+{"metric.max":10,"metric.min":1,"metric.name":"name","metric.sample.last.value":10,"metric.samples.count":10,"metric.sum":55,"metric.type":"Gauge","metric.unit":"counter"}{"agent.instance":0,"agent.ip":"","agent.subscription":"newrelic-firehose","agent.version":"0.0.1","bosh.domain":"127.0.0.1","eventType":"PCFValueMetric","metric.max":10,"metric.min":1,"metric.name":"name","metric.sample.last.value":10,"metric.samples.count":10,"metric.sum":55,"metric.type":"Gauge","metric.unit":"counter","pcf.IP":"","pcf.deployment":"","pcf.domain":"127.0.0.1","pcf.envelope.type":"Gauge","pcf.index":"","pcf.job":"","pcf.origin":""}
