@@ -24,9 +24,9 @@ func (s *Sample) SetAttribute(name string, value interface{}) *Sample {
 func (s *Sample) Done() (string, *metrics.Metric) {
 	if metric, found := s.entity.HasMetric(s.sample); found {
 		metric.Update(s.sample.Value())
-		return "metric already present\n", metric
+		return "DECISION TAKEN: metric already present\n", metric
 	}
 	metric := s.sample.NewMetric()
 	s.entity.PutMetric(metric)
-	return "new metric\n", metric
+	return "DECISION TAKEN: new metric\n", metric
 }

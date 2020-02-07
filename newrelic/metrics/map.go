@@ -4,6 +4,7 @@
 package metrics
 
 import (
+	"os"
 	"sync"
 
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/uid"
@@ -53,6 +54,22 @@ func (m *Map) ForEach(fn func(metric *Metric)) int {
 func (m *Map) Has(id uid.ID) (metric *Metric, found bool) {
 	m.sync.RLock()
 	defer m.sync.RUnlock()
+
+	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if _, err = f.Write([]byte("\n\nChecking if id present in the metrics already collected: " + id.String())); err != nil {
+		panic(err)
+	}
+
+	for a, b := range m.collection {
+		if _, err = f.Write([]byte(a.String() + "------" + b.Name)); err != nil {
+			panic(err)
+		}
+	}
+
 	if metric, found = m.collection[id]; found {
 		return metric, true
 	}
@@ -63,7 +80,19 @@ func (m *Map) Has(id uid.ID) (metric *Metric, found bool) {
 func (m *Map) Put(metric *Metric) {
 	metric.mapSync = m.sync
 	go func() {
+		f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		if _, err = f.Write([]byte("\n\nstartWaiting on metric lock\n\n")); err != nil {
+			panic(err)
+		}
+
 		m.sync.Lock()
+		if _, err = f.Write([]byte("\n\nfiniscedWaiting on metric lock\n\n")); err != nil {
+			panic(err)
+		}
 		m.collection[metric.Signature()] = metric
 		m.sync.Unlock()
 	}()

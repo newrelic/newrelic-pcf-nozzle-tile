@@ -4,6 +4,7 @@
 package entities
 
 import (
+	"os"
 	"sync"
 
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/uid"
@@ -59,7 +60,19 @@ func (m *Map) Has(id uid.ID) (entity *Entity, found bool) {
 // Put ...
 func (m *Map) Put(entity *Entity) {
 	go func() {
+		f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		if _, err = f.Write([]byte("\n\nstartWaiting on entity lock\n\n")); err != nil {
+			panic(err)
+		}
+
 		m.sync.Lock()
+		if _, err = f.Write([]byte("\n\nfiniscedWaiting on entity lock\n\n")); err != nil {
+			panic(err)
+		}
 		m.collection[entity.Signature()] = entity
 		m.sync.Unlock()
 	}()
