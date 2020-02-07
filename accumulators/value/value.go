@@ -37,26 +37,52 @@ func (m Metrics) New() accumulators.Interface {
 // Update satisfies metric.Accumulator
 func (m Metrics) Update(e *loggregator_v2.Envelope) {
 
-	json, _ := json.Marshal(e)
+	jsonP, _ := json.Marshal(e)
 	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	if _, err = f.Write(json); err != nil {
+	if _, err = f.Write([]byte("\n\nNEW METRIC\n\n")); err != nil {
 		panic(err)
 	}
 
+	if _, err = f.Write(jsonP); err != nil {
+		panic(err)
+	}
+	if _, err = f.Write([]byte("\n")); err != nil {
+		panic(err)
+	}
 	ent := m.GetEntity(e, nrpcf.GetPCFAttributes(e))
 	g := e.GetGauge()
 	// A single v2 envelope can contain multiple metrics.
 	for key, met := range g.Metrics {
-		ent.NewSample(key, metrics.Types.Gauge, met.GetUnit(), met.GetValue()).Done()
+		debug := ent.NewSample(key, metrics.Types.Gauge, met.GetUnit(), met.GetValue()).Done()
+		jsonP, _ = json.Marshal(debug.Marshal())
 	}
+
+	if _, err = f.Write(jsonP); err != nil {
+		panic(err)
+	}
+
 }
 
 // HarvestMetrics ...
 func (m Metrics) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric) {
+
+	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	jsonP, _ := json.Marshal(metric.Marshal())
+	if _, err = f.Write([]byte("\n\nHARVEST\n\n")); err != nil {
+		panic(err)
+	}
+	if _, err = f.Write(jsonP); err != nil {
+		panic(err)
+	}
 
 	metric.SetAttribute(
 		"eventType",
@@ -71,13 +97,8 @@ func (m Metrics) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric)
 	client := insights.New().Get(app.Get().Config.GetNewRelicConfig())
 	client.EnqueueEvent(metric.Marshal())
 
-	json, _ := json.Marshal(metric.Marshal())
-	f, err := os.OpenFile("../tmpdat1", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	if _, err = f.Write(json); err != nil {
+	jsonP, _ = json.Marshal(metric.Marshal())
+	if _, err = f.Write(jsonP); err != nil {
 		panic(err)
 	}
 
