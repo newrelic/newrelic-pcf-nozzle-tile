@@ -44,7 +44,7 @@ func runNozzleAndMocks(port string) *apiMocks {
 	os.Setenv("NRF_CF_API_PASSWORD", "token")
 	os.Setenv("NRF_NEWRELIC_INSERT_KEY", "nrkey")
 	os.Setenv("NRF_NEWRELIC_ACCOUNT_ID", "00000")
-	os.Setenv("NRF_NEWRELIC_DRAIN_INTERVAL", "500ms")
+	os.Setenv("NRF_NEWRELIC_DRAIN_INTERVAL", "5s")
 	os.Setenv("NRF_NEWRELIC_ACCOUNT_REGION", "EU")
 	os.Setenv("NRF_NRF_HEALTH_PORT", port)
 
