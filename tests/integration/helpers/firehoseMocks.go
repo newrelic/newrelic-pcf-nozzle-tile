@@ -4,6 +4,7 @@ package mocks
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -32,7 +33,7 @@ type MockFirehose struct {
 
 func NewMockFirehose(seconds int, validToken string) *MockFirehose {
 	return &MockFirehose{
-		validToken:      validToken,
+		validToken:      "bearer " + validToken,
 		closeConnection: make(chan bool, 1),
 		stopPublishing:  make(chan bool, 1),
 		serveBatch:      make(chan *loggregator_v2.EnvelopeBatch, 10),
@@ -110,9 +111,10 @@ func (mf *MockFirehose) isTokenInvalid(token string) bool {
 	defer mf.lock.Unlock()
 
 	if token != mf.validToken {
-		return false
+		log.Printf("The nozzle connected to the firehose mock API making use of a wrong token: %s - %s", token, mf.validToken)
+		return true
 	}
-	return true
+	return false
 }
 
 func setHeaders(rw http.ResponseWriter) {

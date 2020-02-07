@@ -65,6 +65,8 @@ func TestValueMetric(t *testing.T) {
 	m := runNozzleAndMocks()
 	for i := float64(1); i < 11; i++ {
 		e := loggregator_v2.Envelope{
+			SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
+			InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 			Message: &loggregator_v2.Envelope_Gauge{
 				Gauge: &loggregator_v2.Gauge{
 					Metrics: map[string]*loggregator_v2.GaugeValue{
@@ -80,12 +82,11 @@ func TestValueMetric(t *testing.T) {
 	}
 
 	m.firehose.PublishBatch()
-	time.Sleep(time.Second * 2)
+	rc := readInsights(t, m)
 	closeNozzleAndMocks(m)
 
-	assert.EqualValues(t, 1, len(m.insights.ReceivedContents))
+	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
-	rc := <-m.insights.ReceivedContents
 	r := make([]map[string]interface{}, 10)
 	json.Unmarshal([]byte(rc), &r)
 
@@ -106,6 +107,8 @@ func TestCapacityMetric(t *testing.T) {
 		Tags: map[string]string{
 			"job": "diego_cell",
 		},
+		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
+		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		Message: &loggregator_v2.Envelope_Gauge{
 			Gauge: &loggregator_v2.Gauge{
 				Metrics: map[string]*loggregator_v2.GaugeValue{
@@ -118,12 +121,11 @@ func TestCapacityMetric(t *testing.T) {
 		},
 	})
 	m.firehose.PublishBatch()
-	time.Sleep(time.Second * 2)
+	rc := readInsights(t, m)
 	closeNozzleAndMocks(m)
 
-	assert.EqualValues(t, 1, len(m.insights.ReceivedContents))
+	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
-	rc := <-m.insights.ReceivedContents
 	r := make([]map[string]interface{}, 10)
 	json.Unmarshal([]byte(rc), &r)
 
@@ -136,6 +138,8 @@ func TestLogMessage(t *testing.T) {
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
+		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
+		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		Message: &loggregator_v2.Envelope_Log{
 			Log: &loggregator_v2.Log{
 				Payload: []byte("logtest"),
@@ -144,12 +148,11 @@ func TestLogMessage(t *testing.T) {
 		},
 	})
 	m.firehose.PublishBatch()
-	time.Sleep(time.Second * 2)
+	rc := readInsights(t, m)
 	closeNozzleAndMocks(m)
 
-	assert.EqualValues(t, 1, len(m.insights.ReceivedContents))
+	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
-	rc := <-m.insights.ReceivedContents
 	r := make([]map[string]interface{}, 10)
 	json.Unmarshal([]byte(rc), &r)
 
@@ -161,6 +164,8 @@ func TestContainerMetric(t *testing.T) {
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
+		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
+		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		Message: &loggregator_v2.Envelope_Gauge{
 			Gauge: &loggregator_v2.Gauge{
 				Metrics: map[string]*loggregator_v2.GaugeValue{
@@ -189,12 +194,11 @@ func TestContainerMetric(t *testing.T) {
 		},
 	})
 	m.firehose.PublishBatch()
-	time.Sleep(time.Second * 2)
+	rc := readInsights(t, m)
 	closeNozzleAndMocks(m)
 
-	assert.EqualValues(t, 1, len(m.insights.ReceivedContents))
+	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
-	rc := <-m.insights.ReceivedContents
 	r := make([]map[string]interface{}, 10)
 	json.Unmarshal([]byte(rc), &r)
 
@@ -218,6 +222,8 @@ func TestCounterEvent(t *testing.T) {
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
+		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
+		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		Message: &loggregator_v2.Envelope_Counter{
 			Counter: &loggregator_v2.Counter{
 				Name:  "name",
@@ -227,12 +233,11 @@ func TestCounterEvent(t *testing.T) {
 		},
 	})
 	m.firehose.PublishBatch()
-	time.Sleep(time.Second * 2)
+	rc := readInsights(t, m)
 	closeNozzleAndMocks(m)
 
-	assert.EqualValues(t, 1, len(m.insights.ReceivedContents))
+	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
-	rc := <-m.insights.ReceivedContents
 	r := make([]map[string]interface{}, 10)
 	json.Unmarshal([]byte(rc), &r)
 
@@ -246,6 +251,8 @@ func TestHTTPStartStop(t *testing.T) {
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
+		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
+		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		Tags: map[string]string{
 			"uri":        "uri",
 			"method":     "GET",
@@ -261,12 +268,11 @@ func TestHTTPStartStop(t *testing.T) {
 		},
 	})
 	m.firehose.PublishBatch()
-	time.Sleep(time.Second * 2)
+	rc := readInsights(t, m)
 	closeNozzleAndMocks(m)
 
-	assert.EqualValues(t, 1, len(m.insights.ReceivedContents))
+	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
-	rc := <-m.insights.ReceivedContents
 	r := make([]map[string]interface{}, 10)
 	json.Unmarshal([]byte(rc), &r)
 
@@ -279,4 +285,14 @@ func TestHTTPStartStop(t *testing.T) {
 	assert.EqualValues(t, "Server", r[0]["http.peer.type"])
 	assert.EqualValues(t, "Go-http-client/1.1", r[0]["http.user.agent"])
 
+}
+
+func readInsights(t *testing.T, m *apiMocks) string {
+	select {
+	case rc := <-m.insights.ReceivedContents:
+		return rc
+	case <-time.After(10 * time.Second):
+		t.Fatal("Expected data from insights.ReceivedContents")
+	}
+	return ""
 }

@@ -26,10 +26,12 @@ test-deps:
 
 test:
 	@echo "=== $(INTEGRATION) === [ test ]: running unit tests..."
+	@go clean -testcache
 	@gocov test $(GO_FILES) | gocov-xml > coverage.xml
 
 integration-test: compile
 	@echo "=== $(INTEGRATION) === [ integration test ]: running integration tests..."
+	@go clean -testcache
 	@go test $(GO_INTEGRATION_FILE) -tags=integration -v
 
 compile:
