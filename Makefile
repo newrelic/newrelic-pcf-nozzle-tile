@@ -47,6 +47,7 @@ compile-linux: clean deps
 release: build compile-linux
 	@echo "=== $(INTEGRATION) === [ release ]: generating release..."
 	@tile build $(RELEASE_TAG)
+	@tar -czvf dist/$(BINARY_NAME).tar.gz dist/$(BINARY_NAME)
 
 push: compile-linux
 	@echo "=== $(INTEGRATION) === [ push ]: pushing to test environment..."
