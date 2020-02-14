@@ -1,0 +1,78 @@
+applications:
+- name: newrelic-firehose-nozzle
+  memory: 512M
+  disk_quota: 256M
+  instances: 2
+  health-check-type: http
+  health-check-http-endpoint: /health
+  buildpacks:
+  - binary_buildpack
+  path: ./dist
+  command: ./nr-fh-nozzle
+  env:
+    # # Run "$cf curl /v2/info" to get the url
+    NRF_CF_API_URL: https://api.YOUR-PCF-DOMAIN  
+    NRF_CF_API_UAA_URL: https://uaa.YOUR-PCF-DOMAIN
+
+    # # Run "$cf curl /v2/users" to get info about api users
+    NRF_CF_API_USERNAME: admin
+    NRF_CF_API_PASSWORD: XXXXXXXXXXXX
+
+    # # Create your uaac client for the nozzle or run "$uaac clients" to get the existing ones 
+    NRF_CF_CLIENT_ID: firehose-to-newrelic
+    NRF_CF_CLIENT_SECRET: XXXXXXXXXXX
+
+    # # Firehose Subscription Id: A unique Id (i.e. newrelic.firehose)
+    NRF_FIREHOSE_ID: newrelic.firehose
+
+    # # An "Insert Key" from https://insights.newrelic.com/accounts/<rpm-id>/manage/api_keys. In the UI you can 
+    # go to "New Relic Insights -> Manage Data -> Api Keys" to create an "Insert Key". 
+    NRF_NEWRELIC_INSERT_KEY: 
+    
+    # # The first number that you find in your RPM Url (i.e. https://insights.newrelic.com/accounts/<rpm-id>/...)
+    NRF_NEWRELIC_ACCOUNT_ID: 
+
+    # # If SSL is disabled this is value should be set to "true"
+    NRF_CF_SKIP_SSL: true
+    
+
+    # # Optional Settings (with their default values listed).  Uncomment the setting to change.
+
+    # # New Relic account region.  Choose EU if RPM URL includes .eu.
+    # NRF_NEWRELIC_ACCOUNT_REGION: US
+
+    # # How often accumulated metric events are sent.  Recommended: 29s, 59s, 89s, or 129s
+    # NRF_NEWRELIC_DRAIN_INTERVAL: 59s
+
+    # # Number of minutes before the HTTP connection to the RLP Gateway is considered hung and restarted. The RLP Gateway should force a new connection every 14 minutes. This is only applicable if the connection hangs.
+    # NRF_FIREHOSE_HTTP_TIMEOUT_MINS: 16
+
+    # # Number of consecutive seconds with no messages before the nozzle is automatically restarted. Set per environment based on normal message load.
+    # NRF_FIREHOSE_RESTART_THRESH_SECS: 15
+
+    # # Number of messages the nozzle buffer can hold while processing. Also the number of messages that will be dropped if the buffer fills. Recommended minimum is 6000.
+    # NRF_FIREHOSE_DIODE_BUFFER: 8192
+
+    # # Log level (INFO or DEBUG)
+    # NRF_LOG_LEVEL: INFO
+
+    # # Trace level logging (extremely verbose)
+    # NRF_TRACER: false
+
+    # # PCF Envelope types enabled (all metrics are enabled by default)
+    # NRF_ENABLED_ENVELOPE_TYPES: ContainerMetric|CounterEvent|HttpStartStop|LogMessage|ValueMetric
+
+    # # LogMessage source filters: For example, RTR or APP/PROC/WEB.  Multiple sources can be included as long as they are , or | separated.
+    # NRF_LOGMESSAGE_SOURCE_INCLUDE: ""
+    # NRF_LOGMESSAGE_SOURCE_EXCLUDE: ""
+    
+    # # LogMessage message content filters: For example, ERROR or crashed.  Multiple patterns can be included as long as they are , or | separated.
+    # NRF_LOGMESSAGE_MESSAGE_INCLUDE: ""
+    # NRF_LOGMESSAGE_MESSAGE_EXCLUDE: ""
+
+    # # If proxy used in your environment
+    # http_proxy: <proxy server address:port>
+    
+    # # In order for the nozzle to work with proxies, you must bypass the doppler server (i.e. `doppler.my_pcf_domain.com`). 
+    # # Make sure you do not include the protocol and the port to `no_proxy`, just add the server name.
+    # no_proxy:  <comma separated list of servers to bypass proxy>

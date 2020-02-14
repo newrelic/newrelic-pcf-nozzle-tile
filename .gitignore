@@ -10,3 +10,8 @@ manifest.local.yaml
 debug*
 .DS_Store
 _vendor*
+coverage.xml
+.idea/
+.vscode/
+.env
+manifest.yml
