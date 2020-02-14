@@ -62,11 +62,9 @@ func (n *Nreventmap) Has(id uid.ID) (event *Nrevent, found bool) {
 // Put ...
 func (n *Nreventmap) Put(event *Nrevent) {
 	event.mapSync = n.sync
-	go func() {
-		n.sync.Lock()
-		n.collection[event.Signature()] = event
-		n.sync.Unlock()
-	}()
+	n.sync.Lock()
+	n.collection[event.Signature()] = event
+	n.sync.Unlock()
 }
 
 // Count ...

@@ -62,11 +62,9 @@ func (m *Map) Has(id uid.ID) (metric *Metric, found bool) {
 // Put ...
 func (m *Map) Put(metric *Metric) {
 	metric.mapSync = m.sync
-	go func() {
-		m.sync.Lock()
-		m.collection[metric.Signature()] = metric
-		m.sync.Unlock()
-	}()
+	m.sync.Lock()
+	m.collection[metric.Signature()] = metric
+	m.sync.Unlock()
 }
 
 // Count ...
