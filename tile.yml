@@ -90,11 +90,6 @@ forms:
     constraints: 
       min: 1
       max: 30
-  - name: nrf_newrelic_custom_url
-    type: string
-    label: New Relic Custom URL
-    optional: true
-    description: Set it if you want to override the usual API endpoint used to send data
 - name: newrelic-firehose-nozzle-advanced-properties
   label: Advanced Settings
   description: Advanced settings for New Relic Firehose Nozzle
@@ -167,6 +162,11 @@ forms:
         label: 'DEBUG'
     label: Log Level
     description: Log verbosity.
+  - name: nrf_newrelic_custom_url
+    type: string
+    label: New Relic Custom URL
+    optional: true
+    description: (Rarely used) Set it if you want to override the usual API endpoint used to send data
   - name: nrf_tracer
     type: boolean
     default: false
