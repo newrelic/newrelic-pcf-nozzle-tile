@@ -162,6 +162,11 @@ forms:
         label: 'DEBUG'
     label: Log Level
     description: Log verbosity.
+  - name: nrf_newrelic_custom_url
+    type: string
+    label: New Relic Custom URL
+    optional: true
+    description: (Rarely used) Set it if you want to override the usual API endpoint used to send data
   - name: nrf_tracer
     type: boolean
     default: false

@@ -40,14 +40,11 @@ func (e *Nrevent) SetSender(fn func(nrevents *Nrevent)) {
 
 // Harvest ...
 func (e *Nrevent) Harvest() (r *map[string]interface{}) {
-	done := make(chan bool)
-	go func() {
-		e.Lock()
-		r = e.Marshal()
-		e.Unlock()
-		done <- true
-	}()
-	<-done
+
+	e.Lock()
+	r = e.Marshal()
+	e.Unlock()
+
 	return
 }
 

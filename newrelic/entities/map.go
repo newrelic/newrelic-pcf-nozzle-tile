@@ -58,11 +58,9 @@ func (m *Map) Has(id uid.ID) (entity *Entity, found bool) {
 
 // Put ...
 func (m *Map) Put(entity *Entity) {
-	go func() {
-		m.sync.Lock()
-		m.collection[entity.Signature()] = entity
-		m.sync.Unlock()
-	}()
+	m.sync.Lock()
+	m.collection[entity.Signature()] = entity
+	m.sync.Unlock()
 }
 
 // Count ...

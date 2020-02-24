@@ -56,6 +56,9 @@ func (im *InsertManager) New(insightsInsertKey string, rpmAccountID string, acco
 		//UseCustomURL only sets the host (domain) of the URL
 		insertClient.UseCustomURL(app.Get().Config.GetString("NEWRELIC_EU_BASE_URL"))
 	}
+	if app.Get().Config.GetString("NEWRELIC_CUSTOM_URL") != "" {
+		insertClient.UseCustomURL(app.Get().Config.GetString("NEWRELIC_CUSTOM_URL"))
+	}
 	insertClient.Start()
 	im.sync.Lock()
 	im.collection[insightsInsertKey] = insertClient
