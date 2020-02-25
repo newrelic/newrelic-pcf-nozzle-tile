@@ -11,8 +11,7 @@ import (
 
 // Client is the PCF API Client
 type Client struct {
-	Client       *cfclient.Client
-	UAARefresher *UAATokenRefresher
+	Client *cfclient.Client
 }
 
 // New API Client
@@ -32,13 +31,6 @@ func New() (c *Client, err error) {
 	if err != nil {
 		app.Get().Log.Errorf("failed to connect to PCF client: %s", err.Error())
 	}
-
-	c.UAARefresher, err = NewUAATokenRefresher(
-		config.GetString("CF_API_UAA_URL"),
-		config.GetString("CF_CLIENT_ID"),
-		config.GetString("CF_CLIENT_SECRET"),
-		config.GetBool("CF_SKIP_SSL"),
-	)
 
 	return c, err
 
