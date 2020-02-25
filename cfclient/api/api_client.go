@@ -20,7 +20,6 @@ func New() (c *Client, err error) {
 	config := config.Get()
 
 	c = &Client{}
-
 	c.Client, err = cfclient.NewClient(&cfclient.Config{
 		ApiAddress:        config.GetString("CF_API_URL"),
 		ClientID:          config.GetString("CF_CLIENT_ID"),

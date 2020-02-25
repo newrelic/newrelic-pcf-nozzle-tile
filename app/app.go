@@ -15,8 +15,6 @@ var once sync.Once
 
 // Application Context
 type Application struct {
-	Running   chan bool
-	CloseChan chan bool
 	ErrorChan chan error
 	Log       *logger.Logger
 	WaitGroup *sync.WaitGroup
@@ -27,9 +25,7 @@ func Get() *Application {
 
 	once.Do(func() {
 		instance = &Application{
-			Running:   make(chan bool),
 			ErrorChan: make(chan error),
-			CloseChan: make(chan bool),
 			WaitGroup: &sync.WaitGroup{},
 		}
 		instance.Log = logger.New(config.Get())
