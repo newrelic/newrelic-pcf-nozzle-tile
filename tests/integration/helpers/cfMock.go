@@ -31,7 +31,6 @@ func (mCF *MockCF) Stop() {
 
 func (mCF *MockCF) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	log.Printf("API visited: %s", r.RequestURI)
 
 	switch r.URL.Path {
 	case "/v3/organizations":

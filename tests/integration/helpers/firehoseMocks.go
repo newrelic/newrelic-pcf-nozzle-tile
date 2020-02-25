@@ -27,8 +27,8 @@ type MockFirehose struct {
 	serveBatch      chan *loggregator_v2.EnvelopeBatch
 	events          []*loggregator_v2.Envelope
 	TimeTicker      *time.Ticker
-
-	validToken string
+	closeOnce       sync.Once
+	validToken      string
 }
 
 func NewMockFirehose(seconds int, validToken string) *MockFirehose {
@@ -58,9 +58,11 @@ func (mf *MockFirehose) Start() {
 }
 
 func (mf *MockFirehose) Stop() {
-	close(mf.stopPublishing)
-	close(mf.closeConnection)
-	mf.Server.Close()
+	mf.closeOnce.Do(func() {
+		close(mf.stopPublishing)
+		close(mf.closeConnection)
+		mf.Server.Close()
+	})
 }
 
 func (mf *MockFirehose) AddEvent(event loggregator_v2.Envelope) {

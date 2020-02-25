@@ -52,7 +52,7 @@ func (f *Firehose) ResetEventCount() {
 // Start New Firehose
 func Start() *Firehose {
 
-	var errorChan <-chan error
+	errorChan := make(chan error)
 
 	f := &Firehose{
 		log:        app.Get().Log,
@@ -78,21 +78,26 @@ func Start() *Firehose {
 	if f.config.GetString("LOG_LEVEL") == "DEBUG" {
 		log := log.New(os.Stdout, "RLP: ", log.Ldate|log.Ltime|log.Lshortfile)
 		// Create a RLP Gateway Client using the HTTP client created above (with logger).
-		f.nozzle = loggregator.NewRLPGatewayClient(f.config.GetString("CF_API_RLPG_URL"), loggregator.WithRLPGatewayClientLogger(log), loggregator.WithRLPGatewayHTTPClient(fh))
+		f.nozzle = loggregator.NewRLPGatewayClient(
+			f.config.GetString("CF_API_RLPG_URL"),
+			loggregator.WithRLPGatewayClientLogger(log),
+			loggregator.WithRLPGatewayHTTPClient(fh),
+			loggregator.WithRLPGatewayErrChan(errorChan),
+		)
 	} else {
 		// Create a RLP Gateway Client using the HTTP client created above (no logger).
-		f.nozzle = loggregator.NewRLPGatewayClient(f.config.GetString("CF_API_RLPG_URL"), loggregator.WithRLPGatewayHTTPClient(fh))
+		f.nozzle = loggregator.NewRLPGatewayClient(
+			f.config.GetString("CF_API_RLPG_URL"),
+			loggregator.WithRLPGatewayHTTPClient(fh),
+			loggregator.WithRLPGatewayErrChan(errorChan),
+		)
 	}
-
-	f.startNozzle()
 
 	f.Queue = NewOneToOneEnvelope(
 		f.config.GetInt("FIREHOSE_DIODE_BUFFER"),
 		diodes.AlertFunc(func(missed int) {
 			f.log.Warnf("Firehose diode dropped %d messages", missed)
 		}))
-
-	f.log.Info("firehose started")
 
 	// Firehouse non-blocking event queuing via PCF diodes
 	go func() {
@@ -116,7 +121,8 @@ func Start() *Firehose {
 		}
 
 	}()
-
+	f.startNozzle()
+	f.log.Info("firehose started")
 	return f
 
 }

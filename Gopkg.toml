@@ -43,7 +43,7 @@
 
 [[constraint]]
   name = "github.com/cloudfoundry/go-loggregator"
-  version = "7.7.0"
+  revision = "3b3c7567591d7c217a33a511122fc186a5d8d1f7"
 
 [[constraint]]
   name = "github.com/fatih/camelcase"

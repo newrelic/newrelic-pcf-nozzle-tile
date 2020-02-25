@@ -3,13 +3,14 @@
 package test
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -33,17 +34,13 @@ const (
 	PCFCounterEvent    = "PCFCounterEvent"
 )
 
-func TestMain(m *testing.M) {
-	port = 8080
-	os.Exit(m.Run())
-}
-
 type apiMocks struct {
-	uaa      *mocks.MockUAAC
-	firehose *mocks.MockFirehose
-	cc       *mocks.MockCF
-	insights *mocks.MockInsights
-	nozzle   *exec.Cmd
+	uaa          *mocks.MockUAAC
+	firehose     *mocks.MockFirehose
+	cc           *mocks.MockCF
+	insights     *mocks.MockInsights
+	nozzle       *exec.Cmd
+	nozzleStdOut io.ReadCloser
 }
 
 func runNozzleAndMocks() *apiMocks {
@@ -51,7 +48,7 @@ func runNozzleAndMocks() *apiMocks {
 		uaa:      mocks.NewMockUAA("bearer", "token"),
 		cc:       mocks.NewMockCF("bearer", "token"),
 		insights: mocks.NewMockInsights("Gzip"),
-		nozzle:   exec.Command("../../dist/nr-fh-nozzle"), //TODO add int test to make file to
+		nozzle:   exec.Command("../../dist/nr-fh-nozzle"),
 	}
 	m.firehose = mocks.NewMockFirehose(360, "token")
 	m.uaa.Start()
@@ -59,8 +56,6 @@ func runNozzleAndMocks() *apiMocks {
 	m.cc.Start()
 	m.insights.Start()
 
-	mutex.Lock()
-	defer mutex.Unlock()
 	os.Setenv("NRF_CF_API_URL", m.cc.Server.URL)
 	os.Setenv("NRF_CF_API_UAA_URL", m.uaa.Server.URL)
 	os.Setenv("NRF_CF_CLIENT_ID", "admin")
@@ -70,11 +65,11 @@ func runNozzleAndMocks() *apiMocks {
 	os.Setenv("NRF_NEWRELIC_INSERT_KEY", "nrkey")
 	os.Setenv("NRF_NEWRELIC_ACCOUNT_ID", "00000")
 	os.Setenv("NRF_NEWRELIC_DRAIN_INTERVAL", "500ms")
-	os.Setenv("NRF_NEWRELIC_ACCOUNT_REGION", "EU")
-	os.Setenv("NRF_NEWRELIC_EU_BASE_URL", m.insights.Server.URL)
+	os.Setenv("NRF_NEWRELIC_CUSTOM_URL", m.insights.Server.URL)
 	os.Setenv("NRF_CF_API_RLPG_URL", m.firehose.Server.URL)
-	os.Setenv("NRF_HEALTH_PORT", strconv.Itoa(port))
-	port++
+	os.Setenv("NRF_HEALTH_PORT", "8080")
+
+	m.nozzleStdOut, _ = m.nozzle.StdoutPipe()
 
 	m.nozzle.Start()
 
@@ -90,7 +85,6 @@ func closeNozzleAndMocks(a *apiMocks) {
 }
 
 func TestValueMetric(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 	for i := float64(1); i < 11; i++ {
 		e := loggregator_v2.Envelope{
@@ -130,7 +124,6 @@ func TestValueMetric(t *testing.T) {
 }
 
 func TestCapacityMetric(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 	m.firehose.AddEvent(loggregator_v2.Envelope{
 		Tags: map[string]string{
@@ -187,7 +180,6 @@ ReadingFromInsights:
 }
 
 func TestLogMessage(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -215,7 +207,6 @@ func TestLogMessage(t *testing.T) {
 }
 
 func TestContainerMetric(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -274,7 +265,6 @@ func TestContainerMetric(t *testing.T) {
 
 }
 func TestCounterEvent(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -304,7 +294,6 @@ func TestCounterEvent(t *testing.T) {
 
 }
 func TestHTTPStartStop(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -405,6 +394,24 @@ ReadingFromInsights:
 	for _, e := range events {
 		assert.GreaterOrEqual(t, eventReceivedCount[e], eventSentCount[e])
 	}
+}
+
+func TestFirehoseConnectionFail(t *testing.T) {
+	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
+	//stop firehose to force connection fail and error rising on the nozzle.
+	m.firehose.Stop()
+
+	r := bufio.NewReader(m.nozzleStdOut)
+	connectionFails := false
+	for start := time.Now(); time.Since(start) < time.Second; {
+		line, _, _ := r.ReadLine()
+		if strings.Contains(string(line), "client connection attempts exceeded max retries -- giving up") {
+			connectionFails = true
+			break
+		}
+	}
+	assert.True(t, connectionFails)
 }
 
 func readInsights(t *testing.T, m *apiMocks) string {
