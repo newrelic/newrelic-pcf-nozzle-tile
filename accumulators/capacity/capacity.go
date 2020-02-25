@@ -5,6 +5,7 @@ package capacity
 
 import (
 	"fmt"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"strings"
 	"sync"
 	"time"
@@ -142,7 +143,7 @@ func (m Metrics) Drain() (c []*entities.Entity) {
 	// Copying data into another map to reduce the amount of time the lock is needed.
 	myCapacityData := capacityData{}
 	// If new metric data hasn't been received in over the threshold defined in CAPACITY_ENTITY_AGE_MINS, drop this entity and its metrics before draining
-	ageThreshold := app.Get().Config.GetDuration("CAPACITY_ENTITY_AGE_MINS")
+	ageThreshold := config.Get().GetDuration("CAPACITY_ENTITY_AGE_MINS")
 	for k, v := range m.capacityUpdateTime {
 		if time.Since(v) >= ageThreshold*time.Minute {
 			delete(m.capacityUpdateTime, k)
@@ -222,7 +223,7 @@ func (m Metrics) HarvestMetrics(
 	metric.Attributes().AppendAll(entity.Attributes())
 
 	// Get a client with the insert key and RPM account ID from the config.
-	client := insights.New().Get(app.Get().Config.GetNewRelicConfig())
+	client := insights.New().Get(config.Get().GetNewRelicConfig())
 	client.EnqueueEvent(metric.Marshal())
 
 }

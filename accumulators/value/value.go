@@ -5,7 +5,6 @@ package value
 
 import (
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/accumulators"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/entities"
@@ -65,7 +64,7 @@ func (m Metrics) HarvestMetrics(
 	metric.Attributes().AppendAll(entity.Attributes())
 
 	// Get a client with the insert key and RPM account ID from the config.
-	client := insights.New().Get(app.Get().Config.GetNewRelicConfig())
+	client := insights.New().Get(config.Get().GetNewRelicConfig())
 	client.EnqueueEvent(metric.Marshal())
 
 }

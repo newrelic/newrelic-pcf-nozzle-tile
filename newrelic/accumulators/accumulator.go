@@ -51,7 +51,7 @@ func NewAccumulator(t ...string) Accumulator {
 
 // Config properties ...
 func (a *Accumulator) Config() *config.Config {
-	return a.ctx.Config
+	return config.Get()
 }
 
 // GetEntity ...

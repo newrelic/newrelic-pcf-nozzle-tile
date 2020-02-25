@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
+	"github.com/sirupsen/logrus"
 )
 
 // Logger ...

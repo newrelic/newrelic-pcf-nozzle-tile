@@ -56,7 +56,7 @@ func Start() *Firehose {
 
 	f := &Firehose{
 		log:        app.Get().Log,
-		config:     app.Get().Config,
+		config:     config.Get(),
 		eventsChan: make(chan *loggregator_v2.Envelope, 1024),
 		closeChan:  make(chan bool),
 	}

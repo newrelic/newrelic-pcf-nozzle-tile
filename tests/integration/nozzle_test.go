@@ -22,7 +22,7 @@ import (
 	mocks "github.com/newrelic/newrelic-pcf-nozzle-tile/tests/integration/helpers"
 )
 
-var port int
+var port = 8080
 var mutex = &sync.Mutex{}
 
 const (
@@ -32,11 +32,6 @@ const (
 	PCFLogMessage      = "PCFLogMessage"
 	PCFCounterEvent    = "PCFCounterEvent"
 )
-
-func TestMain(m *testing.M) {
-	port = 8080
-	os.Exit(m.Run())
-}
 
 type apiMocks struct {
 	uaa      *mocks.MockUAAC
@@ -67,31 +62,38 @@ func runNozzleAndMocks() *apiMocks {
 	os.Setenv("NRF_CF_CLIENT_SECRET", "token")
 	os.Setenv("NRF_CF_API_USERNAME", "admin")
 	os.Setenv("NRF_CF_API_PASSWORD", "token")
+	os.Setenv("NRF_FIREHOSE_ID", "firehose.id")
+	os.Setenv("NRF_NEWRELIC_CUSTOM_URL", m.insights.Server.URL)
+	os.Setenv("NRF_LOG_LEVEL", "DEBUG")
 	os.Setenv("NRF_NEWRELIC_INSERT_KEY", "nrkey")
 	os.Setenv("NRF_NEWRELIC_ACCOUNT_ID", "00000")
 	os.Setenv("NRF_NEWRELIC_DRAIN_INTERVAL", "500ms")
-	os.Setenv("NRF_NEWRELIC_ACCOUNT_REGION", "EU")
-	os.Setenv("NRF_NEWRELIC_EU_BASE_URL", m.insights.Server.URL)
 	os.Setenv("NRF_CF_API_RLPG_URL", m.firehose.Server.URL)
 	os.Setenv("NRF_HEALTH_PORT", strconv.Itoa(port))
 	port++
 
-	m.nozzle.Start()
-
+	//m.nozzle.Stdout = os.Stdout
+	//m.nozzle.Stderr = os.Stderr
+	err := m.nozzle.Start()
+	if err != nil {
+		panic(err.Error())
+	}
 	return m
 }
 func closeNozzleAndMocks(a *apiMocks) {
+
 	a.nozzle.Process.Kill()
 	a.uaa.Stop()
 	a.firehose.Stop()
 	a.cc.Stop()
 	a.insights.Stop()
-
 }
 
 func TestValueMetric(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
+
 	for i := float64(1); i < 11; i++ {
 		e := loggregator_v2.Envelope{
 			SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
@@ -112,7 +114,6 @@ func TestValueMetric(t *testing.T) {
 
 	m.firehose.PublishBatch()
 	rc := readInsights(t, m)
-	closeNozzleAndMocks(m)
 
 	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
@@ -132,6 +133,8 @@ func TestValueMetric(t *testing.T) {
 func TestCapacityMetric(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
+
 	m.firehose.AddEvent(loggregator_v2.Envelope{
 		Tags: map[string]string{
 			"job": "diego_cell",
@@ -170,10 +173,9 @@ ReadingFromInsights:
 				}
 			}
 		case <-time.After(10 * time.Second):
-			break ReadingFromInsights
+			t.Fatal("Expected data from insights.ReceivedContents")
 		}
 	}
-	closeNozzleAndMocks(m)
 
 	assert.EqualValues(t, "PCFCapacity", rCapacity["eventType"])
 	assert.EqualValues(t, 75, rCapacity["metric.sample.last.value"])
@@ -189,6 +191,7 @@ ReadingFromInsights:
 func TestLogMessage(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
@@ -202,7 +205,6 @@ func TestLogMessage(t *testing.T) {
 	})
 	m.firehose.PublishBatch()
 	rc := readInsights(t, m)
-	closeNozzleAndMocks(m)
 
 	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
@@ -217,6 +219,7 @@ func TestLogMessage(t *testing.T) {
 func TestContainerMetric(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
@@ -250,7 +253,6 @@ func TestContainerMetric(t *testing.T) {
 	})
 	m.firehose.PublishBatch()
 	rc := readInsights(t, m)
-	closeNozzleAndMocks(m)
 
 	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
@@ -276,6 +278,7 @@ func TestContainerMetric(t *testing.T) {
 func TestCounterEvent(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
@@ -290,7 +293,6 @@ func TestCounterEvent(t *testing.T) {
 	})
 	m.firehose.PublishBatch()
 	rc := readInsights(t, m)
-	closeNozzleAndMocks(m)
 
 	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
@@ -306,6 +308,7 @@ func TestCounterEvent(t *testing.T) {
 func TestHTTPStartStop(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
@@ -326,7 +329,6 @@ func TestHTTPStartStop(t *testing.T) {
 	})
 	m.firehose.PublishBatch()
 	rc := readInsights(t, m)
-	closeNozzleAndMocks(m)
 
 	assert.EqualValues(t, 0, len(m.insights.ReceivedContents))
 
@@ -345,7 +347,9 @@ func TestHTTPStartStop(t *testing.T) {
 }
 
 func TestDataDump(t *testing.T) {
+	t.Parallel()
 	m := runNozzleAndMocks()
+	defer closeNozzleAndMocks(m)
 
 	rf, err := ioutil.ReadFile("fhout.json")
 	if err != nil {
@@ -396,7 +400,6 @@ ReadingFromInsights:
 		}
 
 	}
-	closeNozzleAndMocks(m)
 
 	assert.Equal(t, eventReceivedCount[PCFHttpStartStop], eventSentCount[PCFHttpStartStop])
 	assert.Equal(t, eventReceivedCount[PCFCounterEvent], eventSentCount[PCFCounterEvent])

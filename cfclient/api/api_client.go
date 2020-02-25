@@ -6,6 +6,7 @@ package api
 import (
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 )
 
 // Client is the PCF API Client
@@ -17,7 +18,7 @@ type Client struct {
 // New API Client
 func New() (c *Client, err error) {
 
-	config := app.Get().Config
+	config := config.Get()
 
 	c = &Client{}
 

@@ -18,14 +18,6 @@ const envPrefix = "NRF"
 var instance *Config
 var once = &sync.Once{}
 
-// InsightsConfig configures Insights EventTypes and Attributes
-// for future developemt of backward capatability between this version
-// and v1
-// type InsightsConfig struct {
-// 	EventTypes map[events.Envelope_EventType]string
-// 	Attributes map[string]string
-// }
-
 // Config extending Viper...
 type Config struct {
 	*viper.Viper

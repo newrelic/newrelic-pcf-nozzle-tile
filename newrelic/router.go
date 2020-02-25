@@ -4,6 +4,7 @@
 package newrelic
 
 import (
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"reflect"
 	"strings"
 	"time"
@@ -42,7 +43,7 @@ func NewRouter(f *firehose.Firehose, c *Collector) *Router {
 
 	for _, a := range *router.Collector.accumulators {
 		for _, s := range a.Streams() {
-			for _, t := range router.App.Config.GetNewEnvelopeTypes() {
+			for _, t := range config.Get().GetNewEnvelopeTypes() {
 				if strings.Contains(s, t) {
 					router.Streams[s] = append(router.Streams[s], a)
 				}
@@ -99,10 +100,10 @@ func (r *Router) Start() {
 				r.App.Log.Tracer("o")
 				ed++
 				// Have the diodes been empty for > threshold?  Multiplying by 2 due to 500ms sleep
-				if ed > (r.App.Config.GetInt("FIREHOSE_RESTART_THRESH_SECS") * 2) {
+				if ed > (config.Get().GetInt("FIREHOSE_RESTART_THRESH_SECS") * 2) {
 					// Reset the emptyDiodes counter so we don't constanty restart the nozzle every 500ms
 					ed = 0
-					r.App.Log.Warnf("Diodes have been empty for > %v seconds.  Restarting firehose nozzle.", r.App.Config.GetInt("FIREHOSE_RESTART_THRESH_SECS"))
+					r.App.Log.Warnf("Diodes have been empty for > %v seconds.  Restarting firehose nozzle.", config.Get().GetInt("FIREHOSE_RESTART_THRESH_SECS"))
 					r.firehose.RestartNozzle()
 				}
 				time.Sleep(500 * time.Millisecond)

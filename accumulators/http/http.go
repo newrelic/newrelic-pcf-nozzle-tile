@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/accumulators"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
@@ -65,7 +64,7 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 
 	s.AppendAll(entity.Attributes())
 	// Get an insert client and enqueue the event.
-	client := insights.New().Get(app.Get().Config.GetNewRelicConfig())
+	client := insights.New().Get(config.Get().GetNewRelicConfig())
 	client.EnqueueEvent(s.Marshal())
 }
 

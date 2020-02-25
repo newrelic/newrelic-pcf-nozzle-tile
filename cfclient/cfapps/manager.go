@@ -6,6 +6,7 @@ package cfapps
 import (
 	"errors"
 	"fmt"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -27,7 +28,6 @@ const errorNotStarted = Error("CFApp not started when attempting to use")
 
 // Singleton
 var instance *CFAppManager
-var once sync.Once
 
 // CFAppManager ...
 type CFAppManager struct {
@@ -67,13 +67,6 @@ func (c *CFAppManager) GetAppInstanceAttributes(
 ) (attrs *attributes.Attributes) {
 	return c.GetApp(appID).GetInstanceAttributes(instanceID)
 }
-
-// GetAppAttributes ...
-// func (c *CFAppManager) GetAppAttributes(
-// 	appID string,
-// ) (attrs *attributes.Attributes) {
-// 	return c.GetApp(appID).GetAttributes()
-// }
 
 // GetApp ...
 func (c *CFAppManager) GetApp(guid string) (app *CFApp) {
@@ -149,11 +142,11 @@ func (c *CFAppManager) FetchApp(a *CFApp) error {
 	defer a.Lock.Unlock()
 
 	a.App = &result
-
-	a.Attributes.SetAttribute(AppInstancesDesired, result.Instances)
-	a.Attributes.SetAttribute(AppName, result.Name)
-	a.Attributes.SetAttribute(AppOrgName, result.SpaceData.Entity.OrgData.Entity.Name)
-	a.Attributes.SetAttribute(AppSpaceName, result.SpaceData.Entity.Name)
+	cfg := config.Get()
+	a.Attributes.SetAttribute(cfg.GetString(config.EnvAppInstancesDesired), result.Instances)
+	a.Attributes.SetAttribute(cfg.GetString(config.EnvAppName), result.Name)
+	a.Attributes.SetAttribute(cfg.GetString(config.EnvAppOrgName), result.SpaceData.Entity.OrgData.Entity.Name)
+	a.Attributes.SetAttribute(cfg.GetString(config.EnvAppSpaceName), result.SpaceData.Entity.Name)
 
 	a.LastPull = time.Now()
 
@@ -175,11 +168,13 @@ func (c *CFAppManager) Close() {
 }
 
 func newClient(app *app.Application) *cfclient.Client {
+	cfg := config.Get()
+
 	config := &cfclient.Config{
-		ApiAddress:        app.Config.GetString("CF_API_URL"),
-		Username:          app.Config.GetString("CF_API_USERNAME"),
-		Password:          app.Config.GetString("CF_API_PASSWORD"),
-		SkipSslValidation: app.Config.GetBool("CF_SKIP_SSL"),
+		ApiAddress:        cfg.GetString("CF_API_URL"),
+		Username:          cfg.GetString("CF_API_USERNAME"),
+		Password:          cfg.GetString("CF_API_PASSWORD"),
+		SkipSslValidation: cfg.GetBool("CF_SKIP_SSL"),
 	}
 
 	client, err := cfclient.NewClient(config)

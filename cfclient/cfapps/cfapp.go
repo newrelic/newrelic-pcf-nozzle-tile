@@ -17,19 +17,6 @@ import (
 )
 
 var startValue = "WAITING ON DATA"
-var cfg = app.Get().Config
-
-// nolint
-var (
-	AppName             = cfg.GetString(config.EnvAppName)
-	AppSpaceName        = cfg.GetString(config.EnvAppSpaceName)
-	AppOrgName          = cfg.GetString(config.EnvAppOrgName)
-	AppID               = cfg.GetString(config.EnvAppID)
-	AppInstanceIndex    = cfg.GetString(config.EnvAppInstanceIndex)
-	AppInstanceState    = cfg.GetString(config.EnvAppInstanceState)
-	AppInstanceUID      = cfg.GetString(config.EnvAppInstanceUID)
-	AppInstancesDesired = cfg.GetString(config.EnvAppInstancesDesired)
-)
 
 // CFApp Extended
 type CFApp struct {
@@ -45,12 +32,13 @@ type CFApp struct {
 
 // NewSummary ...
 func NewSummary() *attributes.Attributes {
+	cfg := config.Get()
 	return attributes.NewAttributes(
-		attributes.New(AppInstancesDesired, startValue),
-		attributes.New(AppName, startValue),
-		attributes.New(AppSpaceName, startValue),
-		attributes.New(AppOrgName, startValue),
-		attributes.New(AppInstanceState, startValue),
+		attributes.New(cfg.GetString(config.EnvAppInstancesDesired), startValue),
+		attributes.New(cfg.GetString(config.EnvAppName), startValue),
+		attributes.New(cfg.GetString(config.EnvAppSpaceName), startValue),
+		attributes.New(cfg.GetString(config.EnvAppOrgName), startValue),
+		attributes.New(cfg.GetString(config.EnvAppInstanceState), startValue),
 	)
 }
 
@@ -67,32 +55,22 @@ func NewCFApp(guid string) *CFApp {
 	}
 }
 
-// SummaryByInstance ...
-/*
-func (a *CFApp) SummaryByInstance(index int32) *attributes.Attributes {
-	indexString := strconv.FormatInt(int64(index), 10)
-	if attrs, found := a.Summaries[indexString]; found {
-		return attrs
-	}
-	a.Summaries[indexString] = NewSummary(indexString)
-	return a.Summaries[indexString]
-}
-*/
-
 // GetInstanceAttributes ...
 func (a *CFApp) GetInstanceAttributes(id int32) (attrs *attributes.Attributes) {
+
+	cfg := config.Get()
 	attrs = attributes.NewAttributes()
 	a.Lock.RLock()
 	defer a.Lock.RUnlock()
 	attrs.AppendAll(a.Attributes)
 	if appInstance, found := a.Summaries[id]; found {
-		attrs.SetAttribute(AppInstanceState, appInstance)
+		attrs.SetAttribute(cfg.GetString(config.EnvAppInstanceState), appInstance)
 		if a.App != nil {
-			attrs.SetAttribute(AppInstanceUID, fmt.Sprintf("%s:%d", a.App.Name, id))
+			attrs.SetAttribute(cfg.GetString(config.EnvAppInstanceUID), fmt.Sprintf("%s:%d", a.App.Name, id))
 		}
 		return attrs
 	}
-	attrs.SetAttribute(AppInstanceState, startValue)
+	attrs.SetAttribute(cfg.GetString(config.EnvAppInstanceState), startValue)
 	return attrs
 }
 
@@ -103,7 +81,7 @@ func (a *CFApp) GetInstanceAttributes(id int32) (attrs *attributes.Attributes) {
 
 // UpdateInstances ...
 func (a *CFApp) UpdateInstances() {
-
+	cfg := config.Get()
 	defer GetInstance().rateManager.Done()
 	if timeout := GetInstance().rateManager.Wait(); timeout != nil {
 		app.Get().Log.Errorln("API timeout, app instances failed to update states")
@@ -127,7 +105,7 @@ func (a *CFApp) UpdateInstances() {
 		return
 	}
 
-	a.Attributes.SetAttribute(AppInstancesDesired, len(states))
+	a.Attributes.SetAttribute(cfg.GetString(config.EnvAppInstancesDesired), len(states))
 
 	for k, v := range states {
 		if index64, err := strconv.ParseInt(k, 10, 32); err == nil {

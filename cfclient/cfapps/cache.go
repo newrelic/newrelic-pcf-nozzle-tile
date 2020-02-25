@@ -4,10 +4,9 @@
 package cfapps
 
 import (
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"sync"
 	"time"
-
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 )
 
 // Cache ...
@@ -30,8 +29,9 @@ func NewCache() *Cache {
 
 // Start ...
 func (c *Cache) Start() {
+	cfg := config.Get()
 	go func() {
-		cacheDuration := app.Get().Config.GetDuration("FIREHOSE_CACHE_DURATION_MINS")
+		cacheDuration := cfg.GetDuration("FIREHOSE_CACHE_DURATION_MINS")
 		for {
 			select {
 

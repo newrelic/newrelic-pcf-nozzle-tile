@@ -5,10 +5,9 @@ package cfapps
 
 import (
 	"errors"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"sync/atomic"
 	"time"
-
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 )
 
 type rateManager struct {
@@ -22,13 +21,14 @@ type rateManager struct {
 }
 
 func newRateManager() *rateManager {
+	cfg := config.Get()
 	rm := &rateManager{
-		burstLimit:   app.Get().Config.GetInt32("FIREHOSE_RATE_BURST"),
+		burstLimit:   cfg.GetInt32("FIREHOSE_RATE_BURST"),
 		queued:       0,
 		active:       0,
 		delay:        50 * time.Millisecond,
 		noQueueDelay: time.Second,
-		timeout:      app.Get().Config.GetDuration("FIREHOSE_RATE_TIMEOUT_SECS") * time.Second,
+		timeout:      cfg.GetDuration("FIREHOSE_RATE_TIMEOUT_SECS") * time.Second,
 		nextChan:     make(chan bool),
 	}
 	go func() {

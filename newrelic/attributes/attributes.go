@@ -13,9 +13,6 @@ import (
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/uid"
 )
 
-// None ...
-var None = NewAttributes()
-
 // Attribute ...
 type Attribute struct {
 	name  string
@@ -34,12 +31,6 @@ func (a *Attribute) Name() string {
 	// }
 	return a.name
 }
-
-// PrependName prepends string to attribute name
-// func (a *Attribute) PrependName(s string) *Attribute {
-// 	a.name = fmt.Sprintf("%s%s", s, a.name)
-// 	return a
-// }
 
 // New ...
 func New(name string, value interface{}) *Attribute {

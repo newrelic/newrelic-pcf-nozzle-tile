@@ -5,6 +5,7 @@ package healthcheck
 
 import (
 	"fmt"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"net/http"
 
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
@@ -14,7 +15,7 @@ import (
 func Start() {
 	go func() {
 		http.HandleFunc("/health", healthCheckHandler)
-		app.Get().Log.Fatal(http.ListenAndServe(":"+app.Get().Config.GetString("HEALTH_PORT"), nil))
+		app.Get().Log.Fatal(http.ListenAndServe(":"+config.Get().GetString("HEALTH_PORT"), nil))
 	}()
 }
 

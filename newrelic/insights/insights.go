@@ -4,10 +4,9 @@
 package insights
 
 import (
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"os"
 	"sync"
-
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 
 	"github.com/newrelic/go-insights/client"
 )
@@ -54,10 +53,10 @@ func (im *InsertManager) New(insightsInsertKey string, rpmAccountID string, acco
 	insertClient.SetCompression(client.Gzip) //always use compression to Insights
 	if accountRegion == "EU" {
 		//UseCustomURL only sets the host (domain) of the URL
-		insertClient.UseCustomURL(app.Get().Config.GetString("NEWRELIC_EU_BASE_URL"))
+		insertClient.UseCustomURL(config.Get().GetString("NEWRELIC_EU_BASE_URL"))
 	}
-	if app.Get().Config.GetString("NEWRELIC_CUSTOM_URL") != "" {
-		insertClient.UseCustomURL(app.Get().Config.GetString("NEWRELIC_CUSTOM_URL"))
+	if config.Get().GetString("NEWRELIC_CUSTOM_URL") != "" {
+		insertClient.UseCustomURL(config.Get().GetString("NEWRELIC_CUSTOM_URL"))
 	}
 	insertClient.Start()
 	im.sync.Lock()

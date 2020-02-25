@@ -10,30 +10,11 @@ import (
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"github.com/newrelic/go-insights/client"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/cfclient/cfapps"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/entities"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/insights"
-)
-
-var cfg = config.Get()
-
-var (
-	envelopeType     = cfg.AttributeName(config.EnvEnvelopeType)
-	domain           = cfg.AttributeName(config.EnvDomain)
-	origin           = cfg.AttributeName(config.EnvOrigin)
-	deployment       = cfg.AttributeName(config.EnvDeployment)
-	job              = cfg.AttributeName(config.EnvJob)
-	index            = cfg.AttributeName(config.EnvIndex)
-	ip               = cfg.AttributeName(config.EnvIP)
-	appID            = cfg.AttributeName(config.EnvAppID)
-	appName          = cfg.AttributeName(config.EnvAppName)
-	appSpaceName     = cfg.AttributeName(config.EnvAppSpaceName)
-	appOrgName       = cfg.AttributeName(config.EnvAppOrgName)
-	appInstanceIndex = cfg.AttributeName(config.EnvAppInstanceIndex)
-	appInstanceState = cfg.AttributeName(config.EnvAppInstanceState)
 )
 
 // GetPCFAttributes ...
@@ -57,7 +38,8 @@ func GetPCFAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
 			attrs.Append(a)
 		}
 	}
-	attrs.SetAttribute(domain, PCFDomain())
+	cfg := config.Get()
+	attrs.SetAttribute(cfg.AttributeName(config.EnvDomain), PCFDomain())
 	attrs.SetAttribute(cfg.GetString(config.EnvDomainAlias), PCFDomain())
 	attrs.SetAttribute("agent.version", cfg.GetString("Version"))
 	attrs.SetAttribute("agent.instance", cfg.GetInt("CF_INSTANCE_INDEX"))
@@ -67,36 +49,39 @@ func GetPCFAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
 
 // PCFDomain ...
 func PCFDomain() string {
-	u, _ := url.Parse(app.Get().Config.GetString(config.EnvCFAPIRUL))
+	u, _ := url.Parse(config.Get().GetString(config.EnvCFAPIRUL))
 	return u.Hostname()
 }
 
 // EntityAttributes ...
 func EntityAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
 	et := strings.Split(reflect.TypeOf(e.Message).String(), "_")
+	cfg := config.Get()
 	return attributes.NewAttributes(
-		attributes.New(envelopeType, et[len(et)-1]),
-		attributes.New(origin, e.Tags["origin"]),
-		attributes.New(deployment, e.Tags["deployment"]),
-		attributes.New(job, e.Tags["job"]),
-		attributes.New(index, e.Tags["index"]),
-		attributes.New(ip, e.Tags["ip"]),
+		attributes.New(cfg.AttributeName(config.EnvEnvelopeType), et[len(et)-1]),
+		attributes.New(cfg.AttributeName(config.EnvOrigin), e.Tags["origin"]),
+		attributes.New(cfg.AttributeName(config.EnvDeployment), e.Tags["deployment"]),
+		attributes.New(cfg.AttributeName(config.EnvJob), e.Tags["job"]),
+		attributes.New(cfg.AttributeName(config.EnvIndex), e.Tags["index"]),
+		attributes.New(cfg.AttributeName(config.EnvIP), e.Tags["ip"]),
 	)
 }
 
 // EntityContainerAttributes ...
 func EntityContainerAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
+	cfg := config.Get()
 	return attributes.NewAttributes(
-		attributes.New(appID, e.GetSourceId()),
-		attributes.New(appInstanceIndex, e.GetInstanceId()),
+		attributes.New(cfg.AttributeName(config.EnvAppID), e.GetSourceId()),
+		attributes.New(cfg.AttributeName(config.EnvAppInstanceIndex), e.GetInstanceId()),
 	)
 }
 
 // EntityLogAttributes ...
 func EntityLogAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
+	cfg := config.Get()
 	return attributes.NewAttributes(
-		attributes.New(appID, e.GetSourceId()),
-		attributes.New(appInstanceIndex, e.GetInstanceId()),
+		attributes.New(cfg.AttributeName(config.EnvAppID), e.GetSourceId()),
+		attributes.New(cfg.AttributeName(config.EnvAppInstanceIndex), e.GetInstanceId()),
 	)
 }
 
@@ -141,13 +126,13 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 	cfapp.Lock.RUnlock()
 
 	if vcap == nil {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := im.Get(config.Get().GetNewRelicConfig())
 		return defaultClient
 	}
 
 	//Can do this if newrelic isn't found, but also need to check for rpmAccountId and insightsInsertKey values
 	if _, found := vcap["newrelic"]; !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := im.Get(config.Get().GetNewRelicConfig())
 		return defaultClient
 	}
 
@@ -156,7 +141,7 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 
 	// Get the credentials map from inside of the newrelic map, if it exists.
 	if _, found := newrelic["credentials"].(map[string]interface{}); !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := im.Get(config.Get().GetNewRelicConfig())
 		return defaultClient
 	}
 	credentials := newrelic["credentials"].(map[string]interface{})
@@ -164,20 +149,20 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 	// Call GetInsertKey
 	insertKey, found := GetInsertKey(credentials)
 	if !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := im.Get(config.Get().GetNewRelicConfig())
 		return defaultClient
 	}
 	// Call GetRpmId
 	rpmId, found := GetRpmId(credentials)
 	if !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := im.Get(config.Get().GetNewRelicConfig())
 		return defaultClient
 	}
 
 	// Call GetLicenseKey
 	licenseKey, found := GetLicenseKey(credentials)
 	if !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := im.Get(config.Get().GetNewRelicConfig())
 		return defaultClient
 	}
 

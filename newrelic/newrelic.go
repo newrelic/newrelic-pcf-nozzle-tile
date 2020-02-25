@@ -4,6 +4,7 @@
 package newrelic
 
 import (
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"os"
 	"time"
 
@@ -70,6 +71,6 @@ func Start(interupt <-chan os.Signal) {
 
 func harvestConfig(app *app.Application) *time.Ticker {
 	return time.NewTicker(
-		app.Config.GetDuration("NEWRELIC_DRAIN_INTERVAL"),
+		config.Get().GetDuration("NEWRELIC_DRAIN_INTERVAL"),
 	)
 }
