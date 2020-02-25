@@ -29,23 +29,6 @@ func (m *Map) Drain() (c []*Entity) {
 	return c
 }
 
-// ForEach ...
-func (m *Map) ForEach(fn func(entity *Entity)) int {
-	count := 0
-	m.sync.Lock()
-	for _, v := range m.collection {
-		fn(v)
-		count++
-	}
-	m.sync.Unlock()
-	return count
-}
-
-// FindAllMetrics stub
-func (m *Map) FindAllMetrics(name string) (ms *Map) {
-	return ms
-}
-
 // Has ...
 func (m *Map) Has(id uid.ID) (entity *Entity, found bool) {
 	m.sync.RLock()
@@ -61,9 +44,4 @@ func (m *Map) Put(entity *Entity) {
 	m.sync.Lock()
 	m.collection[entity.Signature()] = entity
 	m.sync.Unlock()
-}
-
-// Count ...
-func (m *Map) Count() int {
-	return len(m.collection)
 }

@@ -17,13 +17,12 @@ import (
 
 // NewRelic Object
 type NewRelic struct {
-	App          *app.Application
-	CFAppManager *cfapps.CFAppManager
-	Firehose     *firehose.Firehose
-	Router       *Router
-	Harvester    *Harvester
-	Harvest      *time.Ticker
-	Collector    *Collector
+	CFAppManager  *cfapps.CFAppManager
+	Firehose      *firehose.Firehose
+	Router        *Router
+	Harvester     *Harvester
+	HarvestTicker *time.Ticker
+	Collector     *Collector
 }
 
 // Start New Relic Processing
@@ -32,10 +31,9 @@ func Start(interupt <-chan os.Signal) {
 	app := app.Get()
 
 	nr := &NewRelic{
-		App:          app,
-		CFAppManager: cfapps.Start(app),
-		Harvest:      harvestConfig(app),
-		Collector:    NewCollector(registry.Register),
+		CFAppManager:  cfapps.Start(app),
+		HarvestTicker: time.NewTicker(config.Get().GetDuration("NEWRELIC_DRAIN_INTERVAL")),
+		Collector:     NewCollector(registry.Register),
 	}
 
 	nr.Firehose = firehose.Start()
@@ -58,16 +56,10 @@ func Start(interupt <-chan os.Signal) {
 		case err := <-app.ErrorChan:
 			app.Log.Error(err)
 
-		case <-nr.Harvest.C:
+		case <-nr.HarvestTicker.C:
 			nr.Firehose.ResetEventCount()
 			nr.Harvester.Harvest()
 		}
 
 	}
-}
-
-func harvestConfig(app *app.Application) *time.Ticker {
-	return time.NewTicker(
-		config.Get().GetDuration("NEWRELIC_DRAIN_INTERVAL"),
-	)
 }

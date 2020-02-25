@@ -14,7 +14,6 @@ import (
 
 // Entity ...
 type Entity struct {
-	uid        uid.ID
 	attributes *attributes.Attributes
 	metrics    *metrics.Map
 }
@@ -43,16 +42,6 @@ func (e *Entity) Attributes() *attributes.Attributes {
 	return e.attributes
 }
 
-// SetAttribute ...
-func (e *Entity) SetAttribute(name string, value interface{}) *attributes.Attribute {
-	return e.Attributes().SetAttribute(name, value)
-}
-
-// ForEachMetric ...
-func (e *Entity) ForEachMetric(fn func(*metrics.Metric)) int {
-	return e.metrics.ForEach(fn)
-}
-
 // DrainMetrics returns collection of Metrics from collection of Entities
 func (e *Entity) DrainMetrics() []*metrics.Metric {
 	c := []*metrics.Metric{}
@@ -74,29 +63,9 @@ func (e *Entity) PutMetric(m *metrics.Metric) {
 	e.metrics.Put(m)
 }
 
-// AddAttributesToMap ...
-func (e *Entity) AddAttributesToMap(m *map[string]interface{}) *map[string]interface{} {
-	for _, a := range e.Attributes().Get() {
-		(*m)[a.Name()] = a.Value
-	}
-	return m
-}
-
-// AddAttributesToMetric ...
-func (e *Entity) AddAttributesToMetric(m *metrics.Metric) {
-	for _, a := range e.Attributes().Get() {
-		m.Attributes().Append(a)
-	}
-}
-
 // AttributeByName ...
 func (e *Entity) AttributeByName(name string) *attributes.Attribute {
 	return e.Attributes().AttributeByName(name)
-}
-
-// MetricCount ...
-func (e *Entity) MetricCount() int {
-	return e.metrics.Count()
 }
 
 // Signature of Entity

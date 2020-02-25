@@ -37,18 +37,6 @@ func (m *Map) Drain() (c []*Metric) {
 	return c
 }
 
-// ForEach ...
-func (m *Map) ForEach(fn func(metric *Metric)) int {
-	count := 0
-	m.sync.Lock()
-	for _, v := range m.collection {
-		fn(v)
-		count++
-	}
-	m.sync.Unlock()
-	return count
-}
-
 // Has ...
 func (m *Map) Has(id uid.ID) (metric *Metric, found bool) {
 	m.sync.RLock()

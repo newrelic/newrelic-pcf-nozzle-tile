@@ -59,10 +59,7 @@ func GetInstance() *CFAppManager {
 }
 
 // GetAppInstanceAttributes ...
-func (c *CFAppManager) GetAppInstanceAttributes(
-	appID string,
-	instanceID int32,
-) (attrs *attributes.Attributes) {
+func (c *CFAppManager) GetAppInstanceAttributes(appID string, instanceID int32) (attrs *attributes.Attributes) {
 	return c.GetApp(appID).GetInstanceAttributes(instanceID)
 }
 

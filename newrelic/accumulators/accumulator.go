@@ -49,10 +49,7 @@ func NewAccumulator(t ...string) Accumulator {
 }
 
 // GetEntity ...
-func (a *Accumulator) GetEntity(
-	e *loggregator_v2.Envelope,
-	attrs *attributes.Attributes,
-) *entities.Entity {
+func (a *Accumulator) GetEntity(e *loggregator_v2.Envelope, attrs *attributes.Attributes) *entities.Entity {
 	if e, found := a.Entities.Has(attrs.Signature()); found {
 		return e
 	}
