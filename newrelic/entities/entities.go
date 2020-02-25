@@ -20,13 +20,8 @@ type Entity struct {
 }
 
 // NewEntity ...
-func NewEntity(
-	a *attributes.Attributes,
-) *Entity {
-	e := &Entity{
-		attributes: a,
-		metrics:    metrics.NewMap(),
-	}
+func NewEntity(a *attributes.Attributes) *Entity {
+	e := &Entity{attributes: a, metrics: metrics.NewMap()}
 	return e
 }
 
@@ -39,21 +34,8 @@ func NewMap() *Map {
 }
 
 // NewSample ...
-func (e *Entity) NewSample(
-	name string,
-	t metrics.Type,
-	unit string,
-	value float64,
-) *Sample {
-	return &Sample{
-		sample: samples.NewSample(
-			name,
-			t,
-			unit,
-			value,
-			attributes.NewAttributes()),
-		entity: e,
-	}
+func (e *Entity) NewSample(name string, t metrics.Type, unit string, value float64) *Sample {
+	return &Sample{sample: samples.NewSample(name, t, unit, value, attributes.NewAttributes()), entity: e}
 }
 
 // Attributes returns Attribute struct with methods ...
@@ -62,12 +44,8 @@ func (e *Entity) Attributes() *attributes.Attributes {
 }
 
 // SetAttribute ...
-func (e *Entity) SetAttribute(
-	name string,
-	value interface{},
-) *attributes.Attribute {
-	return e.Attributes().
-		SetAttribute(name, value)
+func (e *Entity) SetAttribute(name string, value interface{}) *attributes.Attribute {
+	return e.Attributes().SetAttribute(name, value)
 }
 
 // ForEachMetric ...
@@ -97,9 +75,7 @@ func (e *Entity) PutMetric(m *metrics.Metric) {
 }
 
 // AddAttributesToMap ...
-func (e *Entity) AddAttributesToMap(
-	m *map[string]interface{},
-) *map[string]interface{} {
+func (e *Entity) AddAttributesToMap(m *map[string]interface{}) *map[string]interface{} {
 	for _, a := range e.Attributes().Get() {
 		(*m)[a.Name()] = a.Value
 	}

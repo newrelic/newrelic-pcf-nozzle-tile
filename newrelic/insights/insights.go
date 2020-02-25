@@ -39,13 +39,6 @@ func (im *InsertManager) Has(insertKey string) (c *client.InsertClient, ok bool)
 	return c, ok
 }
 
-// Put ...
-func (im *InsertManager) Put(insertKey string, c *client.InsertClient) {
-	im.sync.Lock()
-	im.collection[insertKey] = c
-	im.sync.Unlock()
-}
-
 // New ...
 func (im *InsertManager) New(insightsInsertKey string, rpmAccountID string, accountRegion string) *client.InsertClient {
 	insertClient := client.NewInsertClient(insightsInsertKey, rpmAccountID)

@@ -25,10 +25,6 @@ func (a *Attribute) String() string {
 
 // Name ...
 func (a *Attribute) Name() string {
-	// if a == nil {
-	// 	fmt.Println("Some how we got a nil attribute")
-	// 	return ""
-	// }
 	return a.name
 }
 
@@ -79,11 +75,6 @@ func (a *Attributes) ForEach(fn func(attr *Attribute)) {
 		fn(attr)
 	}
 	a.sync.Unlock()
-}
-
-// Length of attribute collection size
-func (a *Attributes) Length() int {
-	return len(a.Map)
 }
 
 // Has returns index or false in bool
@@ -191,18 +182,3 @@ func (a *Attributes) Marshal() map[string]interface{} {
 	}
 	return result
 }
-
-// Alias pointer to another attribute value for one to many combos
-// needs work...
-/*
-func (a *Attributes) Alias(newName string, oldName string) *Attribute {
-	if attr := a.Has(oldName); attr != nil {
-		alias := a.SetAttribute(oldName, "")
-		alias.sync = a.sync
-		return New(newName, &attr.value)
-	}
-	attr := New(newName, &a.AttributeByName(oldName).value)
-	attr.sync = a.sync
-	return attr
-}
-*/

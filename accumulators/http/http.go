@@ -58,9 +58,9 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 
 	s.SetAttribute(
 		"eventType",
-		n.Config().GetString(config.NewRelicEventTypeHTTPStartStop),
+		config.Get().GetString(config.NewRelicEventTypeHTTPStartStop),
 	)
-	s.SetAttribute("agent.subscription", n.Config().GetString("FIREHOSE_ID"))
+	s.SetAttribute("agent.subscription", config.Get().GetString("FIREHOSE_ID"))
 
 	s.AppendAll(entity.Attributes())
 	// Get an insert client and enqueue the event.

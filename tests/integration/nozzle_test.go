@@ -5,6 +5,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrpcf"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
@@ -429,7 +430,7 @@ func readInsights(t *testing.T, m *apiMocks) string {
 func getEnvelopeType(e *loggregator_v2.Envelope) string {
 	et := reflect.TypeOf(e.Message).String()
 	if et == "*loggregator_v2.Envelope_Gauge" {
-		if isContainerMetric(e) {
+		if nrpcf.IsContainerMetric(e) {
 			et = PCFContainerMetric
 		} else {
 			et = PCFValueMetric
@@ -445,26 +446,4 @@ func getEnvelopeType(e *loggregator_v2.Envelope) string {
 		et = PCFCounterEvent
 	}
 	return et
-}
-
-// isContainerMetric determines if the current v2 Gauge envelope is a v1 ContainerMetric or v1 ValueMetric
-func isContainerMetric(e *loggregator_v2.Envelope) bool {
-	gauge := e.GetGauge()
-	if len(gauge.Metrics) != 5 {
-		return false
-	}
-	required := []string{
-		"cpu",
-		"memory",
-		"disk",
-		"memory_quota",
-		"disk_quota",
-	}
-
-	for _, req := range required {
-		if _, found := gauge.Metrics[req]; !found {
-			return false
-		}
-	}
-	return true
 }

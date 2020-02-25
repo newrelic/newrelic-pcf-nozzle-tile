@@ -12,7 +12,7 @@ func (c *Config) GetFilter(filterName string) []string {
 	if len(c.GetString(filterName)) == 0 {
 		return nil
 	}
-	// Determine if | or , separated values provided.  Either is acceptable.
+	// Determine if | or ues provided.  Either is acceptable.
 	if strings.Contains(c.GetString(filterName), "|") {
 		return strings.Split(c.GetString(filterName), "|")
 	}

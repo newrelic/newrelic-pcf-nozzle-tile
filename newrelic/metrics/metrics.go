@@ -4,6 +4,7 @@
 package metrics
 
 import (
+	"reflect"
 	"sync"
 
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
@@ -12,17 +13,14 @@ import (
 
 // Metric is a univeral derivative from events
 type Metric struct {
-	Name      string  `json:"metric.name"`
-	T         Type    `json:"metric.type"`
-	Unit      string  `json:"metric.unit"`
-	Min       float64 `json:"metric.min"`
-	Max       float64 `json:"metric.max"`
-	Sum       float64 `json:"metric.sum"`
-	LastValue float64 `json:"metric.sample.last.value"`
-	//	Value      float64 `json:"metric.value"`
-	// Value wasn't being set and we want people to understand what value
-	// to use based on the metric type, Gauge vs Delta for example
-	Samples    int `json:"metric.samples.count"`
+	Name       string  `json:"metric.name"`
+	T          Type    `json:"metric.type"`
+	Unit       string  `json:"metric.unit"`
+	Min        float64 `json:"metric.min"`
+	Max        float64 `json:"metric.max"`
+	Sum        float64 `json:"metric.sum"`
+	LastValue  float64 `json:"metric.sample.last.value"`
+	Samples    int     `json:"metric.samples.count"`
 	attributes *attributes.Attributes
 	Aliases    *attributes.Attributes
 	mapSync    *sync.RWMutex
@@ -30,14 +28,8 @@ type Metric struct {
 }
 
 // New ...
-func New(
-	name string,
-	t Type,
-	unit string,
-	value float64,
-	attrs *attributes.Attributes,
-) (m *Metric) {
-	m = &Metric{
+func New(name string, t Type, unit string, value float64, attrs *attributes.Attributes) *Metric {
+	return &Metric{
 		Name:       name,
 		T:          t,
 		Unit:       unit,
@@ -49,17 +41,6 @@ func New(
 		Samples:    1,
 		Aliases:    attributes.NewAttributes(),
 	}
-	return m
-}
-
-// SetSender ...
-func (m *Metric) SetSender(fn func(metric *Metric)) {
-	m.sender = fn
-}
-
-// Send ...
-func (m *Metric) Send() {
-	m.sender(m)
 }
 
 // Update sets last sample to Metric
@@ -78,16 +59,10 @@ func (m *Metric) Update(v float64) *Metric {
 	return m
 }
 
-// Type ...
-func (m *Metric) Type() Type {
-	return m.T
-}
-
 // SetAttribute ...
 func (m *Metric) SetAttribute(name string, value interface{}) *Metric {
 	m.Lock()
-	m.attributes.
-		SetAttribute(name, value)
+	m.attributes.SetAttribute(name, value)
 	m.Unlock()
 	return m
 }
@@ -105,12 +80,7 @@ func (m *Metric) Attributes() *attributes.Attributes {
 }
 
 // Signature ...
-func Signature(
-	name string,
-	t Type,
-	unit string,
-	attrs *attributes.Attributes,
-) uid.ID {
+func Signature(name string, t Type, unit string, attrs *attributes.Attributes) uid.ID {
 	id := attrs.Signature()
 	id.Concat(name, t, unit)
 	return id
@@ -132,18 +102,41 @@ func (m *Metric) Unlock() {
 	m.mapSync.Unlock()
 }
 
-// RLock determines if metric is part of Map and acts accordingly
-func (m *Metric) RLock() {
-	if m.mapSync == nil {
-		return
-	}
-	m.mapSync.RLock()
-}
+// Marshal Metric ...
+func (m *Metric) Marshal() (r *map[string]interface{}) {
 
-// RUnlock determines if metric is part of Map and acts accordingly
-func (m *Metric) RUnlock() {
-	if m.mapSync == nil {
-		return
+	payload := map[string]interface{}{}
+	fields := reflect.TypeOf(m).Elem()
+	values := reflect.ValueOf(m).Elem()
+
+	for i := 0; i < fields.NumField(); i++ {
+		if values.Field(i).Kind() == reflect.Ptr {
+			continue
+		}
+		if name, ok := fields.Field(i).Tag.Lookup("json"); ok {
+
+			value := values.Field(i).Interface()
+
+			switch value.(type) {
+			case Type:
+				value = value.(Type).String()
+			}
+
+			switch value.(type) {
+			case string, float64, int:
+				if attr := m.Aliases.Has(name); attr != nil {
+					payload[attr.Value().(string)] = value
+				} else {
+					payload[name] = value
+				}
+			}
+		}
 	}
-	m.mapSync.RUnlock()
+
+	for k, v := range m.Attributes().Marshal() {
+		payload[k] = v
+	}
+
+	return &payload
+
 }

@@ -10,7 +10,6 @@ package accumulators
 import (
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/entities"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/metrics"
@@ -47,11 +46,6 @@ func NewAccumulator(t ...string) Accumulator {
 		EnvelopeTypes: types,
 		ctx:           app.Get(),
 	}
-}
-
-// Config properties ...
-func (a *Accumulator) Config() *config.Config {
-	return config.Get()
 }
 
 // GetEntity ...

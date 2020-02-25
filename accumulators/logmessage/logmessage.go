@@ -77,9 +77,9 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 	logEntry.SetAttribute("log.message.type", n.getLogMessageType(e.GetLog()))
 	logEntry.SetAttribute(
 		"eventType",
-		n.Config().GetString(config.NewRelicEventTypeLogMessage),
+		config.Get().GetString(config.NewRelicEventTypeLogMessage),
 	)
-	logEntry.SetAttribute("agent.subscription", n.Config().GetString("FIREHOSE_ID"))
+	logEntry.SetAttribute("agent.subscription", config.Get().GetString("FIREHOSE_ID"))
 
 	logEntry.AppendAll(entity.Attributes())
 	client := nrpcf.GetInsertClientForApp(entity)
@@ -127,8 +127,8 @@ func (n Nrevents) IsExcluded(
 func (n Nrevents) IsExcludedLogSource(
 	logSource string,
 ) bool {
-	if n.Config().GetFilter("LOGMESSAGE_SOURCE_EXCLUDE") != nil {
-		for _, filter := range n.Config().GetFilter("LOGMESSAGE_SOURCE_EXCLUDE") {
+	if config.Get().GetFilter("LOGMESSAGE_SOURCE_EXCLUDE") != nil {
+		for _, filter := range config.Get().GetFilter("LOGMESSAGE_SOURCE_EXCLUDE") {
 			if strings.Compare(strings.TrimSpace(filter), logSource) == 0 {
 				return true
 			}
@@ -141,8 +141,8 @@ func (n Nrevents) IsExcludedLogSource(
 func (n Nrevents) IsExcludedLogMessage(
 	logMessage string,
 ) bool {
-	if n.Config().GetFilter("LOGMESSAGE_MESSAGE_EXCLUDE") != nil {
-		for _, filter := range n.Config().GetFilter("LOGMESSAGE_MESSAGE_EXCLUDE") {
+	if config.Get().GetFilter("LOGMESSAGE_MESSAGE_EXCLUDE") != nil {
+		for _, filter := range config.Get().GetFilter("LOGMESSAGE_MESSAGE_EXCLUDE") {
 			if strings.Contains(logMessage, strings.TrimSpace(filter)) {
 				return true
 			}
@@ -155,8 +155,8 @@ func (n Nrevents) IsExcludedLogMessage(
 func (n Nrevents) IsIncludedLogSource(
 	logSource string,
 ) bool {
-	if n.Config().GetFilter("LOGMESSAGE_SOURCE_INCLUDE") != nil {
-		for _, filter := range n.Config().GetFilter("LOGMESSAGE_SOURCE_INCLUDE") {
+	if config.Get().GetFilter("LOGMESSAGE_SOURCE_INCLUDE") != nil {
+		for _, filter := range config.Get().GetFilter("LOGMESSAGE_SOURCE_INCLUDE") {
 			if strings.Compare(strings.TrimSpace(filter), logSource) == 0 {
 				return true
 			}
@@ -171,8 +171,8 @@ func (n Nrevents) IsIncludedLogSource(
 func (n Nrevents) IsIncludedLogMessage(
 	logMessage string,
 ) bool {
-	if n.Config().GetFilter("LOGMESSAGE_MESSAGE_INCLUDE") != nil {
-		for _, filter := range n.Config().GetFilter("LOGMESSAGE_MESSAGE_INCLUDE") {
+	if config.Get().GetFilter("LOGMESSAGE_MESSAGE_INCLUDE") != nil {
+		for _, filter := range config.Get().GetFilter("LOGMESSAGE_MESSAGE_INCLUDE") {
 			if strings.Contains(logMessage, strings.TrimSpace(filter)) {
 				return true
 			}

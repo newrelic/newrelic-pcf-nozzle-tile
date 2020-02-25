@@ -53,10 +53,10 @@ func (m Metrics) HarvestMetrics(
 ) {
 
 	metric.SetAttribute("eventType",
-		m.Config().GetString(config.NewRelicEventTypeCounterEvent),
+		config.Get().GetString(config.NewRelicEventTypeCounterEvent),
 	)
 
-	metric.SetAttribute("agent.subscription", m.Config().GetString("FIREHOSE_ID"))
+	metric.SetAttribute("agent.subscription", config.Get().GetString("FIREHOSE_ID"))
 
 	metric.Attributes().
 		AppendAll(entity.Attributes())

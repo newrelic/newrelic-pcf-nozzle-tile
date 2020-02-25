@@ -22,7 +22,7 @@ func GetPCFAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
 	attrs := EntityAttributes(e)
 	et := reflect.TypeOf(e.Message).String()
 	if et == "*loggregator_v2.Envelope_Gauge" {
-		if isContainerMetric(e) {
+		if IsContainerMetric(e) {
 			et = "ContainerMetric"
 		} else {
 			et = "ValueMetric"
@@ -181,8 +181,8 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 
 }
 
-// isContainerMetric determines if the current v2 Gauge envelope is a v1 ContainerMetric or v1 ValueMetric
-func isContainerMetric(e *loggregator_v2.Envelope) bool {
+// IsContainerMetric determines if the current v2 Gauge envelope is a v1 ContainerMetric or v1 ValueMetric
+func IsContainerMetric(e *loggregator_v2.Envelope) bool {
 	gauge := e.GetGauge()
 	if len(gauge.Metrics) != 5 {
 		return false

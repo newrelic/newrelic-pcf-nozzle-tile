@@ -21,12 +21,9 @@ type NewRelic struct {
 	CFAppManager *cfapps.CFAppManager
 	Firehose     *firehose.Firehose
 	Router       *Router
-	Streams      Streams
 	Harvester    *Harvester
 	Harvest      *time.Ticker
 	Collector    *Collector
-	ErrorChan    chan error
-	Running      chan bool
 }
 
 // Start New Relic Processing

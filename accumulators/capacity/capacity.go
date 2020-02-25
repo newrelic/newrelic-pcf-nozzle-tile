@@ -217,7 +217,7 @@ func (m Metrics) HarvestMetrics(
 		"PCFCapacity",
 	)
 
-	metric.SetAttribute("agent.subscription", m.Config().GetString("FIREHOSE_ID"))
+	metric.SetAttribute("agent.subscription", config.Get().GetString("FIREHOSE_ID"))
 
 	metric.Attributes().AppendAll(entity.Attributes())
 
