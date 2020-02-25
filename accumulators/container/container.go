@@ -116,21 +116,8 @@ func calculateUsed(metric *metrics.Metric) float64 {
 	return (bytesUsed / bytesQuota) * 100
 }
 
-// GetTag ...
-func (m Metrics) GetTag(
-	e *loggregator_v2.Envelope,
-	ta string,
-) string {
-	if tv, ok := e.Tags[ta]; ok {
-		return tv
-	}
-	return ""
-}
-
 // ConvertSourceInstance from a string to int32
-func (m Metrics) ConvertSourceInstance(
-	i string,
-) int32 {
+func (m Metrics) ConvertSourceInstance(i string) int32 {
 	if num, err := strconv.ParseInt(i, 10, 32); err == nil {
 		return int32(num)
 	}

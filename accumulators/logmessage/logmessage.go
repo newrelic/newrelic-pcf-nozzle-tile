@@ -87,17 +87,11 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 }
 
 // HarvestMetrics - stub for LogMessages, which are all events...
-func (n Nrevents) HarvestMetrics(
-	entity *entities.Entity,
-	metric *metrics.Metric,
-) {
+func (n Nrevents) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric) {
 }
 
 // IsIncluded ...
-func (n Nrevents) IsIncluded(
-	logMessage string,
-	logSource string,
-) bool {
+func (n Nrevents) IsIncluded(logMessage string, logSource string) bool {
 	matchFound := false
 	srcMatchFound := n.IsIncludedLogSource(logSource)
 	msgMatchFound := n.IsIncludedLogMessage(logMessage)
@@ -108,10 +102,7 @@ func (n Nrevents) IsIncluded(
 }
 
 // IsExcluded ...
-func (n Nrevents) IsExcluded(
-	logMessage string,
-	logSource string,
-) bool {
+func (n Nrevents) IsExcluded(logMessage string, logSource string) bool {
 	// First include filter is a logSource include.
 	if n.IsExcludedLogSource(logSource) {
 		return true
@@ -124,9 +115,7 @@ func (n Nrevents) IsExcluded(
 }
 
 // IsExcludedLogSource determines if envelopes with this log source should be dropped.
-func (n Nrevents) IsExcludedLogSource(
-	logSource string,
-) bool {
+func (n Nrevents) IsExcludedLogSource(logSource string) bool {
 	if config.Get().GetFilter("LOGMESSAGE_SOURCE_EXCLUDE") != nil {
 		for _, filter := range config.Get().GetFilter("LOGMESSAGE_SOURCE_EXCLUDE") {
 			if strings.Compare(strings.TrimSpace(filter), logSource) == 0 {
@@ -138,9 +127,7 @@ func (n Nrevents) IsExcludedLogSource(
 }
 
 // IsExcludedLogMessage determines if envelopes with this log message should be dropped.
-func (n Nrevents) IsExcludedLogMessage(
-	logMessage string,
-) bool {
+func (n Nrevents) IsExcludedLogMessage(logMessage string) bool {
 	if config.Get().GetFilter("LOGMESSAGE_MESSAGE_EXCLUDE") != nil {
 		for _, filter := range config.Get().GetFilter("LOGMESSAGE_MESSAGE_EXCLUDE") {
 			if strings.Contains(logMessage, strings.TrimSpace(filter)) {
@@ -152,9 +139,7 @@ func (n Nrevents) IsExcludedLogMessage(
 }
 
 // IsIncludedLogSource determines if envelopes with this log source should be included.
-func (n Nrevents) IsIncludedLogSource(
-	logSource string,
-) bool {
+func (n Nrevents) IsIncludedLogSource(logSource string) bool {
 	if config.Get().GetFilter("LOGMESSAGE_SOURCE_INCLUDE") != nil {
 		for _, filter := range config.Get().GetFilter("LOGMESSAGE_SOURCE_INCLUDE") {
 			if strings.Compare(strings.TrimSpace(filter), logSource) == 0 {
@@ -168,9 +153,7 @@ func (n Nrevents) IsIncludedLogSource(
 }
 
 // IsIncludedLogMessage determines if envelopes with this log message should be included.
-func (n Nrevents) IsIncludedLogMessage(
-	logMessage string,
-) bool {
+func (n Nrevents) IsIncludedLogMessage(logMessage string) bool {
 	if config.Get().GetFilter("LOGMESSAGE_MESSAGE_INCLUDE") != nil {
 		for _, filter := range config.Get().GetFilter("LOGMESSAGE_MESSAGE_INCLUDE") {
 			if strings.Contains(logMessage, strings.TrimSpace(filter)) {
@@ -184,9 +167,7 @@ func (n Nrevents) IsIncludedLogMessage(
 }
 
 // ConvertSourceInstance from a string to int32
-func (n Nrevents) ConvertSourceInstance(
-	i string,
-) int32 {
+func (n Nrevents) ConvertSourceInstance(i string) int32 {
 	if num, err := strconv.ParseInt(i, 10, 32); err == nil {
 		return int32(num)
 	}

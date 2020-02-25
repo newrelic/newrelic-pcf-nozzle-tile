@@ -207,10 +207,7 @@ func (m Metrics) Drain() (c []*entities.Entity) {
 }
 
 // HarvestMetrics ...
-func (m Metrics) HarvestMetrics(
-	entity *entities.Entity,
-	metric *metrics.Metric,
-) {
+func (m Metrics) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric) {
 
 	metric.SetAttribute(
 		"eventType",
@@ -228,10 +225,7 @@ func (m Metrics) HarvestMetrics(
 }
 
 // GetTag ...
-func (m Metrics) GetTag(
-	e *loggregator_v2.Envelope,
-	ta string,
-) string {
+func (m Metrics) GetTag(e *loggregator_v2.Envelope, ta string) string {
 	if tv, ok := e.Tags[ta]; ok {
 		return tv
 	}

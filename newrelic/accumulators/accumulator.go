@@ -9,7 +9,6 @@ package accumulators
 
 import (
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/entities"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/metrics"
@@ -31,7 +30,6 @@ type Interface interface {
 type Accumulator struct {
 	Entities      *entities.Map
 	EnvelopeTypes []string
-	ctx           *app.Application
 }
 
 // NewAccumulator is generic and requires .Interface to be set
@@ -44,7 +42,6 @@ func NewAccumulator(t ...string) Accumulator {
 	return Accumulator{
 		Entities:      entities.NewMap(),
 		EnvelopeTypes: types,
-		ctx:           app.Get(),
 	}
 }
 

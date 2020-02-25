@@ -49,10 +49,7 @@ func (m Metrics) Update(e *loggregator_v2.Envelope) {
 }
 
 // HarvestMetrics ...
-func (m Metrics) HarvestMetrics(
-	entity *entities.Entity,
-	metric *metrics.Metric,
-) {
+func (m Metrics) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric) {
 
 	metric.SetAttribute(
 		"eventType",

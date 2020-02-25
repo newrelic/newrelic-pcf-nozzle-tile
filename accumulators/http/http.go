@@ -69,24 +69,16 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 }
 
 // HarvestMetrics (stub for HttpStartStop)...
-func (n Nrevents) HarvestMetrics(
-	entity *entities.Entity,
-	metric *metrics.Metric,
-) {
+func (n Nrevents) HarvestMetrics(entity *entities.Entity, metric *metrics.Metric) {
 }
 
 // GetDuration ...
-func (n Nrevents) GetDuration(
-	e *loggregator_v2.Envelope,
-) float64 {
+func (n Nrevents) GetDuration(e *loggregator_v2.Envelope) float64 {
 	return float64(time.Unix(0, e.GetTimer().GetStop()).Sub(time.Unix(0, e.GetTimer().GetStart()))) / float64(time.Millisecond)
 }
 
 // GetTag ...
-func (n Nrevents) GetTag(
-	e *loggregator_v2.Envelope,
-	ta string,
-) string {
+func (n Nrevents) GetTag(e *loggregator_v2.Envelope, ta string) string {
 	if tv, ok := e.Tags[ta]; ok {
 		return tv
 	}
