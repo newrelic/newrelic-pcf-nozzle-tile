@@ -49,13 +49,6 @@ func (s *Sample) NewMetric() *metrics.Metric {
 	return m
 }
 
-// Gauge Sample
-func Gauge() *Sample {
-	return &Sample{
-		T: metrics.Types.Gauge,
-	}
-}
-
 // Name of Metric ...
 func (s *Sample) Name(name string) *Sample {
 	s.name = name

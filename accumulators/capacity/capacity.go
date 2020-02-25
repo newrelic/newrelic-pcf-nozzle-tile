@@ -20,7 +20,6 @@ import (
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrpcf"
 )
 
-type entityID string
 type metricKeyword string
 
 func (k metricKeyword) String() string {

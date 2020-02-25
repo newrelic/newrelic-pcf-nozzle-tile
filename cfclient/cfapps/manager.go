@@ -24,8 +24,6 @@ func (e Error) Error() string {
 	return string(e)
 }
 
-const errorNotStarted = Error("CFApp not started when attempting to use")
-
 // Singleton
 var instance *CFAppManager
 

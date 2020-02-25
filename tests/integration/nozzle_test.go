@@ -5,6 +5,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -82,10 +83,15 @@ func runNozzleAndMocks() *apiMocks {
 }
 func closeNozzleAndMocks(a *apiMocks) {
 
+	logrus.Debug("killing process")
 	a.nozzle.Process.Kill()
+	logrus.Debug("Stopping uaa")
 	a.uaa.Stop()
+	logrus.Debug("Stopping firehose")
 	a.firehose.Stop()
+	logrus.Debug("Stopping cc")
 	a.cc.Stop()
+	logrus.Debug("Stopping insight")
 	a.insights.Stop()
 }
 

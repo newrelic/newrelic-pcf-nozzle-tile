@@ -9,7 +9,6 @@ import (
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/metrics"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/metrics/samples"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrevents"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/uid"
 )
 
@@ -18,7 +17,6 @@ type Entity struct {
 	uid        uid.ID
 	attributes *attributes.Attributes
 	metrics    *metrics.Map
-	nrevents   *nrevents.Nreventmap
 }
 
 // NewEntity ...
@@ -28,7 +26,6 @@ func NewEntity(
 	e := &Entity{
 		attributes: a,
 		metrics:    metrics.NewMap(),
-		nrevents:   nrevents.NewMap(),
 	}
 	return e
 }
