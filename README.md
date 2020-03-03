@@ -107,6 +107,15 @@ Make sure to assign proper values to all required environment variables. Any pro
 ​
 Import the tile from [releases][f] to Ops Mgr. Once imported, install the tile, and follow the steps detailed in the [Pivotal Partner Docs][i].
 ​
+## Import dashboard
+
+A VMware Tanzu dashboard could be manually imported to New Relic One Dashboards. You can follow this steps:
+1. Modify the [dashboard.json](/dashboard/dashboard.json) use your user account id to replace `"dashboard_account_id"=<NRF_NEWRELIC_ACCOUNT_ID>` 
+2. Go to [New Relic One Dashboards](https://one.newrelic.com/launcher/dashboards.launcher) and use the `import a dashboard` function on the top right.
+3. Copy and Paste the modified [dashboard.json](/dashboard/dashboard.json) and import the dashboard.
+
+>**Note:** Only Administrator user can import dashboards.
+
 
 ## Support
 
