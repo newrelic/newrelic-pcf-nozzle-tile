@@ -6,6 +6,8 @@ This code can be either pushed as a regular VMware Tanzu application with `cf pu
 ​
 The tile is also available in the [Pivotal Network][f] alongside the [documentation][h] describing how to configure and use the nozzle.
 ​
+See our documentation [web site](https://docs.newrelic.com/docs/vmwaretanzu-integration-new-relic-infrastructure) for more details.
+
 ## **Compatibility**
 ​
 The New Relic VMware Tanzu Nozzle Tile is compatible with VMware Tanzu **2.4** and higher.
@@ -109,12 +111,12 @@ Import the tile from [releases][f] to Ops Mgr. Once imported, install the tile, 
 ​
 ## Import dashboard
 
-A VMware Tanzu dashboard could be manually imported to New Relic One Dashboards. You can follow this steps:
-1. Modify the [dashboard.json](/dashboard/dashboard.json) use your user account id to replace `"dashboard_account_id"=<NRF_NEWRELIC_ACCOUNT_ID>` 
-2. Go to [New Relic One Dashboards](https://one.newrelic.com/launcher/dashboards.launcher) and use the `import a dashboard` function on the top right.
-3. Copy and Paste the modified [dashboard.json](/dashboard/dashboard.json) and import the dashboard.
+A VMware Tanzu dashboard could be manually imported to New Relic Insights Dashboards using the Insights Dashboard API. Follow [this documentation](https://docs.newrelic.com/docs/insights/insights-api/manage-dashboards/insights-dashboard-api) to get detailed information about where to obtain the Admin user API key and to use the API explorer.
 
->**Note:** Only Administrator user can import dashboards.
+1. Go to [API Explorer](https://rpm.newrelic.com/api/explore/dashboards/create)
+2. Use your [Admin user API key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#admin-api)
+3. Copy the content of [dashboard.json](/dashboard/dashboard.json) and paste to the dashboard parameter of the request.
+4. Send the request
 
 
 ## Support
