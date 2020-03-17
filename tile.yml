@@ -99,9 +99,6 @@ forms:
     optional: true
     label: Proxy Server Address and Port
     description: Specify the proxy server address and port if required (i.e. http://my_proxy_server:proxy_port)
-    constraints: 
-    - must_match_regex: '^http[s]?:\/\/[^:]+:\d+'
-      error_message: 'Proxy settings must match the format http://my_proxy_server:proxy_port or https://my_proxy_server:proxy_port'
   - name: no_proxy
     type: string
     optional: true
