@@ -23,9 +23,6 @@ func (e Error) Error() string {
 	return string(e)
 }
 
-const errorNotStarted = Error("CFApp not started when attempting to use")
-
-// Singleton
 var instance *CFAppManager
 var once sync.Once
 
@@ -42,16 +39,16 @@ type CFAppManager struct {
 // Start CFAppManager
 func Start(app *app.Application) *CFAppManager {
 
-	app.Log.Info("started CFAppManager")
-
-	instance = &CFAppManager{
-		app:         app,
-		client:      newClient(app),
-		clientLock:  &sync.RWMutex{},
-		Cache:       NewCache(),
-		rateManager: newRateManager(),
-	}
-
+	once.Do(func() {
+		app.Log.Info("started CFAppManager")
+		instance = &CFAppManager{
+			app:         app,
+			client:      newClient(app),
+			clientLock:  &sync.RWMutex{},
+			Cache:       NewCache(),
+			rateManager: newRateManager(),
+		}
+	})
 	return instance
 }
 
@@ -61,41 +58,27 @@ func GetInstance() *CFAppManager {
 }
 
 // GetAppInstanceAttributes ...
-func (c *CFAppManager) GetAppInstanceAttributes(
-	appID string,
-	instanceID int32,
-) (attrs *attributes.Attributes) {
+func (c *CFAppManager) GetAppInstanceAttributes(appID string, instanceID int32) (attrs *attributes.Attributes) {
 	return c.GetApp(appID).GetInstanceAttributes(instanceID)
 }
 
-// GetAppAttributes ...
-// func (c *CFAppManager) GetAppAttributes(
-// 	appID string,
-// ) (attrs *attributes.Attributes) {
-// 	return c.GetApp(appID).GetAttributes()
-// }
-
 // GetApp ...
-func (c *CFAppManager) GetApp(guid string) (app *CFApp) {
-	var found bool
-	if app, found = c.Cache.Get(guid); found {
+func (c *CFAppManager) GetApp(guid string) *CFApp {
+	if app, found := c.Cache.Get(guid); found {
 		return app
 	}
-	app = NewCFApp(guid)
-	c.Cache.Put(app)
-	c.updateAppAsync(app)
-	return
+	return c.Cache.Put(guid)
 }
 
-func (c *CFAppManager) updateAppAsync(app *CFApp) {
+func (c *CFAppManager) UpdateAppAsync(app *CFApp) {
 	go func() {
 		if err := c.FetchApp(app); err != nil {
 			if atomic.LoadInt32(&app.retryCount) > 2 {
-				c.app.Log.Warn("Max retries trying to fetch app: %s", app.GUID)
+				c.app.Log.Warn("Max retries trying to fetch app: ", app.GUID)
 				return
 			}
 			atomic.AddInt32(&app.retryCount, 1)
-			c.updateAppAsync(app)
+			c.UpdateAppAsync(app)
 		} else {
 			atomic.StoreInt32(&app.retryCount, 0)
 		}
