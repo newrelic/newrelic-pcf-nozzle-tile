@@ -67,18 +67,6 @@ func NewCFApp(guid string) *CFApp {
 	}
 }
 
-// SummaryByInstance ...
-/*
-func (a *CFApp) SummaryByInstance(index int32) *attributes.Attributes {
-	indexString := strconv.FormatInt(int64(index), 10)
-	if attrs, found := a.Summaries[indexString]; found {
-		return attrs
-	}
-	a.Summaries[indexString] = NewSummary(indexString)
-	return a.Summaries[indexString]
-}
-*/
-
 // GetInstanceAttributes ...
 func (a *CFApp) GetInstanceAttributes(id int32) (attrs *attributes.Attributes) {
 	attrs = attributes.NewAttributes()
@@ -95,11 +83,6 @@ func (a *CFApp) GetInstanceAttributes(id int32) (attrs *attributes.Attributes) {
 	attrs.SetAttribute(AppInstanceState, startValue)
 	return attrs
 }
-
-// GetAttributes returns Attribute struct with methods ...
-// func (a *CFApp) GetAttributes() *attributes.Attributes {
-// 	return a.Attributes
-// }
 
 // UpdateInstances ...
 func (a *CFApp) UpdateInstances() {

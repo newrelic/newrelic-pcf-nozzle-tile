@@ -59,16 +59,6 @@ func (b *rateManager) HasQueue() bool {
 	return atomic.LoadInt32(&b.queued) > 0
 }
 
-// GetQueued ...
-func (b *rateManager) GetQueued() int32 {
-	return atomic.LoadInt32(&b.queued)
-}
-
-// GetActive ...
-func (b *rateManager) GetActive() int32 {
-	return atomic.LoadInt32(&b.active)
-}
-
 func (b *rateManager) Wait() error {
 
 	atomic.AddInt32(&b.queued, 1)

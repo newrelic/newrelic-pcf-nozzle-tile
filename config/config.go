@@ -18,14 +18,6 @@ const envPrefix = "NRF"
 var instance *Config
 var once = &sync.Once{}
 
-// InsightsConfig configures Insights EventTypes and Attributes
-// for future developemt of backward capatability between this version
-// and v1
-// type InsightsConfig struct {
-// 	EventTypes map[events.Envelope_EventType]string
-// 	Attributes map[string]string
-// }
-
 // Config extending Viper...
 type Config struct {
 	*viper.Viper
@@ -85,7 +77,7 @@ func set() *Config {
 	// Rate limiter burst limit
 	v.SetDefault("FIREHOSE_RATE_BURST", 5)
 	// Rate limiter timeout in seconds.
-	v.SetDefault("FIREHOSE_RATE_TIMEOUT_SECS", 30)
+	v.SetDefault("FIREHOSE_RATE_TIMEOUT_SECS", 60)
 
 	v.BindEnv("NEWRELIC_INSERT_KEY")
 	v.BindEnv("NEWRELIC_ACCOUNT_ID")
