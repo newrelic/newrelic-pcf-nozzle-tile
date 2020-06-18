@@ -379,7 +379,9 @@ ReadingFromInsights:
 		select {
 		case rc := <-m.insights.ReceivedContents:
 			r := make([]map[string]interface{}, 10)
-			json.Unmarshal([]byte(rc), &r)
+			if err := json.Unmarshal([]byte(rc), &r); err != nil {
+				break
+			}
 			for _, rr := range r {
 				et := rr["eventType"].(string)
 				if et == PCFValueMetric || et == PCFContainerMetric || et == PCFCounterEvent {

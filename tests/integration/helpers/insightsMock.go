@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 )
 
 type MockInsights struct {
@@ -38,7 +39,12 @@ func (mI *MockInsights) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	rw.WriteHeader(http.StatusOK)
 	rw.Write([]byte(`{"success": true}`))
-	mI.ReceivedContents <- mI.decompress(contents)
+	c := mI.decompress(contents)
+	if strings.Contains(string(c), "insights heartbeat") {
+		//discard hearbet message
+		return
+	}
+	mI.ReceivedContents <- c
 }
 
 func (mI *MockInsights) decompress(src []byte) string {
