@@ -63,6 +63,7 @@ forms:
     type: string
     label: New Relic RPM Account ID
     description: New Relic RPM Account ID - signup @ https://newrelic.com/signup
+    configurable: true
   - name: nrf_newrelic_account_region
     type: dropdown_select
     label: New Relic RPM Account Region
@@ -73,15 +74,18 @@ forms:
         label: 'US'
       - name: EU
         label: 'EU'
+    configurable: true
   - name: nrf_newrelic_insert_key
     type: secret
     label: New Relic Insights Insert Key
     description: New Relic Insights Insert Key - obtain from your New Relic Insights https://insights.newrelic.com/accounts/<RPM_ID>/manage/api_keys
+    configurable: true
   - name: nrf_firehose_id
     type: string
     default: newrelic.firehose
     label: Firehose Subscription ID
     description: Firhose Subscription ID (i.e. newrelic.firehose).  Events will be load balanced across multiple nozzles with the same subscription ID in the same CF domain.
+    configurable: true
   - name: nozzle_instances
     type: integer
     default: 2
@@ -90,6 +94,7 @@ forms:
     constraints: 
       min: 1
       max: 30
+    configurable: true
 - name: newrelic-firehose-nozzle-advanced-properties
   label: Advanced Settings
   description: Advanced settings for New Relic Firehose Nozzle
@@ -99,21 +104,25 @@ forms:
     optional: true
     label: Proxy Server Address and Port
     description: Specify the proxy server address and port if required (i.e. http://my_proxy_server:proxy_port)
+    configurable: true
   - name: no_proxy
     type: string
     optional: true
     label: Proxy Bypass
     description: Specify any addresses that should bypass the proxy server.  Only include the server name or URL.  Do not specify any protocol or port
+    configurable: true
   - name: nrf_cf_skip_ssl
     type: boolean
     default: true
     label: Skip SSL Verification
     description: Skip SSL Verification (boolean true/false)
+    configurable: true
   - name: nrf_enabled_envelope_types
     type: string
     default: ContainerMetric,CounterEvent,HttpStartStop,LogMessage,ValueMetric
     label: Selected Events
     description: Comma or Pipe separated list of enabled event types (i.e. ValueMetric,CounterEvent,ContainerMetric)
+    configurable: true
   - name: nrf_newrelic_drain_interval
     type: dropdown_select
     default: '59s'
@@ -128,6 +137,7 @@ forms:
         label: '120s'
     label: Drain Interval
     description: How often aggregated metrics should be sent to New Relic Insights (default 60s). Events (LogMessage and HttpStartStop) are sent immediately.
+    configurable: true
   - name: nrf_firehose_http_timeout_mins
     type: integer
     default: 16
@@ -135,6 +145,7 @@ forms:
     description: HTTP connection timeout (in minutes).  If a connection lasts longer than this threshold, it will be destroyed and a new connection will be automatically created.
     constraints:
       min: 15
+    configurable: true
   - name: nrf_firehose_restart_thresh_secs
     type: integer
     default: 15
@@ -142,6 +153,7 @@ forms:
     description: Number of seconds with no messages from the nozzle before the Reverse Log Proxy Gateway connection is cancelled and recreated.
     constraints:
       min: 15
+    configurable: true
   - name: nrf_firehose_diode_buffer
     type: integer
     default: 8192
@@ -149,6 +161,7 @@ forms:
     description: Number of messages that can be held in the queue before messages are dropped.  Log message Firehose diode dropped X messages will be generated if the queue fills
     constraints:
       min: 6000
+    configurable: true
   - name: nrf_log_level
     type: dropdown_select
     default: INFO
@@ -159,16 +172,19 @@ forms:
         label: 'DEBUG'
     label: Log Level
     description: Log verbosity.
+    configurable: true
   - name: nrf_newrelic_custom_url
     type: string
     label: New Relic Custom URL
     optional: true
     description: (Rarely used) Set it if you want to override the usual API endpoint used to send data
+    configurable: true
   - name: nrf_tracer
     type: boolean
     default: false
     label: Enable Tracer
     description: Enable tracer logging functionality.  Warning - this is extremely verbose.  (boolean true/false)
+    configurable: true
 - name: newrelic-firehose-nozzle-log-filters
   label: LogMessage Filters
   description: Filters to include/exclude LogMessage events
@@ -178,18 +194,22 @@ forms:
     optional: true
     label: LogMessage Source Include Filter
     description: Ignore events unless the source matches a source in this list.  For example, RTR or APP/PROC/WEB.  Multiple sources can be included as long as they are , or | separated.
+    configurable: true
   - name: nrf_logmessage_source_exclude
     type: string
     optional: true
     label: LogMessage Source Exclude Filter
     description: Ignore events if the source matches a source in this list.  For example, RTR or APP/PROC/WEB.  Multiple sources can be included as long as they are , or | separated.  Exclude filters are processed after include filters.
+    configurable: true
   - name: nrf_logmessage_message_include
     type: string
     optional: true
     label: LogMessage Message Content Include Filter
     description: Ignore events unless the message contains a pattern in this list.  For example, ERROR or crashed.  Multiple patterns can be included as long as they are , or | separated.
+    configurable: true
   - name: nrf_logmessage_message_exclude
     type: string
     optional: true
     label: LogMessage Message Content Exclude Filter
     description: Ignore events if the message contains a pattern in this list.  For example, GET or DEBUG.  Multiple patterns can be included as long as they are , or | separated.  Exclude filters are processed after include filters.
+    configurable: true
