@@ -125,7 +125,6 @@ A VMware Tanzu dashboard could be manually imported to New Relic dashboards usin
 Should you need assistance with New Relic products, you are in good hands with several support diagnostic tools and support channels.
 
 
->New Relic offers NRDiag, [a client-side diagnostic utility](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) that automatically detects common problems with New Relic agents. If NRDiag detects a problem, it suggests troubleshooting steps. NRDiag can also automatically attach troubleshooting data to a New Relic Support ticket. Remove this section if it doesn't apply.
 
 If the issue has been confirmed as a bug or is a feature request, file a GitHub issue.
 
