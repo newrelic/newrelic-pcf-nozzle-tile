@@ -63,14 +63,19 @@ func (c *CFAppManager) GetAppInstanceAttributes(appID string, instanceID int32) 
 }
 
 // GetApp ...
-func (c *CFAppManager) GetApp(guid string) *CFApp {
-	if app, found := c.Cache.Get(guid); found {
+func (c *CFAppManager) GetApp(guid string) (app *CFApp) {
+	var found bool
+	if app, found = c.Cache.Get(guid); found {
 		return app
 	}
-	return c.Cache.Put(guid)
+	app = NewCFApp(guid)
+	c.app.Log.Debug("Adding new app: ", guid)
+	c.Cache.Put(app)
+	c.updateAppAsync(app)
+	return app
 }
 
-func (c *CFAppManager) UpdateAppAsync(app *CFApp) {
+func (c *CFAppManager) updateAppAsync(app *CFApp) {
 	go func() {
 		if err := c.FetchApp(app); err != nil {
 			if atomic.LoadInt32(&app.retryCount) > 2 {
@@ -78,7 +83,7 @@ func (c *CFAppManager) UpdateAppAsync(app *CFApp) {
 				return
 			}
 			atomic.AddInt32(&app.retryCount, 1)
-			c.UpdateAppAsync(app)
+			c.updateAppAsync(app)
 		} else {
 			atomic.StoreInt32(&app.retryCount, 0)
 		}
