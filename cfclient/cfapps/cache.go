@@ -12,15 +12,17 @@ import (
 
 // Cache ...
 type Cache struct {
-	Collection map[string]*CFApp
-	sync       *sync.RWMutex
+	Collection  map[string]*CFApp
+	WriteBuffer chan *CFApp
+	sync        *sync.RWMutex
 }
 
 // NewCache ...
 func NewCache() *Cache {
 	cache := &Cache{
-		Collection: map[string]*CFApp{},
-		sync:       &sync.RWMutex{},
+		Collection:  map[string]*CFApp{},
+		WriteBuffer: make(chan *CFApp, 1024),
+		sync:        &sync.RWMutex{},
 	}
 	cache.Start()
 	return cache
@@ -57,6 +59,11 @@ func (c *Cache) Start() {
 					v.UpdateInstances()
 				}
 				c.sync.RUnlock()
+
+			case app := <-c.WriteBuffer:
+				c.sync.Lock()
+				c.Collection[app.GUID] = app
+				c.sync.Unlock()
 			}
 		}
 	}()
@@ -74,17 +81,6 @@ func (c *Cache) Get(id string) (app *CFApp, found bool) {
 }
 
 // Put ...
-func (c *Cache) Put(id string) *CFApp {
-	c.sync.Lock()
-	defer c.sync.Unlock()
-
-	if app, found := c.Collection[id]; found {
-		return app
-	}
-	GetInstance().app.Log.Debug("Adding new app: ", id)
-	app := NewCFApp(id)
-	c.Collection[app.GUID] = app
-	GetInstance().UpdateAppAsync(app)
-
-	return app
+func (c *Cache) Put(app *CFApp) {
+	c.WriteBuffer <- app
 }
