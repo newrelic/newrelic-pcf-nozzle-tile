@@ -26,12 +26,12 @@ type Config struct {
 // Get Config with defaults
 func Get() *Config {
 	once.Do(func() {
-		instance = set()
+		instance = Set()
 	})
 	return instance
 }
 
-func set() *Config {
+func Set() *Config {
 
 	v := viper.New()
 
@@ -84,6 +84,7 @@ func set() *Config {
 
 	v.SetDefault("LOG_LEVEL", "INFO")
 	v.SetDefault("TRACER", false)
+	v.SetDefault("PPROF", false)
 
 	v.SetDefault(EnvFirehoseID, "newrelic-firehose")
 	v.SetDefault("FIREHOSE_DIODE_BUFFER", 8192)

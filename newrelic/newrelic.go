@@ -4,8 +4,12 @@
 package newrelic
 
 import (
+	"net/http"
 	"os"
+	"runtime"
 	"time"
+
+	_ "net/http/pprof"
 
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/cfclient/cfapps"
@@ -32,6 +36,13 @@ type NewRelic struct {
 func Start(interupt <-chan os.Signal) {
 
 	app := app.Get()
+
+	if app.Config.GetBool("PPROF") {
+		go func() {
+			runtime.SetBlockProfileRate(1)
+			app.Log.Println(http.ListenAndServe("localhost:6060", nil))
+		}()
+	}
 
 	nr := &NewRelic{
 		App:          app,

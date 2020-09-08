@@ -10,6 +10,8 @@ import (
 	"strings"
 	"syscall"
 
+	_ "net/http/pprof"
+
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic"
 )
@@ -18,7 +20,6 @@ import (
 var Version string
 
 func main() {
-
 	version()
 	interupt := make(chan os.Signal, 1)
 	signal.Notify(interupt, os.Interrupt, os.Kill, syscall.SIGTERM)
