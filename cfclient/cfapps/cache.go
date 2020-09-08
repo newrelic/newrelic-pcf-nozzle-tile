@@ -54,11 +54,11 @@ func (c *Cache) Start() {
 
 			case <-update:
 				GetInstance().app.Log.Debug("Updating status of applications")
-				c.sync.RLock()
+				// c.sync.RLock()
 				for _, v := range c.Collection {
 					v.UpdateInstances()
 				}
-				c.sync.RUnlock()
+				// c.sync.RUnlock()
 
 			case app := <-c.WriteBuffer:
 				c.sync.Lock()

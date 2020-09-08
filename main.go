@@ -10,8 +10,6 @@ import (
 	"strings"
 	"syscall"
 
-	_ "net/http/pprof"
-
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic"
 )
