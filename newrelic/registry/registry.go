@@ -4,7 +4,6 @@
 package registry
 
 import (
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/accumulators/capacity"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/accumulators/container"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/accumulators/counter"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/accumulators/http"
@@ -21,7 +20,6 @@ var Register = &Accumulators{
 	counter.Metrics{},
 	container.Metrics{},
 	value.Metrics{},
-	capacity.Metrics{},
 	logmessage.Nrevents{},
 	http.Nrevents{},
 }

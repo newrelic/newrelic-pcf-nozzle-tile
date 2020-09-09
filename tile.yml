@@ -162,6 +162,22 @@ forms:
     constraints:
       min: 6000
     configurable: true
+  - name: nrf_firehose_cache_update_interval_secs
+    type: integer
+    default: 60
+    label: Cache update interval
+    description: Number of seconds that all apps in the cache are updated at this interval.
+    constraints:
+      min: 30
+    configurable: true
+  - name: nrf_firehose_cache_write_buffer_size
+    type: integer
+    default: 2048
+    label: Cache Write Buffer Size
+    description: Size of the Write Buffer Cache.
+    constraints:
+      min: 1024
+    configurable: true
   - name: nrf_log_level
     type: dropdown_select
     default: INFO

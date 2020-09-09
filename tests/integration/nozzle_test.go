@@ -129,63 +129,6 @@ func TestValueMetric(t *testing.T) {
 
 }
 
-func TestCapacityMetric(t *testing.T) {
-	t.Parallel()
-	m := runNozzleAndMocks()
-	m.firehose.AddEvent(loggregator_v2.Envelope{
-		Tags: map[string]string{
-			"job": "diego_cell",
-		},
-		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
-		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
-		Message: &loggregator_v2.Envelope_Gauge{
-			Gauge: &loggregator_v2.Gauge{
-				Metrics: map[string]*loggregator_v2.GaugeValue{
-					"CapacityRemainingContainers": &loggregator_v2.GaugeValue{
-						Unit:  "bytes",
-						Value: float64(25),
-					},
-					"CapacityTotalContainers": &loggregator_v2.GaugeValue{
-						Unit:  "bytes",
-						Value: float64(100),
-					},
-				},
-			},
-		},
-	})
-	m.firehose.PublishBatch()
-
-	rCapacity := make(map[string]interface{})
-ReadingFromInsights:
-	for {
-		select {
-		case rc := <-m.insights.ReceivedContents:
-			r := make([]map[string]interface{}, 10)
-			json.Unmarshal([]byte(rc), &r)
-			for i, rr := range r {
-				et := rr["eventType"].(string)
-				if et == "PCFCapacity" {
-					rCapacity = r[i]
-					break ReadingFromInsights
-				}
-			}
-		case <-time.After(10 * time.Second):
-			break ReadingFromInsights
-		}
-	}
-	closeNozzleAndMocks(m)
-
-	assert.EqualValues(t, "PCFCapacity", rCapacity["eventType"])
-	assert.EqualValues(t, 75, rCapacity["metric.sample.last.value"])
-	assert.EqualValues(t, "CapacityRemainingContainers", rCapacity["metric.source.remaining"])
-	assert.EqualValues(t, 25, rCapacity["metric.source.remaining.value"])
-	assert.EqualValues(t, "CapacityTotalContainers", rCapacity["metric.source.total"])
-	assert.EqualValues(t, 100, rCapacity["metric.source.total.value"])
-	assert.EqualValues(t, "containers.used", rCapacity["metric.name"])
-	assert.EqualValues(t, 75, rCapacity["metric.sample.last.value"])
-
-}
-
 func TestLogMessage(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()

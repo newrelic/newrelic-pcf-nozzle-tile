@@ -74,6 +74,10 @@ func set() *Config {
 
 	// Cache purge threshold in minutes
 	v.SetDefault("FIREHOSE_CACHE_DURATION_MINS", 30)
+	// Cache instance update in seconds
+	v.SetDefault("FIREHOSE_CACHE_UPDATE_INTERVAL_SECS", 60)
+	// Cache instance update in seconds
+	v.SetDefault("FIREHOSE_CACHE_WRITE_BUFFER_SIZE", 2048)
 	// Rate limiter burst limit
 	v.SetDefault("FIREHOSE_RATE_BURST", 5)
 	// Rate limiter timeout in seconds.
@@ -91,8 +95,6 @@ func set() *Config {
 	v.SetDefault("FIREHOSE_RESTART_THRESH_SECS", 15)
 	v.SetDefault("NEWRELIC_DRAIN_INTERVAL", "59s")
 	v.SetDefault("NEWRELIC_ENQUEUE_TIMEOUT", "1s")
-
-	v.SetDefault("CAPACITY_ENTITY_AGE_MINS", 5)
 
 	v.SetDefault(NewRelicEventTypeContainer, "PCFContainerMetric")
 	v.SetDefault(NewRelicEventTypeValueMetric, "PCFValueMetric")
@@ -128,7 +130,6 @@ func set() *Config {
 
 	// Filtering capabilities for envelope types - | separated values.
 	// By default, all message types are enabled.  User configurations will override this behavior.
-	// Capacity accumulator is enabled by default when ValueMetric is enabled.
 	v.SetDefault("ENABLED_ENVELOPE_TYPES", "ContainerMetric|CounterEvent|HttpStartStop|LogMessage|ValueMetric")
 
 	// Default account location will be US unless set to EU by cf push or tile.
