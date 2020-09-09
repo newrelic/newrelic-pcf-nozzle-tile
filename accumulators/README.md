@@ -11,6 +11,5 @@ All metrics include the PCF meta data. Only PCFContainerMetric and PCFLogMessage
 | PCFContainerMetric | ContainerMetric | Application specific metrics | [`accumulators/container/container.go`](container/container.go)
 | PCFValueMetric | ValueMetric | PCF System metrics of multiple metric types | [`accumulators/value/value.go`](value/value.go)
 | PCFCounterEvent | CounterEvent | PCF System metrics as counter types only | [`accumulators/counter/counter.go`](counter/counter.go)
-| PCFCapacity | ValueMetric | PCF System metric, derived from Total and Remaining samples in order to provide percent used. | [`accumulators/capacity/capacity.go`](capacity/capacity.go)
 | PCFLogMessage | LogMessage | PCF Logs | [`accumulators/logmessage/logmessage.go`](logmessage/logmessage.go)
 | PCFHttpStartStop | HttpStartStop | PCF HTTP request details | [`accumulators/http/http.go`](http/http.go)

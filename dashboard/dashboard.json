@@ -19,7 +19,7 @@
           },
           "data": [
             {
-              "nrql": "SELECT count(*) AS 'Event Count' FROM PCFCapacity, PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric facet pcf.domain"
+              "nrql": "SELECT count(*) AS 'Event Count' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric facet pcf.domain"
             }
           ],
           "presentation": {
@@ -365,7 +365,7 @@
           },
           "data": [
             {
-              "nrql": "SELECT count(*) as 'All Events' FROM PCFCapacity, PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric TIMESERIES"
+              "nrql": "SELECT count(*) as 'All Events' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric TIMESERIES"
             }
           ],
           "presentation": {
@@ -376,7 +376,6 @@
       ],
       "filter": {
         "event_types": [
-          "PCFCapacity",
           "PCFContainerMetric",
           "PCFCounterEvent",
           "PCFHttpStartStop",

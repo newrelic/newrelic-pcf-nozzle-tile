@@ -96,8 +96,6 @@ func set() *Config {
 	v.SetDefault("NEWRELIC_DRAIN_INTERVAL", "59s")
 	v.SetDefault("NEWRELIC_ENQUEUE_TIMEOUT", "1s")
 
-	v.SetDefault("CAPACITY_ENTITY_AGE_MINS", 5)
-
 	v.SetDefault(NewRelicEventTypeContainer, "PCFContainerMetric")
 	v.SetDefault(NewRelicEventTypeValueMetric, "PCFValueMetric")
 	v.SetDefault(NewRelicEventTypeCounterEvent, "PCFCounterEvent")
@@ -132,7 +130,6 @@ func set() *Config {
 
 	// Filtering capabilities for envelope types - | separated values.
 	// By default, all message types are enabled.  User configurations will override this behavior.
-	// Capacity accumulator is enabled by default when ValueMetric is enabled.
 	v.SetDefault("ENABLED_ENVELOPE_TYPES", "ContainerMetric|CounterEvent|HttpStartStop|LogMessage|ValueMetric")
 
 	// Default account location will be US unless set to EU by cf push or tile.
