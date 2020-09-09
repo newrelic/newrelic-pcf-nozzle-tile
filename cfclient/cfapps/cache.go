@@ -15,13 +15,14 @@ type Cache struct {
 	Collection  map[string]*CFApp
 	WriteBuffer chan *CFApp
 	sync        *sync.RWMutex
+	isUpdating  bool
 }
 
 // NewCache ...
 func NewCache() *Cache {
 	cache := &Cache{
 		Collection:  map[string]*CFApp{},
-		WriteBuffer: make(chan *CFApp, 1024),
+		WriteBuffer: make(chan *CFApp, app.Get().Config.GetDuration("FIREHOSE_CACHE_WRITE_BUFFER_SIZE")),
 		sync:        &sync.RWMutex{},
 	}
 	cache.Start()
@@ -32,7 +33,8 @@ func NewCache() *Cache {
 func (c *Cache) Start() {
 	go func() {
 		cacheDuration := app.Get().Config.GetDuration("FIREHOSE_CACHE_DURATION_MINS")
-		update := time.NewTicker(30 * time.Second).C
+		cacheUpdate := app.Get().Config.GetDuration("FIREHOSE_CACHE_UPDATE_INTERVAL_SECS")
+		update := time.NewTicker(cacheUpdate * time.Second).C
 		timeoutCache := time.NewTicker(cacheDuration * time.Minute).C
 
 		for {
@@ -53,12 +55,9 @@ func (c *Cache) Start() {
 				c.sync.Unlock()
 
 			case <-update:
-				GetInstance().app.Log.Debug("Updating status of applications")
-				c.sync.RLock()
-				for _, v := range c.Collection {
-					v.UpdateInstances()
+				if !c.isUpdating {
+					go c.updateInstances()
 				}
-				c.sync.RUnlock()
 
 			case app := <-c.WriteBuffer:
 				c.sync.Lock()
@@ -67,6 +66,26 @@ func (c *Cache) Start() {
 			}
 		}
 	}()
+}
+
+func (c *Cache) updateInstances() {
+	c.isUpdating = true
+	GetInstance().app.Log.Debug("Updating status of applications")
+	now := time.Now()
+
+	var apps []*CFApp
+	c.sync.RLock()
+	for _, v := range c.Collection {
+		apps = append(apps, v)
+	}
+	c.sync.RUnlock()
+
+	for _, a := range apps {
+		a.UpdateInstances()
+	}
+
+	c.isUpdating = false
+	GetInstance().app.Log.Debugf("Finish cache updating %s", time.Since(now))
 }
 
 // Get ...

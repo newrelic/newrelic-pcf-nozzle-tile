@@ -74,6 +74,10 @@ func set() *Config {
 
 	// Cache purge threshold in minutes
 	v.SetDefault("FIREHOSE_CACHE_DURATION_MINS", 30)
+	// Cache instance update in seconds
+	v.SetDefault("FIREHOSE_CACHE_UPDATE_INTERVAL_SECS", 60)
+	// Cache instance update in seconds
+	v.SetDefault("FIREHOSE_CACHE_WRITE_BUFFER_SIZE", 2048)
 	// Rate limiter burst limit
 	v.SetDefault("FIREHOSE_RATE_BURST", 5)
 	// Rate limiter timeout in seconds.
