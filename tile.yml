@@ -123,6 +123,18 @@ forms:
     label: Selected Events
     description: Comma or Pipe separated list of enabled event types (i.e. ValueMetric,CounterEvent,ContainerMetric)
     configurable: true
+  - name: nrf_logs_http
+    type: boolean
+    default: false
+    label: Enable New Relic Logs - HttpStartStop
+    description: Send HttpStartStop (Timer) envelopes to New Relic Logs (boolean true/false)
+    configurable: true
+  - name: nrf_logs_logmessage
+    type: boolean
+    default: false
+    label: Enable New Relic Logs - LogMessage
+    description: Send LogMessage envelopes to New Relic Logs (boolean true/false)
+    configurable: true
   - name: nrf_newrelic_drain_interval
     type: dropdown_select
     default: '59s'

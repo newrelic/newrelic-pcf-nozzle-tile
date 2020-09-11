@@ -74,14 +74,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:bbc4aacabe6880bdbce849c64cb061b7eddf39f132af4ea2853ddd32f85fbec3"
-  name = "github.com/fatih/camelcase"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
-  version = "v1.0.0"
-
-[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -104,6 +96,30 @@
   pruneopts = "UT"
   revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
   version = "v1.3.2"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "UT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:af105c7c5dc0b4ae41991f122cae860b9600f7d226072c2a83127048c991660c"
+  name = "github.com/hashicorp/go-cleanhttp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "eda1e5db218aad1db63ca4642c8906b26bcf2744"
+  version = "v0.5.1"
+
+[[projects]]
+  digest = "1:68762e0b3e9df72442223ed8a24bf7cc1ffe06bfd2125058aebb72ff53bf6f93"
+  name = "github.com/hashicorp/go-retryablehttp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "37b3e74def0253ff1b172b0f474f5f8d675c117e"
+  version = "v0.6.7"
 
 [[projects]]
   digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
@@ -163,12 +179,22 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:4892772f6084d01053588ef625e741095a33b12838c54b55bc7747fb5e7e5f25"
-  name = "github.com/newrelic/go-insights"
-  packages = ["client"]
+  digest = "1:bb2be9c45d20a0c4941293b75e03f5f0cb5aeee30a0bc03da652d4e218d2c1ea"
+  name = "github.com/newrelic/newrelic-client-go"
+  packages = [
+    "internal/http",
+    "internal/logging",
+    "internal/version",
+    "pkg/config",
+    "pkg/errors",
+    "pkg/events",
+    "pkg/logs",
+    "pkg/region",
+    "pkg/testhelpers",
+  ]
   pruneopts = "UT"
-  revision = "339645ebce3d8e96e9ecf813efef37bf791462f4"
-  version = "v1.0.3"
+  revision = "253a325f566cdff31342e5eede79b61f52b2f9c1"
+  version = "v0.41.0"
 
 [[projects]]
   digest = "1:89a071f4773bd23b5f03a31653b05dfe8cb708254aeb34d4cdb9651a4ddcbd6d"
@@ -294,9 +320,12 @@
   version = "v1.6.1"
 
 [[projects]]
-  digest = "1:8548c309c65a85933a625be5e7d52b6ac927ca30c56869fae58123b8a77a75e1"
+  digest = "1:99d32780e5238c2621fff621123997c3e3cca96db8be13179013aea77dfab551"
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = [
+    "assert",
+    "require",
+  ]
   pruneopts = "UT"
   revision = "221dbe5ed46703ee255b1da0dec05086f5035f62"
   version = "v1.4.0"
@@ -308,6 +337,14 @@
   pruneopts = "UT"
   revision = "2ef7124db659d49edac6aa459693a15ae36c671a"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:2d4fb9b356677993030586c4f45809943769647e3f863327ebdabe80f3dc768c"
+  name = "github.com/tomnomnom/linkheader"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6953a30d444317754766fccdd3f7f000edc874f6"
+  version = "0.1.0"
 
 [[projects]]
   branch = "master"
@@ -506,9 +543,11 @@
     "github.com/cloudfoundry-community/go-cfclient",
     "github.com/cloudfoundry-incubator/uaago",
     "github.com/cloudfoundry/go-loggregator",
-    "github.com/fatih/camelcase",
     "github.com/golang/protobuf/jsonpb",
-    "github.com/newrelic/go-insights/client",
+    "github.com/newrelic/newrelic-client-go/pkg/config",
+    "github.com/newrelic/newrelic-client-go/pkg/events",
+    "github.com/newrelic/newrelic-client-go/pkg/logs",
+    "github.com/newrelic/newrelic-client-go/pkg/region",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/sirupsen/logrus",

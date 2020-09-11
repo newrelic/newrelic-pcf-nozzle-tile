@@ -4,6 +4,7 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -105,7 +106,7 @@ func (m Metrics) HarvestMetrics(
 	// Get a client for this metric - checking for insert key and account ID info in the application
 	// We will default to what is in the configuration file	if application specific info isn't found
 	client := nrpcf.GetInsertClientForApp(entity)
-	client.EnqueueEvent(metric.Marshal())
+	client.EnqueueEvent(context.Background(), metric.Marshal())
 
 }
 

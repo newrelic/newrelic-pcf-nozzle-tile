@@ -6,7 +6,7 @@ package newrelic
 import (
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/accumulators"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/insights"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrclients"
 )
 
 // Harvester ...
@@ -38,6 +38,6 @@ func (h *Harvester) Harvest() {
 		}
 	}
 	app.Get().Log.Debug("Harvest COMPLETE")
-	// Tell the InsertManager to flush all clients.
-	insights.New().FlushAll()
+	// Tell the ClientManager to flush all clients.
+	nrclients.New().FlushAll()
 }

@@ -46,12 +46,8 @@
   version = "7.7.0"
 
 [[constraint]]
-  name = "github.com/fatih/camelcase"
-  version = "1.0.0"
-
-[[constraint]]
-  name = "github.com/newrelic/go-insights"
-  version = "1.0.3"
+  name = "github.com/newrelic/newrelic-client-go"
+  version = "0.41.0"
 
 [[constraint]]
   name = "github.com/onsi/ginkgo"
