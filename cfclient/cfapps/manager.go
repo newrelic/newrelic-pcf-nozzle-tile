@@ -118,7 +118,7 @@ func (c *CFAppManager) FetchApp(a *CFApp) error {
 	}
 
 	c.clientLock.RLock()
-	result, err := c.client.GetAppByGuid(a.GUID)
+	result, err := c.client.GetAppByGuidNoInlineCall(a.GUID)
 	c.clientLock.RUnlock()
 	c.app.Log.Tracer("^")
 
