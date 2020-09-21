@@ -15,11 +15,11 @@ import (
 	"testing"
 	"time"
 
+	loggregator "code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
+	mocks "github.com/newrelic/newrelic-pcf-nozzle-tile/tests/integration/helpers"
+
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/stretchr/testify/assert"
-
-	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	mocks "github.com/newrelic/newrelic-pcf-nozzle-tile/tests/integration/helpers"
 )
 
 var port int
@@ -93,13 +93,13 @@ func TestValueMetric(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
 	for i := float64(1); i < 11; i++ {
-		e := loggregator_v2.Envelope{
+		e := loggregator.Envelope{
 			SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 			InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
-			Message: &loggregator_v2.Envelope_Gauge{
-				Gauge: &loggregator_v2.Gauge{
-					Metrics: map[string]*loggregator_v2.GaugeValue{
-						"name": &loggregator_v2.GaugeValue{
+			Message: &loggregator.Envelope_Gauge{
+				Gauge: &loggregator.Gauge{
+					Metrics: map[string]*loggregator.GaugeValue{
+						"name": &loggregator.GaugeValue{
 							Unit:  "counter",
 							Value: i,
 						},
@@ -133,13 +133,13 @@ func TestLogMessage(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
 
-	m.firehose.AddEvent(loggregator_v2.Envelope{
+	m.firehose.AddEvent(loggregator.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
-		Message: &loggregator_v2.Envelope_Log{
-			Log: &loggregator_v2.Log{
+		Message: &loggregator.Envelope_Log{
+			Log: &loggregator.Log{
 				Payload: []byte("logtest"),
-				Type:    loggregator_v2.Log_OUT,
+				Type:    loggregator.Log_OUT,
 			},
 		},
 	})
@@ -161,29 +161,29 @@ func TestContainerMetric(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
 
-	m.firehose.AddEvent(loggregator_v2.Envelope{
+	m.firehose.AddEvent(loggregator.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
-		Message: &loggregator_v2.Envelope_Gauge{
-			Gauge: &loggregator_v2.Gauge{
-				Metrics: map[string]*loggregator_v2.GaugeValue{
-					"cpu": &loggregator_v2.GaugeValue{
+		Message: &loggregator.Envelope_Gauge{
+			Gauge: &loggregator.Gauge{
+				Metrics: map[string]*loggregator.GaugeValue{
+					"cpu": &loggregator.GaugeValue{
 						Unit:  "percent",
 						Value: float64(2),
 					},
-					"memory": &loggregator_v2.GaugeValue{
+					"memory": &loggregator.GaugeValue{
 						Unit:  "bytes",
 						Value: float64(10),
 					},
-					"disk": &loggregator_v2.GaugeValue{
+					"disk": &loggregator.GaugeValue{
 						Unit:  "bytes",
 						Value: float64(25),
 					},
-					"memory_quota": &loggregator_v2.GaugeValue{
+					"memory_quota": &loggregator.GaugeValue{
 						Unit:  "bytes",
 						Value: float64(1000),
 					},
-					"disk_quota": &loggregator_v2.GaugeValue{
+					"disk_quota": &loggregator.GaugeValue{
 						Unit:  "bytes",
 						Value: float64(2000),
 					},
@@ -220,11 +220,11 @@ func TestCounterEvent(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
 
-	m.firehose.AddEvent(loggregator_v2.Envelope{
+	m.firehose.AddEvent(loggregator.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
-		Message: &loggregator_v2.Envelope_Counter{
-			Counter: &loggregator_v2.Counter{
+		Message: &loggregator.Envelope_Counter{
+			Counter: &loggregator.Counter{
 				Name:  "name",
 				Delta: 10,
 				Total: 100,
@@ -250,7 +250,7 @@ func TestHTTPStartStop(t *testing.T) {
 	t.Parallel()
 	m := runNozzleAndMocks()
 
-	m.firehose.AddEvent(loggregator_v2.Envelope{
+	m.firehose.AddEvent(loggregator.Envelope{
 		SourceId:   "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		InstanceId: "c70684e2-4443-4ed5-8dc8-28b7cf7d97ed",
 		Tags: map[string]string{
@@ -259,8 +259,8 @@ func TestHTTPStartStop(t *testing.T) {
 			"peer_type":  "Server",
 			"user_agent": "Go-http-client/1.1",
 		},
-		Message: &loggregator_v2.Envelope_Timer{
-			Timer: &loggregator_v2.Timer{
+		Message: &loggregator.Envelope_Timer{
+			Timer: &loggregator.Timer{
 				Name:  "test",
 				Start: 10000000,
 				Stop:  11000000,
@@ -298,7 +298,7 @@ func TestDataDump(t *testing.T) {
 	jsonDec := json.NewDecoder(buf)
 
 	eventSentCount := make(map[string]int)
-	e := &loggregator_v2.Envelope{}
+	e := &loggregator.Envelope{}
 	go func() {
 		for i := 0; ; i++ {
 			if err := jsonpb.UnmarshalNext(jsonDec, e); err != nil {
@@ -362,7 +362,7 @@ func readInsights(t *testing.T, m *apiMocks) string {
 	return ""
 }
 
-func getEnvelopeType(e *loggregator_v2.Envelope) string {
+func getEnvelopeType(e *loggregator.Envelope) string {
 	et := reflect.TypeOf(e.Message).String()
 	if et == "*loggregator_v2.Envelope_Gauge" {
 		if isContainerMetric(e) {
@@ -384,7 +384,7 @@ func getEnvelopeType(e *loggregator_v2.Envelope) string {
 }
 
 // isContainerMetric determines if the current v2 Gauge envelope is a v1 ContainerMetric or v1 ValueMetric
-func isContainerMetric(e *loggregator_v2.Envelope) bool {
+func isContainerMetric(e *loggregator.Envelope) bool {
 	gauge := e.GetGauge()
 	if len(gauge.Metrics) != 5 {
 		return false

@@ -18,7 +18,7 @@ clean:
 
 deps:
 	@echo "=== $(INTEGRATION) === [ deps ]: downloading dependencies..."
-	@dep ensure
+	@go mod tidy
 
 test-deps:
 	@echo "=== $(INTEGRATION) === [ test-deps ]: installing testing dependencies..."
