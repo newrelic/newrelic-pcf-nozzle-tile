@@ -61,7 +61,10 @@ func (c *Cache) Start() {
 
 			case app := <-c.WriteBuffer:
 				c.sync.Lock()
-				c.Collection[app.GUID] = app
+				if _, ok := c.Collection[app.GUID]; !ok {
+					c.Collection[app.GUID] = app
+					GetInstance().updateAppAsync(app)
+				}
 				c.sync.Unlock()
 			}
 		}
