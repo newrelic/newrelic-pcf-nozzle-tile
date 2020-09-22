@@ -1,6 +1,6 @@
 // +build integration
 
-package mocks
+package helpers
 
 import (
 	"fmt"

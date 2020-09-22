@@ -9,7 +9,7 @@ jobs:
     os: linux
     before_script:
     - sudo apt-get update
-    - go get -u github.com/golang/dep/cmd/dep
+    #- go get -u github.com/golang/dep/cmd/dep
     - sudo apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3
 
     - curl -O -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.2.0/bosh-cli-6.2.0-linux-amd64
