@@ -71,7 +71,6 @@ func (c *CFAppManager) GetApp(guid string) (app *CFApp) {
 	app = NewCFApp(guid)
 	c.app.Log.Debug("Adding new app: ", guid)
 	c.Cache.Put(app)
-	c.updateAppAsync(app)
 	return app
 }
 
