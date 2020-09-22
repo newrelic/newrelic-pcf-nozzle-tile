@@ -170,6 +170,15 @@ forms:
     constraints:
       min: 30
     configurable: true
+  - name: nrf_firehose_cache_duration_mins
+    type: integer
+    default: 30
+    label: Cache ttl
+    description: Interval in minutes for a full cache reset. Increase this valus if you have a large environment and the app creates too much load (or if your environment does not change frequently).
+    constraints:
+      min: 30
+      default: 30
+    configurable: true
   - name: nrf_firehose_cache_write_buffer_size
     type: integer
     default: 2048
