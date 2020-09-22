@@ -1317,6 +1317,116 @@ func (mCF *MockCF) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
       }
    ]
 }`)))
+	case "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763":
+		rw.Write([]byte(fmt.Sprintf(`{
+   "metadata": {
+      "guid": "4b73ec0b-2a4b-49bb-9909-174043238763",
+      "url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763",
+      "created_at": "2020-02-10T14:24:36Z",
+      "updated_at": "2020-02-10T14:24:36Z"
+   },
+   "entity": {
+      "name": "cfdev-space",
+      "organization_guid": "d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "space_quota_definition_guid": null,
+      "isolation_segment_guid": null,
+      "allow_ssh": true,
+      "organization_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "developers_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/developers",
+      "managers_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/managers",
+      "auditors_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/auditors",
+      "apps_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/apps",
+      "routes_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/routes",
+      "domains_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/domains",
+      "service_instances_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/service_instances",
+      "app_events_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/app_events",
+      "events_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/events",
+      "security_groups_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/security_groups",
+      "staging_security_groups_url": "/v2/spaces/4b73ec0b-2a4b-49bb-9909-174043238763/staging_security_groups"
+   }
+}`)))
+	case "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c":
+		rw.Write([]byte(fmt.Sprintf(`{
+   "metadata": {
+      "guid": "5c07d1ce-2e96-4946-8aea-ba73f378654c",
+      "url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c",
+      "created_at": "2020-02-10T14:24:36Z",
+      "updated_at": "2020-02-10T14:24:36Z"
+   },
+   "entity": {
+      "name": "cfdev-space",
+      "organization_guid": "d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "space_quota_definition_guid": null,
+      "isolation_segment_guid": null,
+      "allow_ssh": true,
+      "organization_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "developers_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/developers",
+      "managers_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/managers",
+      "auditors_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/auditors",
+      "apps_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/apps",
+      "routes_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/routes",
+      "domains_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/domains",
+      "service_instances_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/service_instances",
+      "app_events_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/app_events",
+      "events_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/events",
+      "security_groups_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/security_groups",
+      "staging_security_groups_url": "/v2/spaces/5c07d1ce-2e96-4946-8aea-ba73f378654c/staging_security_groups"
+   }
+}`)))
+	case "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6":
+		rw.Write([]byte(fmt.Sprintf(`{
+   "metadata": {
+      "guid": "1bc28d24-6498-4439-b88d-d3d73f5f7ef6",
+      "url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6",
+      "created_at": "2020-02-10T14:24:36Z",
+      "updated_at": "2020-02-10T14:24:36Z"
+   },
+   "entity": {
+      "name": "cfdev-space",
+      "organization_guid": "d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "space_quota_definition_guid": null,
+      "isolation_segment_guid": null,
+      "allow_ssh": true,
+      "organization_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "developers_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/developers",
+      "managers_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/managers",
+      "auditors_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/auditors",
+      "apps_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/apps",
+      "routes_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/routes",
+      "domains_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/domains",
+      "service_instances_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/service_instances",
+      "app_events_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/app_events",
+      "events_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/events",
+      "security_groups_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/security_groups",
+      "staging_security_groups_url": "/v2/spaces/1bc28d24-6498-4439-b88d-d3d73f5f7ef6/staging_security_groups"
+   }
+}`)))
+	case "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0":
+		rw.Write([]byte(fmt.Sprintf(`{
+   "metadata": {
+      "guid": "d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0",
+      "created_at": "2020-02-10T14:24:35Z",
+      "updated_at": "2020-02-10T14:24:36Z"
+   },
+   "entity": {
+      "name": "cfdev-org",
+      "billing_enabled": false,
+      "quota_definition_guid": "d1bbd21b-52bb-4e4b-ad18-28c390947156",
+      "status": "active",
+      "default_isolation_segment_guid": null,
+      "quota_definition_url": "/v2/quota_definitions/d1bbd21b-52bb-4e4b-ad18-28c390947156",
+      "spaces_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/spaces",
+      "domains_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/domains",
+      "private_domains_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/private_domains",
+      "users_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/users",
+      "managers_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/managers",
+      "billing_managers_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/billing_managers",
+      "auditors_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/auditors",
+      "app_events_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/app_events",
+      "space_quota_definitions_url": "/v2/organizations/d782be8d-add2-4f8b-82ea-a91ae60875e0/space_quota_definitions"
+   }
+}`)))
 	case "/v2/quota_definitions":
 		rw.Write([]byte(fmt.Sprintf(`{
    "total_results": 2,

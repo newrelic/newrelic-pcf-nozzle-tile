@@ -4,6 +4,8 @@
 package cfapps
 
 import (
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -32,10 +34,16 @@ func NewCache() *Cache {
 // Start ...
 func (c *Cache) Start() {
 	go func() {
+		// Staggering when applications may be removed from the cache by instance ID.
+		instanceId := os.Getenv("CF_INSTANCE_INDEX")
+		instanceIdInt, err := strconv.Atoi(instanceId)
+		if err != nil {
+			instanceIdInt = 0
+		}
 		cacheDuration := app.Get().Config.GetDuration("FIREHOSE_CACHE_DURATION_MINS")
 		cacheUpdate := app.Get().Config.GetDuration("FIREHOSE_CACHE_UPDATE_INTERVAL_SECS")
 		update := time.NewTicker(cacheUpdate * time.Second).C
-		timeoutCache := time.NewTicker(cacheDuration * time.Minute).C
+		timeoutCache := time.NewTicker((cacheDuration + time.Duration(instanceIdInt*2)) * time.Minute).C
 
 		for {
 			select {
