@@ -121,6 +121,11 @@ func (cm *ClientManager) NewEventClient(insightsInsertKey string, rpmAccountID s
 	clCfg := clientConfig.New()
 	clCfg.InsightsInsertKey = insightsInsertKey
 	clCfg.Compression = clientConfig.Compression.Gzip
+	if cfg.GetBool("TRACER") {
+		clCfg.LogLevel = "trace"
+	} else {
+		clCfg.LogLevel = cfg.GetString("LOG_LEVEL")
+	}
 	regName, err := region.Parse(accountRegion)
 	if err != nil {
 		app.Get().Log.Fatalf("fail parsing region while creating insert client")
@@ -171,6 +176,11 @@ func (cm *ClientManager) NewLogClient(insightsInsertKey string, rpmAccountID str
 	clCfg := clientConfig.New()
 	clCfg.InsightsInsertKey = insightsInsertKey
 	clCfg.Compression = clientConfig.Compression.Gzip
+	if cfg.GetBool("TRACER") {
+		clCfg.LogLevel = "trace"
+	} else {
+		clCfg.LogLevel = cfg.GetString("LOG_LEVEL")
+	}
 	regName, err := region.Parse(accountRegion)
 	if err != nil {
 		app.Get().Log.Fatalf("fail parsing region while creating insert client")
