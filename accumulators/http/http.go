@@ -42,6 +42,7 @@ func (n Nrevents) New() accumulators.Interface {
 func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 	entity := n.GetEntity(e, nrpcf.GetPCFAttributes(e))
 	s := attributes.NewAttributes()
+	s.SetAttribute("timestamp", (e.GetTimestamp() / (int64(time.Millisecond) / int64(time.Nanosecond))))
 	s.SetAttribute("http.duration", float64(n.GetDuration(e)))
 	cl, clErr := strconv.ParseInt(n.GetTag(e, "content_length"), 10, 0)
 	if clErr == nil {

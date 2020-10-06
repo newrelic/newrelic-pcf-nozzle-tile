@@ -81,7 +81,8 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 	if n.logsEnabled {
 		// Add log message attributes
 		logEntry.SetAttribute("message", string(msgContent))
-		logEntry.SetAttribute("timestamp", time.Unix(0, e.GetTimestamp()))
+		// epoch timestamp from envelope converted to ms
+		logEntry.SetAttribute("timestamp", (e.GetTimestamp() / (int64(time.Millisecond) / int64(time.Nanosecond))))
 		logEntry.SetAttribute("app.id", e.GetSourceId())
 		logEntry.SetAttribute("source.type", n.GetTag(e, "source_type"))
 		logEntry.SetAttribute("source.instance", e.GetInstanceId())
@@ -102,7 +103,11 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 
 	// Add log message attributes
 	logEntry.SetAttribute("log.message", string(msgContent))
-	logEntry.SetAttribute("log.timestamp", time.Unix(0, e.GetTimestamp()))
+	// epoch timestamp from envelope converted to ms
+	ts := (e.GetTimestamp() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	logEntry.SetAttribute("timestamp", ts)
+	// Continuing to report as log.timestamp as well for backwards compatibility
+	logEntry.SetAttribute("log.timestamp", ts)
 	logEntry.SetAttribute("log.app.id", e.GetSourceId())
 	logEntry.SetAttribute("log.source.type", n.GetTag(e, "source_type"))
 	logEntry.SetAttribute("log.source.instance", e.GetInstanceId())
