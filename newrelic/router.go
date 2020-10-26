@@ -43,7 +43,7 @@ func NewRouter(f *firehose.Firehose, c *Collector) *Router {
 	for _, a := range *router.Collector.accumulators {
 		for _, s := range a.Streams() {
 			for _, t := range router.App.Config.GetNewEnvelopeTypes() {
-				if strings.Contains(s, t) {
+				if strings.Contains(strings.ToLower(s), t) {
 					router.Streams[s] = append(router.Streams[s], a)
 				}
 			}
