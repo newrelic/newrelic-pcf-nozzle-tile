@@ -179,7 +179,7 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:e5d26e4b9dd97a16cc6c7cac9255ecd18ed2d8f22a3956e328c160ea7d57fc9c"
+  digest = "1:7dddd5103525f46182187e4cafc5c802ba10913a730f695882e1764126972943"
   name = "github.com/newrelic/newrelic-client-go"
   packages = [
     "internal/http",
@@ -193,8 +193,8 @@
     "pkg/testhelpers",
   ]
   pruneopts = "UT"
-  revision = "010a3ccddd05ae0290a30d782fcd6fc150b030c0"
-  version = "v0.42.1"
+  revision = "cfc77de998858d97755b63354da2c2d9114fe2c7"
+  version = "v0.47.1"
 
 [[projects]]
   digest = "1:89a071f4773bd23b5f03a31653b05dfe8cb708254aeb34d4cdb9651a4ddcbd6d"
