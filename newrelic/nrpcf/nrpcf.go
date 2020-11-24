@@ -9,13 +9,14 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/newrelic/go-insights/client"
+	"github.com/newrelic/newrelic-client-go/pkg/events"
+	"github.com/newrelic/newrelic-client-go/pkg/logs"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/app"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/cfclient/cfapps"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/config"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/entities"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/insights"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrclients"
 )
 
 var cfg = config.Get()
@@ -130,24 +131,24 @@ func GetLicenseKey(credentials map[string]interface{}) (string, bool) {
 // GetInsertClientForApp checks app for newrelic plan sub-account insert creds
 // and return insight client from insert manager/cache or new.
 // If app does not have a plan, this returns the main account credentials (from the config file)
-func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
+func GetInsertClientForApp(e *entities.Entity) (c *events.Events) {
 
 	guid := e.AttributeByName(config.Get().AttributeName(config.EnvAppID)).Value()
 	cfapp := cfapps.GetInstance().GetApp(guid.(string))
-	im := insights.New()
+	cm := nrclients.New()
 
 	cfapp.Lock.RLock()
 	vcap := cfapp.VcapServices
 	cfapp.Lock.RUnlock()
 
 	if vcap == nil {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := cm.GetEventClient(app.Get().Config.GetNewRelicConfig())
 		return defaultClient
 	}
 
 	//Can do this if newrelic isn't found, but also need to check for rpmAccountId and insightsInsertKey values
 	if _, found := vcap["newrelic"]; !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := cm.GetEventClient(app.Get().Config.GetNewRelicConfig())
 		return defaultClient
 	}
 
@@ -156,7 +157,7 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 
 	// Get the credentials map from inside of the newrelic map, if it exists.
 	if _, found := newrelic["credentials"].(map[string]interface{}); !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := cm.GetEventClient(app.Get().Config.GetNewRelicConfig())
 		return defaultClient
 	}
 	credentials := newrelic["credentials"].(map[string]interface{})
@@ -164,20 +165,20 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 	// Call GetInsertKey
 	insertKey, found := GetInsertKey(credentials)
 	if !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := cm.GetEventClient(app.Get().Config.GetNewRelicConfig())
 		return defaultClient
 	}
 	// Call GetRpmId
 	rpmId, found := GetRpmId(credentials)
 	if !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := cm.GetEventClient(app.Get().Config.GetNewRelicConfig())
 		return defaultClient
 	}
 
 	// Call GetLicenseKey
 	licenseKey, found := GetLicenseKey(credentials)
 	if !found {
-		defaultClient := im.Get(app.Get().Config.GetNewRelicConfig())
+		defaultClient := cm.GetEventClient(app.Get().Config.GetNewRelicConfig())
 		return defaultClient
 	}
 
@@ -189,8 +190,77 @@ func GetInsertClientForApp(e *entities.Entity) (c *client.InsertClient) {
 		accountRegion = "US"
 	}
 
-	// Call Get from Insights manager to get a client with this configuration.
-	c = im.Get(insertKey, rpmId, accountRegion)
+	// Call Get from NR clients manager to get a client with this configuration.
+	c = cm.GetEventClient(insertKey, rpmId, accountRegion)
+
+	return c
+
+}
+
+// GetLogClientForApp checks app for newrelic plan sub-account insert creds
+// and return insight client from insert manager/cache or new.
+// If app does not have a plan, this returns the main account credentials (from the config file)
+func GetLogClientForApp(e *entities.Entity) (c *logs.Logs) {
+
+	guid := e.AttributeByName(config.Get().AttributeName(config.EnvAppID)).Value()
+	cfapp := cfapps.GetInstance().GetApp(guid.(string))
+	cm := nrclients.New()
+
+	cfapp.Lock.RLock()
+	vcap := cfapp.VcapServices
+	cfapp.Lock.RUnlock()
+
+	if vcap == nil {
+		defaultClient := cm.GetLogClient(app.Get().Config.GetNewRelicConfig())
+		return defaultClient
+	}
+
+	//Can do this if newrelic isn't found, but also need to check for rpmAccountId and insightsInsertKey values
+	if _, found := vcap["newrelic"]; !found {
+		defaultClient := cm.GetLogClient(app.Get().Config.GetNewRelicConfig())
+		return defaultClient
+	}
+
+	newrelicSlice := vcap["newrelic"].([]interface{})
+	newrelic := newrelicSlice[0].(map[string]interface{})
+
+	// Get the credentials map from inside of the newrelic map, if it exists.
+	if _, found := newrelic["credentials"].(map[string]interface{}); !found {
+		defaultClient := cm.GetLogClient(app.Get().Config.GetNewRelicConfig())
+		return defaultClient
+	}
+	credentials := newrelic["credentials"].(map[string]interface{})
+
+	// Call GetInsertKey
+	insertKey, found := GetInsertKey(credentials)
+	if !found {
+		defaultClient := cm.GetLogClient(app.Get().Config.GetNewRelicConfig())
+		return defaultClient
+	}
+	// Call GetRpmId
+	rpmId, found := GetRpmId(credentials)
+	if !found {
+		defaultClient := cm.GetLogClient(app.Get().Config.GetNewRelicConfig())
+		return defaultClient
+	}
+
+	// Call GetLicenseKey
+	licenseKey, found := GetLicenseKey(credentials)
+	if !found {
+		defaultClient := cm.GetLogClient(app.Get().Config.GetNewRelicConfig())
+		return defaultClient
+	}
+
+	isEU := strings.HasPrefix(licenseKey, "eu01x")
+	var accountRegion string
+	if isEU {
+		accountRegion = "EU"
+	} else {
+		accountRegion = "US"
+	}
+
+	// Call Get from NR clients manager to get a client with this configuration.
+	c = cm.GetLogClient(insertKey, rpmId, accountRegion)
 
 	return c
 

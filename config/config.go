@@ -137,6 +137,9 @@ func set() *Config {
 
 	v.SetDefault("NEWRELIC_EU_BASE_URL", "https://insights-collector.eu01.nr-data.net/v1/")
 
+	v.SetDefault("LOGS_LOGMESSAGE", false)
+	v.SetDefault("LOGS_HTTP", false)
+
 	config := &Config{v}
 	return config
 }

@@ -18,8 +18,8 @@ applications:
     NRF_CF_API_USERNAME: admin
     NRF_CF_API_PASSWORD: XXXXXXXXXXXX
 
-    # # Create your uaac client for the nozzle or run "$uaac clients" to get the existing ones 
-    NRF_CF_CLIENT_ID: firehose-to-newrelic
+    # # Create your uaac client for the nozzle or run "$uaac clients" to get the existing ones. We recommend using the default, existing client opentsdb-firehose-nozzle.
+    NRF_CF_CLIENT_ID: opentsdb-firehose-nozzle
     NRF_CF_CLIENT_SECRET: XXXXXXXXXXX
 
     # # Firehose Subscription Id: A unique Id (i.e. newrelic.firehose)
@@ -53,6 +53,12 @@ applications:
     # # Number of messages the nozzle buffer can hold while processing. Also the number of messages that will be dropped if the buffer fills. Recommended minimum is 6000.
     # NRF_FIREHOSE_DIODE_BUFFER: 8192
 
+    # # Number of seconds that all applications in the cache are updated. Do not set below 30.
+    # NRF_FIREHOSE_CACHE_UPDATE_INTERVAL_SECS: 60
+
+    # # Interval in minutes for a full cache reset. Increase this value for large environments to reduce impact to cloud controller APIs (or if your environment does not change frequently). Do not set below 30.
+    # NRF_FIREHOSE_CACHE_DURATION_MINS: 30
+
     # # Log level (INFO or DEBUG)
     # NRF_LOG_LEVEL: INFO
 
@@ -61,6 +67,12 @@ applications:
 
     # # PCF Envelope types enabled (all metrics are enabled by default)
     # NRF_ENABLED_ENVELOPE_TYPES: ContainerMetric|CounterEvent|HttpStartStop|LogMessage|ValueMetric
+
+    # # Send HttpStartStop envelopes to New Relic Logs
+    # NRF_LOGS_HTTP: false
+
+    # # Send LogMessage envelopes to New Relic Logs
+    # NRF_LOGS_LOGMESSAGE: false
 
     # # LogMessage source filters: For example, RTR or APP/PROC/WEB.  Multiple sources can be included as long as they are , or | separated.
     # NRF_LOGMESSAGE_SOURCE_INCLUDE: ""

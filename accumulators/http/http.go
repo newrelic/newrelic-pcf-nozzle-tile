@@ -4,6 +4,7 @@
 package http
 
 import (
+	"context"
 	"strconv"
 	"time"
 
@@ -13,8 +14,8 @@ import (
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/accumulators"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/attributes"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/entities"
-	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/insights"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/metrics"
+	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrclients"
 	"github.com/newrelic/newrelic-pcf-nozzle-tile/newrelic/nrpcf"
 )
 
@@ -22,6 +23,7 @@ import (
 // Firehose HttpStartStop Envelope Event Types
 type Nrevents struct {
 	accumulators.Accumulator
+	logsEnabled bool
 }
 
 // New satisfies event.Accumulator
@@ -31,6 +33,7 @@ func (n Nrevents) New() accumulators.Interface {
 			"*loggregator_v2.Envelope_Timer",
 		),
 	}
+	i.logsEnabled = i.Config().GetBool("LOGS_HTTP")
 	return i
 }
 
@@ -39,6 +42,7 @@ func (n Nrevents) New() accumulators.Interface {
 func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 	entity := n.GetEntity(e, nrpcf.GetPCFAttributes(e))
 	s := attributes.NewAttributes()
+	s.SetAttribute("timestamp", (e.GetTimestamp() / (int64(time.Millisecond) / int64(time.Nanosecond))))
 	s.SetAttribute("http.duration", float64(n.GetDuration(e)))
 	cl, clErr := strconv.ParseInt(n.GetTag(e, "content_length"), 10, 0)
 	if clErr == nil {
@@ -57,16 +61,22 @@ func (n Nrevents) Update(e *loggregator_v2.Envelope) {
 	s.SetAttribute("http.user.agent", n.GetTag(e, "user_agent"))
 	s.SetAttribute("http.request.id", n.GetTag(e, "request_id"))
 
+	s.SetAttribute("agent.subscription", n.Config().GetString("FIREHOSE_ID"))
+
+	s.AppendAll(entity.Attributes())
+
+	if n.logsEnabled {
+		client := nrclients.New().GetLogClient(app.Get().Config.GetNewRelicConfig())
+		client.EnqueueLogEntry(context.Background(), s.Marshal())
+		return
+	}
 	s.SetAttribute(
 		"eventType",
 		n.Config().GetString(config.NewRelicEventTypeHTTPStartStop),
 	)
-	s.SetAttribute("agent.subscription", n.Config().GetString("FIREHOSE_ID"))
-
-	s.AppendAll(entity.Attributes())
 	// Get an insert client and enqueue the event.
-	client := insights.New().Get(app.Get().Config.GetNewRelicConfig())
-	client.EnqueueEvent(s.Marshal())
+	client := nrclients.New().GetEventClient(app.Get().Config.GetNewRelicConfig())
+	client.EnqueueEvent(context.Background(), s.Marshal())
 }
 
 // HarvestMetrics (stub for HttpStartStop)...

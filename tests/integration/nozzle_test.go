@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -32,11 +31,6 @@ const (
 	PCFLogMessage      = "PCFLogMessage"
 	PCFCounterEvent    = "PCFCounterEvent"
 )
-
-func TestMain(m *testing.M) {
-	port = 8080
-	os.Exit(m.Run())
-}
 
 type apiMocks struct {
 	uaa      *mocks.MockUAAC
@@ -68,13 +62,14 @@ func runNozzleAndMocks() *apiMocks {
 	os.Setenv("NRF_CF_API_USERNAME", "admin")
 	os.Setenv("NRF_CF_API_PASSWORD", "token")
 	os.Setenv("NRF_NEWRELIC_INSERT_KEY", "nrkey")
-	os.Setenv("NRF_NEWRELIC_ACCOUNT_ID", "00000")
+	os.Setenv("NRF_NEWRELIC_ACCOUNT_ID", "2762945")
 	os.Setenv("NRF_NEWRELIC_DRAIN_INTERVAL", "500ms")
-	os.Setenv("NRF_NEWRELIC_ACCOUNT_REGION", "EU")
-	os.Setenv("NRF_NEWRELIC_EU_BASE_URL", m.insights.Server.URL)
+	os.Setenv("NRF_NEWRELIC_CUSTOM_URL", m.insights.Server.URL)
 	os.Setenv("NRF_CF_API_RLPG_URL", m.firehose.Server.URL)
-	os.Setenv("NRF_HEALTH_PORT", strconv.Itoa(port))
-	port++
+	os.Setenv("NRF_HEALTH_PORT", "8080")
+
+	m.nozzle.Stdout = os.Stdout
+	m.nozzle.Stderr = os.Stderr
 
 	m.nozzle.Start()
 
@@ -90,7 +85,6 @@ func closeNozzleAndMocks(a *apiMocks) {
 }
 
 func TestValueMetric(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 	for i := float64(1); i < 11; i++ {
 		e := loggregator_v2.Envelope{
@@ -130,7 +124,6 @@ func TestValueMetric(t *testing.T) {
 }
 
 func TestLogMessage(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -158,7 +151,7 @@ func TestLogMessage(t *testing.T) {
 }
 
 func TestContainerMetric(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -217,7 +210,6 @@ func TestContainerMetric(t *testing.T) {
 
 }
 func TestCounterEvent(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -247,7 +239,6 @@ func TestCounterEvent(t *testing.T) {
 
 }
 func TestHTTPStartStop(t *testing.T) {
-	t.Parallel()
 	m := runNozzleAndMocks()
 
 	m.firehose.AddEvent(loggregator_v2.Envelope{
@@ -357,7 +348,7 @@ func readInsights(t *testing.T, m *apiMocks) string {
 	case rc := <-m.insights.ReceivedContents:
 		return rc
 	case <-time.After(10 * time.Second):
-		t.Fatal("Expected data from insights.ReceivedContents")
+		t.Error("Expected data from insights.ReceivedContents")
 	}
 	return ""
 }
