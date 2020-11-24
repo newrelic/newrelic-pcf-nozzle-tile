@@ -160,18 +160,20 @@ func (c *Config) AttributeName(n string) string {
 // GetSelectors ...
 func (c *Config) GetSelectors() []*loggregator_v2.Selector {
 	e := c.GetString("ENABLED_ENVELOPE_TYPES")
+	e = strings.ToLower(e)
+	e = strings.Replace(e, " ", "", -1)
 	s := make([]*loggregator_v2.Selector, 0)
 	// Both ValueMetric and ContainerMetric are Gauge type v2 envelopes
-	if strings.Contains(e, "ValueMetric") || strings.Contains(e, "ContainerMetric") {
+	if strings.Contains(e, "valuemetric") || strings.Contains(e, "containermetric") {
 		s = append(s, &loggregator_v2.Selector{Message: &loggregator_v2.Selector_Gauge{Gauge: &loggregator_v2.GaugeSelector{}}})
 	}
-	if strings.Contains(e, "CounterEvent") {
+	if strings.Contains(e, "counterevent") {
 		s = append(s, &loggregator_v2.Selector{Message: &loggregator_v2.Selector_Counter{Counter: &loggregator_v2.CounterSelector{}}})
 	}
-	if strings.Contains(e, "HttpStartStop") {
+	if strings.Contains(e, "httpstartstop") {
 		s = append(s, &loggregator_v2.Selector{Message: &loggregator_v2.Selector_Timer{Timer: &loggregator_v2.TimerSelector{}}})
 	}
-	if strings.Contains(e, "LogMessage") {
+	if strings.Contains(e, "logmessage") {
 		s = append(s, &loggregator_v2.Selector{Message: &loggregator_v2.Selector_Log{Log: &loggregator_v2.LogSelector{}}})
 	}
 	return s
@@ -180,11 +182,14 @@ func (c *Config) GetSelectors() []*loggregator_v2.Selector {
 // GetNewEnvelopeTypes ...
 func (c *Config) GetNewEnvelopeTypes() []string {
 	e := c.GetString("ENABLED_ENVELOPE_TYPES")
-	e = strings.Replace(e, "LogMessage", "Log", 1)
-	e = strings.Replace(e, "CounterEvent", "Counter", 1)
-	e = strings.Replace(e, "HttpStartStop", "Timer", 1)
+	e = strings.ToLower(e)
+	e = strings.Replace(e, "logmessage", "log", 1)
+	e = strings.Replace(e, "counterevent", "counter", 1)
+	e = strings.Replace(e, "httpstartstop", "timer", 1)
 	// ENABLED_ENVELOPE_TYPES could be , or | separated.
 	e = strings.Replace(e, ",", "|", -1)
+	// Remove any spaces added to the configuration
+	e = strings.Replace(e, " ", "", -1)
 	se := strings.Split(e, "|")
 	return se
 }
