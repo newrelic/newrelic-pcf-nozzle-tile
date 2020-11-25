@@ -48,7 +48,7 @@ jobs:
       if: github.event.release.tag_name != ''
       run: |
         TAG=${{ github.event.release.tag_name }}
-        export RELEASE_TAG=${TAG//v}
+        echo "RELEASE_TAG=${TAG//v}" >> $GITHUB_ENV
         echo $RELEASE_TAG
 
     - name: Test and Build
@@ -62,7 +62,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./product/*.pivotal
+        asset_path: ./product/nr-firehose-nozzle-${RELEASE_TAG}.pivotal
         asset_name: nr-firehose-nozzle-${RELEASE_TAG}.pivotal
         asset_content_type: Tile
 
@@ -73,6 +73,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/*.tar.gz
+        asset_path: ./dist/nr-fh-nozzle.tar.gz
         asset_name: nr-firehose-nozzle-${RELEASE_TAG}.tar.gz
         asset_content_type: Tarball
