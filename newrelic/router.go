@@ -39,11 +39,16 @@ func NewRouter(f *firehose.Firehose, c *Collector) *Router {
 		closeChan: make(chan bool, 1),
 		firehose:  f,
 	}
-
+	// These are the possible event type names:
+	// 		*loggregator_v2.Envelope_Counter
+	// 		ContainerMetric
+	// 		ValueMetric
+	// 		*loggregator_v2.Envelope_Log
+	// 		*loggregator_v2.Envelope_Timer
 	for _, a := range *router.Collector.accumulators {
 		for _, s := range a.Streams() {
 			for _, t := range router.App.Config.GetNewEnvelopeTypes() {
-				if strings.Contains(strings.ToLower(s), t) {
+				if strings.HasSuffix(strings.ToLower(s), t) {
 					router.Streams[s] = append(router.Streams[s], a)
 				}
 			}
