@@ -30,19 +30,19 @@ jobs:
       with:
         path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
 
-    - name: Install dependencies 
-      run: |
-        go get -u -v github.com/golang/dep/cmd/dep
+    # - name: Install dependencies 
+    #   run: |
+    #     go get -u -v github.com/golang/dep/cmd/dep
 
-        sudo apt update && sudo apt install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3
+    #     sudo apt update && sudo apt install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3
         
-        curl -O -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.2.0/bosh-cli-6.2.0-linux-amd64
-        chmod +x ./bosh-cli-6.2.0-linux-amd64
-        sudo mv ./bosh-cli-6.2.0-linux-amd64 /usr/local/bin/bosh
+    #     curl -O -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.2.0/bosh-cli-6.2.0-linux-amd64
+    #     chmod +x ./bosh-cli-6.2.0-linux-amd64
+    #     sudo mv ./bosh-cli-6.2.0-linux-amd64 /usr/local/bin/bosh
         
-        curl -O -L https://github.com/cf-platform-eng/tile-generator/releases/download/v14.0.3/tile_linux-64bit
-        chmod +x tile_linux-64bit
-        sudo mv tile_linux-64bit /usr/local/bin/tile
+    #     curl -O -L https://github.com/cf-platform-eng/tile-generator/releases/download/v14.0.3/tile_linux-64bit
+    #     chmod +x tile_linux-64bit
+    #     sudo mv tile_linux-64bit /usr/local/bin/tile
 
     - name: Setup tag
       if: github.event.release.tag_name != ''
