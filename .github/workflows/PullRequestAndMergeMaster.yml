@@ -1,0 +1,36 @@
+name: PR pipeline
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+jobs:
+  BuildAndTest:
+    name: Build And Test
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: ${{ github.workspace }}
+      GO111MODULE: off
+    defaults:
+      run:
+        working-directory: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
+
+    steps:
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.13
+      id: go
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
+
+    - name: Get dep
+      shell: bash
+      run: go get -u -v github.com/golang/dep/cmd/dep
+
+    - name: Test and Build
+      shell: bash
+      run: make build
