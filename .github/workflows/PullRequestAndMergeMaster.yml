@@ -44,12 +44,13 @@ jobs:
         chmod +x tile_linux-64bit
         sudo mv tile_linux-64bit /usr/local/bin/tile
 
-    - name: Setup tag
+    - name: Get version
+      id: get_version
       if: github.event.release.tag_name != ''
       run: |
         TAG=${{ github.event.release.tag_name }}
         echo "RELEASE_TAG=${TAG//v}" >> $GITHUB_ENV
-        echo $RELEASE_TAG
+        echo ::set-output name=RELEASE_VERSION::$RELEASE_TAG
 
     - name: Test and Build
       run: |
@@ -62,8 +63,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./product/nr-firehose-nozzle-${RELEASE_TAG}.pivotal
-        asset_name: nr-firehose-nozzle-${RELEASE_TAG}.pivotal
+        asset_path: ./product/nr-firehose-nozzle-${{ steps.get_version.outputs.RELEASE_VERSION }}.pivotal
+        asset_name: nr-firehose-nozzle-${{ steps.get_version.outputs.RELEASE_VERSION }}.pivotal
         asset_content_type: Tile
 
     - name: Upload Tarball
@@ -74,5 +75,5 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_path: ./dist/nr-fh-nozzle.tar.gz
-        asset_name: nr-firehose-nozzle-${RELEASE_TAG}.tar.gz
+        asset_name: nr-firehose-nozzle-${{ steps.get_version.outputs.RELEASE_VERSION }}.tar.gz
         asset_content_type: Tarball
