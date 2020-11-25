@@ -45,7 +45,7 @@ jobs:
         sudo mv tile_linux-64bit /usr/local/bin/tile
 
     - name: Setup tag
-      if: github.event.release.tag_name != ""
+      if: contains(github.event.release.tag_name, "v")
       run: |
         TAG=${{ github.event.release.tag_name }}
         export RELEASE_TAG=${TAG//v}
