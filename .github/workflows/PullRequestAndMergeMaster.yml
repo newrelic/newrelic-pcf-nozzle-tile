@@ -1,10 +1,13 @@
-name: PR pipeline
+name: PR/Release pipeline
 on:
   push:
     branches:
       - master
   pull_request:
     branches:
+  release:
+    types:
+      - created
 jobs:
   BuildAndTest:
     name: Build And Test
@@ -27,10 +30,48 @@ jobs:
       with:
         path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
 
-    - name: Get dep
-      shell: bash
-      run: go get -u -v github.com/golang/dep/cmd/dep
+    - name: Install dependencies 
+      run: |
+        go get -u -v github.com/golang/dep/cmd/dep
+
+        sudo apt update && sudo apt install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3
+        
+        curl -O -L https://github.com/cloudfoundry/bosh-cli/releases/download/v6.2.0/bosh-cli-6.2.0-linux-amd64
+        chmod +x ./bosh-cli-6.2.0-linux-amd64
+        sudo mv ./bosh-cli-6.2.0-linux-amd64 /usr/local/bin/bosh
+        
+        curl -O -L https://github.com/cf-platform-eng/tile-generator/releases/download/v14.0.3/tile_linux-64bit
+        chmod +x tile_linux-64bit
+        sudo mv tile_linux-64bit /usr/local/bin/tile
+
+    - name: Setup tag
+      if: github.event.release.created
+      run: |
+        TAG=${{ github.event.release.tag_name }}
+        export RELEASE_TAG=${TAG//v}
 
     - name: Test and Build
-      shell: bash
-      run: make build
+      run: |
+        make release
+
+    - name: Upload Tile
+      if: github.event.release.created
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./product/*.pivotal
+        asset_name: nr-firehose-nozzle-${RELEASE_TAG}.pivotal
+        asset_content_type: Tile
+
+    - name: Upload Tarball
+      if: github.event.release.created
+      uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./dist/*.tar.gz
+        asset_name: nr-firehose-nozzle-${RELEASE_TAG}.tar.gz
+        asset_content_type: Tarball
