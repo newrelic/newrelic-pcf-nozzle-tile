@@ -56,6 +56,8 @@ jobs:
     - name: Test and Build
       run: |
         make release
+        ls -l
+        ls product
 
     - name: Upload Tile
       if: github.event.release.tag_name != ''
