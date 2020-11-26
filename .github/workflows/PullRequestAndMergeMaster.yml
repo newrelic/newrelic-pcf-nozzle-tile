@@ -44,34 +44,37 @@ jobs:
         chmod +x tile_linux-64bit
         sudo mv tile_linux-64bit /usr/local/bin/tile
 
-    - name: Setup tag
-      if: github.event.release.created
+    - name: Get version
+      id: get_version
+      if: github.event.release.tag_name != ''
       run: |
         TAG=${{ github.event.release.tag_name }}
-        export RELEASE_TAG=${TAG//v}
+        RELEASE_TAG=${TAG//v}
+        echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+        echo "::set-output name=VERSION::${RELEASE_TAG}"
 
     - name: Test and Build
       run: |
         make release
 
     - name: Upload Tile
-      if: github.event.release.created
+      if: github.event.release.tag_name != ''
       uses: actions/upload-release-asset@v1.0.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./product/*.pivotal
-        asset_name: nr-firehose-nozzle-${RELEASE_TAG}.pivotal
+        asset_path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}/product/nr-firehose-nozzle-${{ steps.get_version.outputs.VERSION }}.pivotal
+        asset_name: nr-firehose-nozzle-${{ steps.get_version.outputs.VERSION }}.pivotal
         asset_content_type: Tile
 
     - name: Upload Tarball
-      if: github.event.release.created
+      if: github.event.release.tag_name != ''
       uses: actions/upload-release-asset@v1.0.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/*.tar.gz
-        asset_name: nr-firehose-nozzle-${RELEASE_TAG}.tar.gz
+        asset_path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}/dist/nr-fh-nozzle.tar.gz
+        asset_name: nr-firehose-nozzle-${{ steps.get_version.outputs.VERSION }}.tar.gz
         asset_content_type: Tarball
