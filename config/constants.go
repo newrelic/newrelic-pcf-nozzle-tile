@@ -7,6 +7,7 @@ package config
 const (
 	EnvFirehoseID                  = "FIREHOSE_ID"
 	EnvCFAPIRUL                    = "CF_API_URL"
+	EnvRabbitMQTags                = "CF_RABBITMQ_TAGS"
 	EnvDomain                      = "ATTR_DOMAIN"
 	EnvDomainAlias                 = "ATTR_DOMAIN_ALIAS"
 	EnvEnvelopeType                = "ATTR_ENVELOPE_TYPE"

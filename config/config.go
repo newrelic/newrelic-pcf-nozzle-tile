@@ -88,6 +88,7 @@ func set() *Config {
 
 	v.SetDefault("LOG_LEVEL", "INFO")
 	v.SetDefault("TRACER", false)
+	v.SetDefault(EnvRabbitMQTags, true)
 
 	v.SetDefault(EnvFirehoseID, "newrelic-firehose")
 	v.SetDefault("FIREHOSE_DIODE_BUFFER", 8192)
@@ -146,6 +147,13 @@ func set() *Config {
 
 // GetNewRelicConfig ...
 func (c *Config) GetNewRelicConfig() (key string, id string, region string) {
+	key = c.GetString("NEWRELIC_INSERT_KEY")
+	id = c.GetString("NEWRELIC_ACCOUNT_ID")
+	region = c.GetString("NEWRELIC_ACCOUNT_REGION")
+	return
+}
+
+func (c *Config) GetRabbitMQConfig() (key string, id string, region string) {
 	key = c.GetString("NEWRELIC_INSERT_KEY")
 	id = c.GetString("NEWRELIC_ACCOUNT_ID")
 	region = c.GetString("NEWRELIC_ACCOUNT_REGION")
