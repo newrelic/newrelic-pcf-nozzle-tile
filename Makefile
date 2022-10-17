@@ -5,20 +5,20 @@ BINARY_NAME   = nr-fh-nozzle
 GO_FILES     := ./...
 GO_INTEGRATION_FILE := ./tests/...
 #Release version must be mayor.minor.patch for tile generator
-RELEASE_TAG   ?= 0.0.1
+RELEASE_TAG   ?= 2.6.1
 TEST_DEPS     = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 all: release
 
-build: clean deps test-deps compile test integration-test
+build: clean gomod test-deps compile test integration-test
 
 clean:
 	@echo "=== $(INTEGRATION) === [ clean ]: removing binaries and coverage file..."
 	@rm -rfv dist product release coverage.xml
 
-deps:
-	@echo "=== $(INTEGRATION) === [ deps ]: downloading dependencies..."
-	@dep ensure
+gomod:
+	@echo "=== $(INTEGRATION) === [ go mod ]: downloading dependencies..."
+	@go mod tidy
 
 test-deps:
 	@echo "=== $(INTEGRATION) === [ test-deps ]: installing testing dependencies..."

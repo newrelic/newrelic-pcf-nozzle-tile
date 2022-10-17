@@ -18,8 +18,8 @@ if [ -d "$DIST_DIR" ]; then
   rm -rf "$DIST_DIR"
 fi
 
-echo "> running: dep ensure"
-dep ensure
+echo "> running: go mod tidy"
+go mod tidy
 
 echo "> running: go build"
 go build -ldflags "-X main.Version=$(git describe)" -o $DIST_DIR/$BINARY

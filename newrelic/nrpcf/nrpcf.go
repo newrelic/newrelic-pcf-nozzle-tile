@@ -56,7 +56,7 @@ func GetPCFAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
 			tags := e.GetTags()
 			for name, val := range tags {
 				if !inArray(name, []string{"Gauge", "Count", "Counter", "Delta", "origin", "deployment", "job", "index", "ip"}) {
-					attrs.SetAttribute("tag."+name, val)
+					attrs.SetAttribute("tags."+name, val)
 				}
 			}
 		}
