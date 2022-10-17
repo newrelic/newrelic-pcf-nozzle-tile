@@ -15,13 +15,15 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.1
 )
 
 require (
 	code.cloudfoundry.org/gofileutils v0.0.0-20170111115228-4d0c80011a0f // indirect
 	code.cloudfoundry.org/rfc5424 v0.0.0-20180905210152-236a6d29298a // indirect
+	github.com/AlekSi/gocov-xml v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/axw/gocov v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -44,6 +46,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
 	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/tools v0.0.0-20200812195022-5ae4c3c160a0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20200608115520-7c474a2e3482 // indirect
