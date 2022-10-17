@@ -153,13 +153,6 @@ func (c *Config) GetNewRelicConfig() (key string, id string, region string) {
 	return
 }
 
-func (c *Config) GetRabbitMQConfig() (key string, id string, region string) {
-	key = c.GetString("NEWRELIC_INSERT_KEY")
-	id = c.GetString("NEWRELIC_ACCOUNT_ID")
-	region = c.GetString("NEWRELIC_ACCOUNT_REGION")
-	return
-}
-
 // AttributeName ...
 func (c *Config) AttributeName(n string) string {
 	return fmt.Sprintf("%s.%s", c.GetString("ATTR_PREFIX"), c.GetString(n))

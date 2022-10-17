@@ -10,14 +10,14 @@ TEST_DEPS     = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 all: release
 
-build: clean gomod test-deps compile test integration-test
+build: clean deps test-deps compile test integration-test
 
 clean:
 	@echo "=== $(INTEGRATION) === [ clean ]: removing binaries and coverage file..."
 	@rm -rfv dist product release coverage.xml
 
-gomod:
-	@echo "=== $(INTEGRATION) === [ go mod ]: downloading dependencies..."
+deps:
+	@echo "=== $(INTEGRATION) === [ deps ]: downloading dependencies..."
 	@go mod tidy
 
 test-deps:
