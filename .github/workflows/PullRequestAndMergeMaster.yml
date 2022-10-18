@@ -15,9 +15,6 @@ jobs:
     env:
       GOPATH: ${{ github.workspace }}
       GO111MODULE: on
-    defaults:
-      run:
-        working-directory: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
 
     steps:
     - uses: actions/setup-go@v2
