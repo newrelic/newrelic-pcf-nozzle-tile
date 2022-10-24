@@ -54,4 +54,4 @@ push: compile-linux
 	@cf login -a $(CF_API_URL) --skip-ssl-validation -u $(CF_USER) -p $(CF_PASSWORD) -o nr-firehose-nozzle-org
 	@cf push
 
-.PHONY: all build clean compile release push compile-linux
+.PHONY: all build clean compile test-deps test release integration-test push compile-linux
