@@ -6,7 +6,7 @@ name: nr-firehose-nozzle # By convention lowercase with dashes
 icon_file: resources/images/nr-square-black-256x256.png
 label: New Relic Firehose Nozzle
 description: This tile is used to feed PCF log events and metrics to New Relic insights
-metadata_version: 1.8                 # Optional, defaults to 1.8
+metadata_version: 1.9            # Optional, defaults to 1.8
 
 # Global defaults (all optional)
 #
@@ -250,3 +250,13 @@ forms:
     label: LogMessage Message Content Exclude Filter
     description: Ignore events if the message contains a pattern in this list.  For example, GET or DEBUG.  Multiple patterns can be included as long as they are , or | separated.  Exclude filters are processed after include filters.
     configurable: true
+- name: newrelic-firehose-nozzle-rabbitmq-settings
+  label: Custom Settings
+  description: Settings for Custom Integrations
+  properties:
+    - name: nrf_cf_rabbitmq_tags
+      type: boolean
+      default: true
+      label: Enable RabbitMQ Tags
+      description: Send RabbitMQ Tags to New Relic (boolean true/false), works along with RabbitMQ tile.
+      configurable: true

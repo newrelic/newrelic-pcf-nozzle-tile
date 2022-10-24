@@ -88,6 +88,7 @@ func set() *Config {
 
 	v.SetDefault("LOG_LEVEL", "INFO")
 	v.SetDefault("TRACER", false)
+	v.SetDefault(EnvRabbitMQTags, true)
 
 	v.SetDefault(EnvFirehoseID, "newrelic-firehose")
 	v.SetDefault("FIREHOSE_DIODE_BUFFER", 8192)

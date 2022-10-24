@@ -35,11 +35,33 @@ var (
 	appOrgName       = cfg.AttributeName(config.EnvAppOrgName)
 	appInstanceIndex = cfg.AttributeName(config.EnvAppInstanceIndex)
 	appInstanceState = cfg.AttributeName(config.EnvAppInstanceState)
+	rabbitMqTags     = cfg.AttributeName(config.EnvRabbitMQTags)
 )
+
+func inArray(searchStr string, array []string) bool {
+	for _, v := range array {
+		if v == searchStr { // item found in array of strings
+			return true
+		}
+	}
+	return false
+}
 
 // GetPCFAttributes ...
 func GetPCFAttributes(e *loggregator_v2.Envelope) *attributes.Attributes {
 	attrs := EntityAttributes(e)
+
+	if app.Get().Config.GetBool(config.EnvRabbitMQTags) {
+		if e.Tags["origin"] == "p.rabbitmq" {
+			tags := e.GetTags()
+			for name, val := range tags {
+				if !inArray(name, []string{"Gauge", "Count", "Counter", "Delta", "origin", "deployment", "job", "index", "ip"}) {
+					attrs.SetAttribute("tags."+name, val)
+				}
+			}
+		}
+	}
+
 	et := reflect.TypeOf(e.Message).String()
 	if et == "*loggregator_v2.Envelope_Gauge" {
 		if isContainerMetric(e) {
