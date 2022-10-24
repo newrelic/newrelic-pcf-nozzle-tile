@@ -5,12 +5,12 @@ BINARY_NAME   = nr-fh-nozzle
 GO_FILES     := ./...
 GO_INTEGRATION_FILE := ./tests/...
 #Release version must be mayor.minor.patch for tile generator
-RELEASE_TAG   ?= 2.6.1
+RELEASE_TAG   ?= 2.7.0
 TEST_DEPS     = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 all: release
 
-build: clean deps test-deps compile test integration-test
+build: clean deps compile
 
 clean:
 	@echo "=== $(INTEGRATION) === [ clean ]: removing binaries and coverage file..."
@@ -54,4 +54,4 @@ push: compile-linux
 	@cf login -a $(CF_API_URL) --skip-ssl-validation -u $(CF_USER) -p $(CF_PASSWORD) -o nr-firehose-nozzle-org
 	@cf push
 
-.PHONY: all build clean compile test-deps test release integration-test push compile-linux
+.PHONY: all build clean compile release push compile-linux
