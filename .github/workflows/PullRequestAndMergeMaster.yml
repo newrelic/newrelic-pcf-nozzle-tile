@@ -13,7 +13,7 @@ jobs:
     name: Build And Test
     runs-on: ubuntu-latest
     env:
-      GOPATH: ${{ github.workspace }}
+      GOPATH: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
       GO111MODULE: on
 
     steps:
