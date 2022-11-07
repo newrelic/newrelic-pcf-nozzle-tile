@@ -32,7 +32,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
-        path: go/src/github.com/${{ github.repository }}
+        path: go/src/github.com/newrelic-pcf-nozzle-tile
 
     - name: Install dependencies 
       run: |
