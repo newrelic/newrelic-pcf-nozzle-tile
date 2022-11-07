@@ -15,6 +15,9 @@ jobs:
     env:
       GOPATH: ${{ github.workspace }}
       GO111MODULE: off
+    run: |
+      echo ${GOPATH}
+      echo ${GOROOT}
 
     steps:
     - uses: actions/setup-go@v2
