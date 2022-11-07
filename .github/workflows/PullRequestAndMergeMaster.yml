@@ -48,6 +48,8 @@ jobs:
         curl -O -L https://github.com/cf-platform-eng/tile-generator/releases/download/v14.0.3/tile_linux-64bit
         chmod +x tile_linux-64bit
         sudo mv tile_linux-64bit /usr/local/bin/tile
+      env:
+        GOPATH: /home/runner/work/newrelic-pcf-nozzle-tile/go
 
     - name: Get version
       id: get_version
