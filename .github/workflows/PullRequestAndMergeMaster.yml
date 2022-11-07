@@ -13,13 +13,15 @@ jobs:
     name: Build And Test
     runs-on: ubuntu-latest
     env:
-      GOPATH: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
+      GOPATH: /home/runner/work/newrelic-pcf-nozzle-tile/go
       GO111MODULE: on
 
     steps:
     - name: Debug
       run: |
         pwd
+        echo ${HOME}
+        echo ${GITHUB_WORKSPACE}
         echo ${GOPATH}
         echo ${GOROOT}
     - uses: actions/setup-go@v2
@@ -30,7 +32,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
-        path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
+        path: go/src/github.com/${{ github.repository }}
 
     - name: Install dependencies 
       run: |
