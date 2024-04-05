@@ -5,7 +5,7 @@ BINARY_NAME   = nr-fh-nozzle
 GO_FILES     := ./...
 GO_INTEGRATION_FILE := ./tests/...
 #Release version must be mayor.minor.patch for tile generator
-RELEASE_TAG   ?= 2.8.0
+RELEASE_TAG   ?= 2.9.0
 TEST_DEPS     = github.com/axw/gocov/gocov github.com/AlekSi/gocov-xml
 
 all: release
