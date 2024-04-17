@@ -13,10 +13,17 @@ jobs:
     name: Build And Test
     runs-on: ubuntu-latest
     env:
-      GOPATH: ${{ github.workspace }}
+      GOPATH: /home/runner/work/newrelic-pcf-nozzle-tile/go
       GO111MODULE: on
 
     steps:
+    - name: Debug
+      run: |
+        pwd
+        echo ${HOME}
+        echo ${GITHUB_WORKSPACE}
+        echo ${GOPATH}
+        echo ${GOROOT}
     - uses: actions/setup-go@v2
       with:
         go-version: 1.19
@@ -25,11 +32,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
-        path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
+        path: go/src/github.com/newrelic-pcf-nozzle-tile
 
     - name: Install dependencies 
       run: |
-        go install
+        go get .
 
         # Dependencies needed to generate the tile 
         sudo apt update && sudo apt install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt1-dev libxml2-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3
@@ -41,6 +48,8 @@ jobs:
         curl -O -L https://github.com/cf-platform-eng/tile-generator/releases/download/v14.0.3/tile_linux-64bit
         chmod +x tile_linux-64bit
         sudo mv tile_linux-64bit /usr/local/bin/tile
+      env:
+        GOPATH: /home/runner/work/newrelic-pcf-nozzle-tile/go
 
     - name: Get version
       id: get_version
