@@ -449,8 +449,6 @@ github.com/nakabonne/nestif v0.3.0/go.mod h1:dI314BppzXjJ4HsCnbo7XzrJHPszZsjnk5w
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96djdrsSGy3AWPyBgZMAGfxZNfgntdJG+11KU4QvbU=
 github.com/newrelic/newrelic-client-go v0.47.1 h1:XiXC7tTRVMN03n1xyx2MrD0AUYpQ65bRGaw+ciUiRVc=
 github.com/newrelic/newrelic-client-go v0.47.1/go.mod h1:SRy/dX0pmFKfhuW+Ee5HN9PjF/u2jPXXoSWgyFIhkNY=
-github.com/newrelic/newrelic-pcf-nozzle-tile v2.6.0+incompatible h1:szUfcEMhGi2BjQR3X14soPLX0uHDG5ukoawYFWxuqK0=
-github.com/newrelic/newrelic-pcf-nozzle-tile v2.6.0+incompatible/go.mod h1:r+M50sXCisWq7D4McGG6pjYEhfhTnXDn2I7HOHdGhYU=
 github.com/newrelic/tutone v0.2.5/go.mod h1:Jv8miaLyP2pjx4wqvAdx1nLXMx/Cl7kmsNiKZlCeIds=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=

@@ -1,388 +1,508 @@
 {
-    "dashboard": {
-      "title": "VMware Tanzu",
+  "name": "VMware Tanzu",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "VMware Tanzu",
       "description": null,
-      "icon": "bar-chart",
-      "visibility": "all",
-      "editable": "editable_by_all",
-      "metadata": {
-        "version": 1
-      },
       "widgets": [
         {
-          "visualization": "facet_table",
+          "id": "widget-1",
+          "visualization": {
+            "id": "viz.table"
+          },
           "layout": {
-            "width": 1,
-            "height": 1,
+            "column": 1,
             "row": 1,
-            "column": 1
+            "width": 4,
+            "height": 3
           },
-          "data": [
-            {
-              "nrql": "SELECT count(*) AS 'Event Count' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric facet pcf.domain"
-            }
-          ],
-          "presentation": {
-            "title": "Domains",
-            "notes": null,
-            "drilldown_dashboard_id": null
+          "title": "Domains",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT count(*) AS 'Event Count' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric facet pcf.domain"
+              }
+            ]
           }
         },
         {
-          "visualization": "facet_table",
+          "id": "widget-2",
+          "visualization": {
+            "id": "viz.table"
+          },
           "layout": {
-            "width": 1,
-            "height": 1,
+            "column": 5,
             "row": 1,
-            "column": 2
+            "width": 4,
+            "height": 3
           },
-          "data": [
-            {
-              "nrql": "select uniqueCount(app.space.name) as 'Spaces', count(*) as 'Events' from PCFContainerMetric facet app.org.name limit 1000"
-            }
-          ],
-          "presentation": {
-            "title": "Apps by Org",
-            "notes": null,
-            "drilldown_dashboard_id": null
+          "title": "Apps by Org",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select uniqueCount(app.space.name) as 'Spaces', count(*) as 'Events' from PCFContainerMetric facet app.org.name limit 1000"
+              }
+            ]
           }
         },
         {
-          "visualization": "markdown",
+          "id": "widget-3",
+          "visualization": {
+            "id": "viz.markdown"
+          },
           "layout": {
-            "width": 1,
-            "height": 2,
+            "column": 9,
             "row": 1,
-            "column": 3
+            "width": 4,
+            "height": 6
           },
-          "data": [
-            {
-              "source": "::: beyond\n **VMware Tanzu (ex PCF)** \n\nThis dashboard provides an overview of your VMware Tanzu platform health. Apply filters to focus on a specific application or domain.\n\n___\n\n![](https://integrations.nr-assets.net/icons/docs.png) [Documentation](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-tanzu-pcf-integration)\n\n![](https://integrations.nr-assets.net/icons/alerts.png) [Create Alert](https://alerts.newrelic.com)\n:::"
-            }
-          ],
-          "presentation": {
-            "title": "",
-            "notes": null
+          "title": "",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "text": "::: beyond\n **VMware Tanzu (ex PCF)** \n\nThis dashboard provides an overview of your VMware Tanzu platform health. Apply filters to focus on a specific application or domain.\n\n___\n\n![](https://integrations.nr-assets.net/icons/docs.png) [Documentation](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-tanzu-pcf-integration)\n\n![](https://integrations.nr-assets.net/icons/alerts.png) [Create Alert](https://alerts.newrelic.com)\n:::"
           }
         },
         {
-          "visualization": "facet_table",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 2,
-            "column": 1
+          "id": "widget-4",
+          "visualization": {
+            "id": "viz.table"
           },
-          "data": [
-            {
-              "nrql": "select uniqueCount(app.instance.uid) as 'Instances', count(*) as 'Events' from PCFContainerMetric facet app.name limit 1000"
-            }
-          ],
-          "presentation": {
-            "title": "Apps by name",
-            "notes": null,
-            "drilldown_dashboard_id": null
-          }
-        },
-        {
-          "visualization": "facet_table",
           "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 2,
-            "column": 2
-          },
-          "data": [
-            {
-              "nrql": "select uniqueCount(app.name) as 'Apps', count(*) as 'Events' from PCFContainerMetric facet app.space.name limit 1000"
-            }
-          ],
-          "presentation": {
-            "title": "Apps by Space",
-            "notes": null,
-            "drilldown_dashboard_id": null
-          }
-        },
-        {
-          "visualization": "faceted_line_chart",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 3,
-            "column": 1
-          },
-          "data": [
-            {
-              "nrql": "select average(metric.sum / metric.samples.count) from PCFContainerMetric WHERE metric.name = 'app.cpu' facet app.name timeseries"
-            }
-          ],
-          "presentation": {
-            "title": "Application CPU Usage %",
-            "notes": null
-          }
-        },
-        {
-          "visualization": "faceted_line_chart",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 3,
-            "column": 2
-          },
-          "data": [
-            {
-              "nrql": "select average(app.memory.used) from PCFContainerMetric WHERE metric.name = 'app.memory' facet app.instance.uid timeseries"
-            }
-          ],
-          "presentation": {
-            "title": "Memory Usage % by Apps",
-            "notes": null
-          }
-        },
-        {
-          "visualization": "faceted_line_chart",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 3,
-            "column": 3
-          },
-          "data": [
-            {
-              "nrql": "select average(app.disk.used) from PCFContainerMetric WHERE metric.name = 'app.disk' facet app.instance.uid timeseries"
-            }
-          ],
-          "presentation": {
-            "title": "Disk Usage % by Application",
-            "notes": null
-          }
-        },
-        {
-          "visualization": "facet_table",
-          "layout": {
-            "width": 1,
-            "height": 1,
+            "column": 1,
             "row": 4,
-            "column": 1
+            "width": 4,
+            "height": 3
           },
-          "data": [
-            {
-              "nrql": "SELECT count(*) as Crashes from PCFLogMessage where log.message like '%\"CRASHED\"%' facet app.name"
-            }
-          ],
-          "presentation": {
-            "title": "Crash count by Apps",
-            "notes": null,
-            "drilldown_dashboard_id": null
+          "title": "Apps by name",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select uniqueCount(app.instance.uid) as 'Instances', count(*) as 'Events' from PCFContainerMetric facet app.name limit 1000"
+              }
+            ]
           }
         },
         {
-          "visualization": "facet_bar_chart",
+          "id": "widget-5",
+          "visualization": {
+            "id": "viz.table"
+          },
           "layout": {
-            "width": 1,
-            "height": 1,
+            "column": 5,
             "row": 4,
-            "column": 2
+            "width": 4,
+            "height": 3
           },
-          "data": [
-            {
-              "nrql": "SELECT count(*) FROM PCFLogMessage facet app.instance.uid WHERE log.message.type = 'ERR'"
-            }
-          ],
-          "presentation": {
-            "title": "Error count per App",
-            "notes": null,
-            "drilldown_dashboard_id": null
+          "title": "Apps by Space",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select uniqueCount(app.name) as 'Apps', count(*) as 'Events' from PCFContainerMetric facet app.space.name limit 1000"
+              }
+            ]
           }
         },
         {
-          "visualization": "faceted_line_chart",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 4,
-            "column": 3
+          "id": "widget-6",
+          "visualization": {
+            "id": "viz.line"
           },
-          "data": [
-            {
-              "nrql": "SELECT count(*) as 'Crashes' from PCFLogMessage where log.message like '%\"CRASHED\"%' facet app.name timeseries"
-            }
-          ],
-          "presentation": {
-            "title": "Apps Crash History",
-            "notes": null
-          }
-        },
-        {
-          "visualization": "billboard",
           "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 5,
-            "column": 1
-          },
-          "data": [
-            {
-              "nrql": "SELECT sum(metric.sum) as 'Failed Task Placements' FROM PCFCounterEvent WHERE metric.name = 'AuctioneerTaskAuctionsFailed'"
-            }
-          ],
-          "presentation": {
-            "title": "Auctioneer Task Placement Failures",
-            "notes": "The number of Tasks that the auctioneer failed to place on Diego cells. This metric is cumulative over the lifetime of the auctioneer job.",
-            "threshold": {
-              "red": 1,
-              "yellow": 0.5
-            }
-          }
-        },
-        {
-          "visualization": "facet_bar_chart",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 5,
-            "column": 2
-          },
-          "data": [
-            {
-              "nrql": "select count(*) from PCFHttpStartStop FACET http.status"
-            }
-          ],
-          "presentation": {
-            "title": "Http Status Codes",
-            "notes": null,
-            "drilldown_dashboard_id": null
-          }
-        },
-        {
-          "visualization": "billboard",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 5,
-            "column": 3
-          },
-          "data": [
-            {
-              "nrql": "SELECT sum(metric.sum) as 'Started Auctioneer LRPs' FROM PCFCounterEvent WHERE metric.name = 'AuctioneerLRPAuctionsStarted'"
-            }
-          ],
-          "presentation": {
-            "title": "Auctioneer App Instance Starts",
-            "notes": "The number of LRP instances that the auctioneer successfully placed on Diego cells. This metric is cumulative over the lifetime of the auctioneer job.",
-            "threshold": {}
-          }
-        },
-        {
-          "visualization": "billboard",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 6,
-            "column": 1
-          },
-          "data": [
-            {
-              "nrql": "SELECT max(metric.max)  FROM PCFValueMetric SINCE 5 minutes ago WHERE metric.name = 'UnhealthyCell'"
-            }
-          ],
-          "presentation": {
-            "title": "Diego Cell - Unhealthy Cells",
-            "notes": "The Diego cell periodically checks its health against the garden backend. For Diego cells, 0 means healthy, and 1 means unhealthy.",
-            "threshold": {
-              "red": 1,
-              "yellow": null
-            }
-          }
-        },
-        {
-          "visualization": "facet_table",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 6,
-            "column": 2
-          },
-          "data": [
-            {
-              "nrql": "SELECT latest(metric.sample.last.value)/1024 AS 'Remaining Memory GB' FROM PCFValueMetric FACET pcf.IP WHERE metric.name = 'CapacityRemainingMemory' AND pcf.job ='diego_cell'"
-            }
-          ],
-          "presentation": {
-            "title": "Diego Cell Remaining Memory in GB",
-            "notes": null,
-            "drilldown_dashboard_id": null
-          }
-        },
-        {
-          "visualization": "facet_table",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 6,
-            "column": 3
-          },
-          "data": [
-            {
-              "nrql": "SELECT latest(metric.sample.last.value)/1024 AS 'Remaining Disk GB' FROM PCFValueMetric FACET pcf.IP  WHERE metric.name = 'CapacityRemainingDisk' AND pcf.job ='diego_cell'"
-            }
-          ],
-          "presentation": {
-            "title": "Diego Cell Remaining Disk in GB",
-            "notes": null,
-            "drilldown_dashboard_id": null
-          }
-        },
-        {
-          "visualization": "billboard",
-          "layout": {
-            "width": 1,
-            "height": 1,
+            "column": 1,
             "row": 7,
-            "column": 1
+            "width": 4,
+            "height": 3
           },
-          "data": [
-            {
-              "nrql": "SELECT sum(metric.sum) as 'Dropped Messages' FROM PCFValueMetric SINCE 5 minutes AGO WHERE metric.name = 'opentsdb.nozzle.DopplerServer.doppler.shedEnvelopes'"
-            }
-          ],
-          "presentation": {
-            "title": "Firehose Dropped Messages",
-            "notes": "The lifetime total number of messages intentionally dropped by Doppler due to back pressure.",
-            "threshold": {
-              "red": 10,
-              "yellow": 5
-            }
+          "title": "Application CPU Usage %",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select average(metric.sum / metric.samples.count) from PCFContainerMetric WHERE metric.name = 'app.cpu' facet app.name timeseries"
+              }
+            ]
           }
         },
         {
-          "visualization": "line_chart",
-          "layout": {
-            "width": 1,
-            "height": 1,
-            "row": 7,
-            "column": 2
+          "id": "widget-7",
+          "visualization": {
+            "id": "viz.line"
           },
-          "data": [
-            {
-              "nrql": "SELECT count(*) as 'All Events' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric TIMESERIES"
-            }
-          ],
-          "presentation": {
-            "title": "Number of Events",
-            "notes": null
+          "layout": {
+            "column": 5,
+            "row": 7,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Memory Usage % by Apps",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select average(app.memory.used) from PCFContainerMetric WHERE metric.name = 'app.memory' facet app.instance.uid timeseries"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-8",
+          "visualization": {
+            "id": "viz.line"
+          },
+          "layout": {
+            "column": 9,
+            "row": 7,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Disk Usage % by Application",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select average(app.disk.used) from PCFContainerMetric WHERE metric.name = 'app.disk' facet app.instance.uid timeseries"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-9",
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 1,
+            "row": 10,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Crash count by Apps",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT count(*) as Crashes from PCFLogMessage where log.message like '%\"CRASHED\"%' facet app.name"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-10",
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 5,
+            "row": 10,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Error count per App",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT count(*) FROM PCFLogMessage facet app.instance.uid WHERE log.message.type = 'ERR'"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-11",
+          "visualization": {
+            "id": "viz.line"
+          },
+          "layout": {
+            "column": 9,
+            "row": 10,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Apps Crash History",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT count(*) as 'Crashes' from PCFLogMessage where log.message like '%\"CRASHED\"%' facet app.name timeseries"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-12",
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 13,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Auctioneer Task Placement Failures",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT sum(metric.sum) as 'Failed Task Placements' FROM PCFCounterEvent WHERE metric.name = 'AuctioneerTaskAuctionsFailed'"
+              }
+            ],
+            "thresholds": [
+              {
+                "value":                1,
+                "alertSeverity": "CRITICAL"
+              },
+              {
+                "value": 0.5,
+                "alertSeverity": "WARNING"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-13",
+          "visualization": {
+            "id": "viz.bar"
+          },
+          "layout": {
+            "column": 5,
+            "row": 13,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Http Status Codes",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "select count(*) from PCFHttpStartStop FACET http.status"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-14",
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 9,
+            "row": 13,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Auctioneer App Instance Starts",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT sum(metric.sum) as 'Started Auctioneer LRPs' FROM PCFCounterEvent WHERE metric.name = 'AuctioneerLRPAuctionsStarted'"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-15",
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 16,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Diego Cell - Unhealthy Cells",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT max(metric.max) FROM PCFValueMetric SINCE 5 minutes ago WHERE metric.name = 'UnhealthyCell'"
+              }
+            ],
+            "thresholds": [
+              {
+                "value": 1,
+                "alertSeverity": "CRITICAL"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-16",
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 5,
+            "row": 16,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Diego Cell Remaining Memory in GB",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT latest(metric.sample.last.value)/1024 AS 'Remaining Memory GB' FROM PCFValueMetric FACET pcf.IP WHERE metric.name = 'CapacityRemainingMemory' AND pcf.job ='diego_cell'"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-17",
+          "visualization": {
+            "id": "viz.table"
+          },
+          "layout": {
+            "column": 9,
+            "row": 16,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Diego Cell Remaining Disk in GB",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT latest(metric.sample.last.value)/1024 AS 'Remaining Disk GB' FROM PCFValueMetric FACET pcf.IP WHERE metric.name = 'CapacityRemainingDisk' AND pcf.job ='diego_cell'"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-18",
+          "visualization": {
+            "id": "viz.billboard"
+          },
+          "layout": {
+            "column": 1,
+            "row": 19,
+            "width": 4,
+            "height": 3
+          },
+          "title": "Firehose Dropped Messages",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT sum(metric.sum) as 'Dropped Messages' FROM PCFValueMetric SIN                5 minutes AGO WHERE metric.name = 'opentsdb.nozzle.DopplerServer.doppler.shedEnvelopes'"
+              }
+            ],
+            "thresholds": [
+              {
+                "value": 10,
+                "alertSeverity": "CRITICAL"
+              },
+              {
+                "value": 5,
+                "alertSeverity": "WARNING"
+              }
+            ]
+          }
+        },
+        {
+          "id": "widget-19",
+          "visualization": {
+            "id": "viz.line"
+          },
+          "layout": {
+            "column": 5,
+            "row": 19,
+            "width": 8,
+            "height": 3
+          },
+          "title": "Number of Events",
+          "linkedEntityGuids": null,
+          "configuration": {},
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [
+                  1074083
+                ],
+                "query": "SELECT count(*) as 'All Events' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric TIMESERIES"
+              }
+            ]
           }
         }
-      ],
-      "filter": {
-        "event_types": [
-          "PCFContainerMetric",
-          "PCFCounterEvent",
-          "PCFHttpStartStop",
-          "PCFLogMessage",
-          "PCFValueMetric"
-        ],
-        "attributes": []
-      }
+      ]
     }
-  }
+  ],
+  "variables": []
+}

@@ -1,4 +1,4 @@
-module Users/mansar/Work/Projects/cloudfoundry/newrelic-pcf-nozzle-tile
+module github.com/newrelic/newrelic-pcf-nozzle-tile
 
 go 1.19
 
@@ -10,7 +10,6 @@ require (
 	github.com/cloudfoundry/go-loggregator v7.4.0+incompatible
 	github.com/golang/protobuf v1.4.2
 	github.com/newrelic/newrelic-client-go v0.47.1
-	github.com/newrelic/newrelic-pcf-nozzle-tile v2.6.0+incompatible
 	github.com/onsi/ginkgo v1.13.0
 	github.com/onsi/gomega v1.10.1
 	github.com/sirupsen/logrus v1.7.0
