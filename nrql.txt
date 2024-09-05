@@ -1,0 +1,1 @@
+SELECT uniqueCount(metric.name) FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric FACET agent.subscription
