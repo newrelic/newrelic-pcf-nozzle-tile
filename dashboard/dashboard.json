@@ -1,6 +1,6 @@
 {
   "name": "VMware Tanzu",
-  "description": null,
+  "description": "Please update with your accountID",
   "permissions": "PUBLIC_READ_WRITE",
   "pages": [
     {
@@ -8,19 +8,17 @@
       "description": null,
       "widgets": [
         {
-          "id": "widget-1",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Domains",
           "layout": {
             "column": 1,
             "row": 1,
             "width": 4,
             "height": 3
           },
-          "title": "Domains",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -33,19 +31,17 @@
           }
         },
         {
-          "id": "widget-2",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Apps by Org",
           "layout": {
             "column": 5,
             "row": 1,
             "width": 4,
             "height": 3
           },
-          "title": "Apps by Org",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -58,37 +54,33 @@
           }
         },
         {
-          "id": "widget-3",
-          "visualization": {
-            "id": "viz.markdown"
-          },
+          "title": "",
           "layout": {
             "column": 9,
             "row": 1,
             "width": 4,
             "height": 6
           },
-          "title": "",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.markdown"
+          },
           "rawConfiguration": {
             "text": "::: beyond\n **VMware Tanzu (ex PCF)** \n\nThis dashboard provides an overview of your VMware Tanzu platform health. Apply filters to focus on a specific application or domain.\n\n___\n\n![](https://integrations.nr-assets.net/icons/docs.png) [Documentation](https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/vmware-tanzu-pcf-integration)\n\n![](https://integrations.nr-assets.net/icons/alerts.png) [Create Alert](https://alerts.newrelic.com)\n:::"
           }
         },
         {
-          "id": "widget-4",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Apps by name",
           "layout": {
             "column": 1,
             "row": 4,
             "width": 4,
             "height": 3
           },
-          "title": "Apps by name",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -101,19 +93,17 @@
           }
         },
         {
-          "id": "widget-5",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Apps by Space",
           "layout": {
             "column": 5,
             "row": 4,
             "width": 4,
             "height": 3
           },
-          "title": "Apps by Space",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -126,19 +116,17 @@
           }
         },
         {
-          "id": "widget-6",
-          "visualization": {
-            "id": "viz.line"
-          },
+          "title": "Application CPU Usage %",
           "layout": {
             "column": 1,
             "row": 7,
             "width": 4,
             "height": 3
           },
-          "title": "Application CPU Usage %",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.line"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -151,19 +139,17 @@
           }
         },
         {
-          "id": "widget-7",
-          "visualization": {
-            "id": "viz.line"
-          },
+          "title": "Memory Usage % by Apps",
           "layout": {
             "column": 5,
             "row": 7,
             "width": 4,
             "height": 3
           },
-          "title": "Memory Usage % by Apps",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.line"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -176,19 +162,17 @@
           }
         },
         {
-          "id": "widget-8",
-          "visualization": {
-            "id": "viz.line"
-          },
+          "title": "Disk Usage % by Application",
           "layout": {
             "column": 9,
             "row": 7,
             "width": 4,
             "height": 3
           },
-          "title": "Disk Usage % by Application",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.line"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -201,19 +185,17 @@
           }
         },
         {
-          "id": "widget-9",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Crash count by Apps",
           "layout": {
             "column": 1,
             "row": 10,
             "width": 4,
             "height": 3
           },
-          "title": "Crash count by Apps",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -226,19 +208,17 @@
           }
         },
         {
-          "id": "widget-10",
-          "visualization": {
-            "id": "viz.bar"
-          },
+          "title": "Error count per App",
           "layout": {
             "column": 5,
             "row": 10,
             "width": 4,
             "height": 3
           },
-          "title": "Error count per App",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.bar"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -251,19 +231,17 @@
           }
         },
         {
-          "id": "widget-11",
-          "visualization": {
-            "id": "viz.line"
-          },
+          "title": "Apps Crash History",
           "layout": {
             "column": 9,
             "row": 10,
             "width": 4,
             "height": 3
           },
-          "title": "Apps Crash History",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.line"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -276,19 +254,17 @@
           }
         },
         {
-          "id": "widget-12",
-          "visualization": {
-            "id": "viz.billboard"
-          },
+          "title": "Auctioneer Task Placement Failures",
           "layout": {
             "column": 1,
             "row": 13,
             "width": 4,
             "height": 3
           },
-          "title": "Auctioneer Task Placement Failures",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.billboard"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -300,30 +276,28 @@
             ],
             "thresholds": [
               {
-                "value":                1,
-                "alertSeverity": "CRITICAL"
+                "alertSeverity": "CRITICAL",
+                "value": 1
               },
               {
-                "value": 0.5,
-                "alertSeverity": "WARNING"
+                "alertSeverity": "WARNING",
+                "value": 0.5
               }
             ]
           }
         },
         {
-          "id": "widget-13",
-          "visualization": {
-            "id": "viz.bar"
-          },
+          "title": "Http Status Codes",
           "layout": {
             "column": 5,
             "row": 13,
             "width": 4,
             "height": 3
           },
-          "title": "Http Status Codes",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.bar"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -336,19 +310,17 @@
           }
         },
         {
-          "id": "widget-14",
-          "visualization": {
-            "id": "viz.billboard"
-          },
+          "title": "Auctioneer App Instance Starts",
           "layout": {
             "column": 9,
             "row": 13,
             "width": 4,
             "height": 3
           },
-          "title": "Auctioneer App Instance Starts",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.billboard"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -361,19 +333,17 @@
           }
         },
         {
-          "id": "widget-15",
-          "visualization": {
-            "id": "viz.billboard"
-          },
+          "title": "Diego Cell - Unhealthy Cells",
           "layout": {
             "column": 1,
             "row": 16,
             "width": 4,
             "height": 3
           },
-          "title": "Diego Cell - Unhealthy Cells",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.billboard"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -385,26 +355,24 @@
             ],
             "thresholds": [
               {
-                "value": 1,
-                "alertSeverity": "CRITICAL"
+                "alertSeverity": "CRITICAL",
+                "value": 1
               }
             ]
           }
         },
         {
-          "id": "widget-16",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Diego Cell Remaining Memory in GB",
           "layout": {
             "column": 5,
             "row": 16,
             "width": 4,
             "height": 3
           },
-          "title": "Diego Cell Remaining Memory in GB",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -417,19 +385,17 @@
           }
         },
         {
-          "id": "widget-17",
-          "visualization": {
-            "id": "viz.table"
-          },
+          "title": "Diego Cell Remaining Disk in GB",
           "layout": {
             "column": 9,
             "row": 16,
             "width": 4,
             "height": 3
           },
-          "title": "Diego Cell Remaining Disk in GB",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.table"
+          },
           "rawConfiguration": {
             "nrqlQueries": [
               {
@@ -442,63 +408,73 @@
           }
         },
         {
-          "id": "widget-18",
-          "visualization": {
-            "id": "viz.billboard"
-          },
+          "title": "Firehose Dropped Messages",
           "layout": {
             "column": 1,
             "row": 19,
             "width": 4,
             "height": 3
           },
-          "title": "Firehose Dropped Messages",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.billboard"
+          },
           "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
             "nrqlQueries": [
               {
                 "accountIds": [
                   1074083
                 ],
-                "query": "SELECT sum(metric.sum) as 'Dropped Messages' FROM PCFValueMetric SIN                5 minutes AGO WHERE metric.name = 'opentsdb.nozzle.DopplerServer.doppler.shedEnvelopes'"
+                "query": "SELECT sum(metric.sum) as 'Dropped Messages' FROM PCFValueMetric SINCE 5 minutes AGO WHERE metric.name = 'opentsdb.nozzle.DopplerServer.doppler.shedEnvelopes'"
               }
             ],
-            "thresholds": [
-              {
-                "value": 10,
-                "alertSeverity": "CRITICAL"
-              },
-              {
-                "value": 5,
-                "alertSeverity": "WARNING"
-              }
-            ]
+            "platformOptions": {
+              "ignoreTimeRange": false
+            }
           }
         },
         {
-          "id": "widget-19",
-          "visualization": {
-            "id": "viz.line"
-          },
+          "title": "Number of Events",
           "layout": {
             "column": 5,
             "row": 19,
-            "width": 8,
+            "width": 4,
             "height": 3
           },
-          "title": "Number of Events",
           "linkedEntityGuids": null,
-          "configuration": {},
+          "visualization": {
+            "id": "viz.line"
+          },
           "rawConfiguration": {
+            "facet": {
+              "showOtherSeries": false
+            },
+            "legend": {
+              "enabled": true
+            },
             "nrqlQueries": [
               {
                 "accountIds": [
                   1074083
                 ],
-                "query": "SELECT count(*) as 'All Events' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric TIMESERIES"
+                "query": "SELECT count(*) as 'All Events' FROM PCFContainerMetric, PCFCounterEvent, PCFHttpStartStop, PCFLogMessage, PCFValueMetric TIMESERIES "
               }
-            ]
+            ],
+            "platformOptions": {
+              "ignoreTimeRange": false
+            },
+            "thresholds": {
+              "isLabelVisible": true
+            },
+            "yAxisLeft": {
+              "zero": true
+            },
+            "yAxisRight": {
+              "zero": true
+            }
           }
         }
       ]
