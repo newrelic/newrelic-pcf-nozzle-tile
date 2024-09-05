@@ -3,6 +3,7 @@
 # Replace these properties with real values.
 #
 name: nr-firehose-nozzle # By convention lowercase with dashes
+version: 2.10.0
 icon_file: resources/images/NR_logo.png
 label: New Relic Firehose Nozzle
 description: This tile is used to feed PCF log events and metrics to New Relic insights
