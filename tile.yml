@@ -3,11 +3,11 @@
 # Replace these properties with real values.
 #
 name: nr-firehose-nozzle # By convention lowercase with dashes
-version: 2.10.0
+version: 2.11.1
 icon_file: resources/images/NR_logo.png
 label: New Relic Firehose Nozzle
 description: This tile is used to feed PCF log events and metrics to New Relic insights
-metadata_version: 1.9            # Optional, defaults to 1.8
+metadata_version: 3.0            # Optional, defaults to 1.8
 
 stemcell_criteria:
   os: 'ubuntu-jammy'
