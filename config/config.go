@@ -68,7 +68,10 @@ func set() *Config {
 
 	v.SetDefault("Version", "dev")
 
-	v.SetDefault("CF_SKIP_SSL", true)
+	// SECURITY: SSL/TLS certificate verification should be enabled in production.
+	// Only set NRF_CF_SKIP_SSL=true in development environments with self-signed certificates.
+	// Disabling SSL verification exposes the application to man-in-the-middle attacks.
+	v.SetDefault("CF_SKIP_SSL", false)
 
 	v.SetDefault("HEALTH_PORT", 8080)
 
