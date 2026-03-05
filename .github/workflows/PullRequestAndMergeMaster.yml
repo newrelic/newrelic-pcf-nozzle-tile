@@ -8,6 +8,11 @@ on:
   release:
     types:
       - published
+
+permissions:
+  contents: write
+  pull-requests: read
+
 jobs:
   BuildAndTest:
     name: Build And Test

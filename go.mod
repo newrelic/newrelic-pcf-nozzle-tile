@@ -1,8 +1,6 @@
 module github.com/newrelic/newrelic-pcf-nozzle-tile
 
-go 1.23.0
-
-toolchain go1.23.11
+go 1.25.0
 
 require (
 	code.cloudfoundry.org/go-diodes v0.0.0-20190809170250-f77fb823c7ee
@@ -10,7 +8,7 @@ require (
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190808214049-35bcce23fc5f
 	github.com/cloudfoundry-incubator/uaago v0.0.0-20190307164349-8136b7bbe76e
 	github.com/cloudfoundry/go-loggregator v7.4.0+incompatible
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.5.4
 	github.com/newrelic/newrelic-client-go v0.47.1
 	github.com/onsi/ginkgo v1.13.0
 	github.com/onsi/gomega v1.10.1
@@ -25,10 +23,9 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
-	github.com/hashicorp/go-retryablehttp v0.6.7 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
@@ -42,15 +39,14 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/appengine v1.6.6 // indirect
-	google.golang.org/genproto v0.0.0-20200608115520-7c474a2e3482 // indirect
-	google.golang.org/grpc v1.29.1 // indirect
-	google.golang.org/protobuf v1.24.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/grpc v1.79.1 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.57.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect

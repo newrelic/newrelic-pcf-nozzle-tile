@@ -27,6 +27,8 @@ func NewHttpFirehose(c *api.Client, conf *config.Config) *HttpFirehose {
 		httpClient: &http.Client{
 			Transport: &http.Transport{
 				DisableKeepAlives: true,
+				// SECURITY: InsecureSkipVerify should remain false in production
+				// to prevent man-in-the-middle attacks
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: conf.GetBool("CF_SKIP_SSL"),
 				},
