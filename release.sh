@@ -22,9 +22,9 @@ echo "> running: go mod tidy"
 go mod tidy
 
 echo "> running: go build"
-go build -ldflags "-X main.Version=$(git describe)" -o $DIST_DIR/$BINARY
+go build -ldflags "-X main.Version=$(git describe --tags)" -o $DIST_DIR/$BINARY
 
 echo "> compressing binary"
 tar -czvf $DIST_DIR/$BINARY.tar.gz $DIST_DIR/$BINARY
 
-echo "> $(git describe) ready"
+echo "> $(git describe --tags) ready"
