@@ -1,12 +1,12 @@
 [![New Relic Community Plus header](https://raw.githubusercontent.com/newrelic/open-source-office/master/examples/categories/images/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
 
-# New Relic VMware Tanzu Nozzle Tile Tile
+# New Relic VMware Tanzu Nozzle Tile
 
 The New Relic VMware Tanzu (PCF) Nozzle Tile is a Firehose nozzle that forwards metrics from [VMware Tanzu Loggregator][a] in [VMware Tanzu][b] to [New Relic][c] for visualization.
 ​
 This code can be either pushed as a regular VMware Tanzu application with `cf push` or installed in Ops Manager using the tile version.
 ​
-The tile is also available in the [Pivotal Network][f] alongside the [documentation][h] describing how to configure and use the nozzle.
+tile is also available in the [Pivotal Network][f] alongside the [documentation][h] describing how to configure and use the nozzle.
 ​
 See our [documentation](https://docs.newrelic.com/docs/vmwaretanzu-integration-new-relic-infrastructure) for more details.
 
