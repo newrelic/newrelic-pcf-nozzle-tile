@@ -124,9 +124,9 @@ func (c *CFAppManager) FetchApp(a *CFApp) error {
 	if err != nil {
 		err = fmt.Errorf("CF api error %s on GUID %s", err.Error(), a.GUID)
 		c.app.Log.Warn(err)
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			//401 unauthorized -- token has expired so we need to refresh the client
-			app.Get().Log.Warn("cfClient 401 error. Refreshing client due to this error: %s", err.Error())
+		if isAuthError(err) {
+			//token is no longer valid (expired, or signature can't be verified e.g. after UAA key rotation) -- refresh the client
+			app.Get().Log.Warnf("cfClient auth error. Refreshing client due to this error: %s", err.Error())
 			go c.UpdateClient()
 		}
 		return err
@@ -174,6 +174,18 @@ func newClient(app *app.Application) *cfclient.Client {
 		app.Log.Fatalf("unable to connect to cf-client: %s", err.Error())
 	}
 	return client
+}
+
+// isAuthError reports whether err indicates the cached CF API token is no longer usable.
+// Besides a plain 401, UAA signing-key rotation surfaces as an oauth2 token error (e.g.
+// `oauth2: "invalid_token" "Could not verify token signature."`) when the client silently
+// tries to refresh a token signed under a key UAA no longer trusts.
+func isAuthError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "401 Unauthorized") || strings.Contains(msg, "oauth2:")
 }
 
 // UpdateClient when the token expires we need a fresh client
