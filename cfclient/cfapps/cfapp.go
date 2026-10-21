@@ -6,7 +6,6 @@ package cfapps
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -99,9 +98,9 @@ func (a *CFApp) UpdateInstances() {
 	defer a.Lock.Unlock()
 
 	if err != nil {
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			//401 unauthorized -- token has expired so we need to refresh the client
-			app.Get().Log.Warn("cfClient 401 error. Refreshing client due to this error: %s", err.Error())
+		if isAuthError(err) {
+			//token is no longer valid (expired, or signature can't be verified e.g. after UAA key rotation) -- refresh the client
+			app.Get().Log.Warnf("cfClient auth error. Refreshing client due to this error: %s", err.Error())
 			go GetInstance().UpdateClient()
 		}
 		if _, found := a.Summaries[0]; found {
@@ -139,9 +138,9 @@ func (a *CFApp) GetAppEnv() {
 	env, err := GetInstance().GetAppEnv(a.GUID)
 	if err != nil {
 		app.Get().Log.Errorf("GetAppEnv failed: %v", err)
-		if strings.Contains(err.Error(), "401 Unauthorized") {
-			//401 unauthorized -- token has expired so we need to refresh the client
-			app.Get().Log.Warn("cfClient 401 error. Refreshing client due to this error: %s", err.Error())
+		if isAuthError(err) {
+			//token is no longer valid (expired, or signature can't be verified e.g. after UAA key rotation) -- refresh the client
+			app.Get().Log.Warnf("cfClient auth error. Refreshing client due to this error: %s", err.Error())
 			go GetInstance().UpdateClient()
 		}
 		return

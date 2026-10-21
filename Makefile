@@ -34,6 +34,17 @@ integration-test: compile
 	@go clean -testcache
 	@go test $(GO_INTEGRATION_FILE) -tags=integration -v
 
+# cfclient/cfapps reads config at package-init time (see cfapp.go), so these NRF_*
+# placeholders must exist before the test binary starts; the test itself overrides
+# the ones it cares about (CF_API_URL/CF_API_UAA_URL) with mock server addresses.
+authtest:
+	@echo "=== $(INTEGRATION) === [ authtest ]: running CF API token self-heal tests..."
+	@go clean -testcache
+	@NRF_CF_API_URL=placeholder NRF_CF_API_UAA_URL=placeholder NRF_CF_CLIENT_ID=placeholder \
+		NRF_CF_CLIENT_SECRET=placeholder NRF_CF_API_USERNAME=placeholder NRF_CF_API_PASSWORD=placeholder \
+		NRF_NEWRELIC_INSERT_KEY=placeholder NRF_NEWRELIC_ACCOUNT_ID=placeholder \
+		go test ./cfclient/cfapps/... -tags=cfappsauth -v
+
 compile:
 	@echo "=== $(INTEGRATION) === [ compile ]: building $(BINARY_NAME)..."
 	@mkdir -p dist 
@@ -54,4 +65,4 @@ push: compile-linux
 	@cf login -a $(CF_API_URL) --skip-ssl-validation -u $(CF_USER) -p $(CF_PASSWORD) -o nr-firehose-nozzle-org
 	@cf push
 
-.PHONY: all build clean compile test-deps test release integration-test push compile-linux
+.PHONY: all build clean compile test-deps test release integration-test authtest push compile-linux
